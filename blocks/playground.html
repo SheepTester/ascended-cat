@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <title>Ascended Cat blocks playground</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
     <link rel="stylesheet" type="text/css" href="/sheep3.css">
     <link rel="stylesheet" href="./blocks.css">
+
     <script src="/sheep3.js" charset="utf-8"></script>
     <script src="../utils/elem.js" charset="utf-8"></script>
+    <script src="./blocks.js" charset="utf-8"></script>
+
     <style>
       html, body {
         height: 100%;
@@ -17,6 +21,8 @@
         font-size: 0;
         overflow: none;
         display: flex;
+        background-color: #222;
+        color: white;
       }
 
       .block-motion {
@@ -37,7 +43,7 @@ blocks.addCategory({
     {
       opcode: 'moveSteps',
       blockType: Blocks.BlockType.COMMAND,
-      // branchCount, terminal
+      // branchCount, terminal, (hat?)
       text: 'move [STEPS] steps',
       arguments: {
         STEPS: {
