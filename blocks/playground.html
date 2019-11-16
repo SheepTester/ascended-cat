@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Ascended Cat blocks playground</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" type="text/css" href="/sheep3.css">
+    <link rel="stylesheet" href="./blocks.css">
+    <script src="/sheep3.js" charset="utf-8"></script>
+    <script src="../utils/elem.js" charset="utf-8"></script>
+    <style>
+      html, body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-size: 0;
+        overflow: none;
+        display: flex;
+      }
+
+      .block-motion {
+        fill: #6A92BC;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="palette"></div>
+    <div id="scripts"></div>
+    <script>
+const blocks = new Blocks()
+// Add categories
+blocks.addCategory({
+  id: 'motion',
+  name: 'Motion',
+  blocks: [
+    {
+      opcode: 'moveSteps',
+      blockType: Blocks.BlockType.COMMAND,
+      // branchCount, terminal
+      text: 'move [STEPS] steps',
+      arguments: {
+        STEPS: {
+          type: Blocks.ArgumentType.NUMBER,
+          default: 10
+        }
+      }
+      // func, filter
+    },
+    {
+      opcode: 'goTo',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'go to x: [X] y: [Y] z: [Z]',
+      arguments: {
+        X: {
+          type: Blocks.ArgumentType.NUMBER,
+          default: 0 // TODO: Set from current position somehow
+        },
+        Y: {
+          type: Blocks.ArgumentType.NUMBER,
+          default: 0
+        },
+        Z: {
+          type: Blocks.ArgumentType.NUMBER,
+          default: 0
+        }
+      }
+    },
+    {
+      opcode: 'glideTo',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'glide [TIME] secs to x: [X] y: [Y] z: [Z]',
+      arguments: {
+        TIME: {
+          type: Blocks.ArgumentType.NUMBER,
+          default: 1
+        },
+        X: {
+          type: Blocks.ArgumentType.NUMBER,
+          default: 0
+        },
+        Y: {
+          type: Blocks.ArgumentType.NUMBER,
+          default: 0
+        },
+        Z: {
+          type: Blocks.ArgumentType.NUMBER,
+          default: 0
+        }
+      }
+    },
+    '---', // Separator
+    {
+      opcode: 'pointInDirection',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'point in direction [ROT_Y] [ROT_X] [ROT_Z]',
+      arguments: {
+        ROT_X: {
+          type: Blocks.ArgumentType.ANGLE,
+          default: 0
+        },
+        ROT_Y: {
+          type: Blocks.ArgumentType.ANGLE,
+          default: 0
+        },
+        ROT_Z: {
+          type: Blocks.ArgumentType.ANGLE,
+          default: 0
+        }
+      }
+    }
+  ],
+  translationMap: {
+    xl: {
+      '__name__': 'Moc',
+      'moveSteps': 'mov [STEPS] pases',
+      'goTo': 'ir a x: [X] y: [Y] z: [Z]',
+      'glideTo': 'slid durant [TIME] sex a x: [X] y: [Y] z: [Z]'
+    }
+  }
+})
+
+const palette = blocks.createPaletteWorkspace(document.getElementById('palette'))
+const scripts = blocks.createWorkspace(document.getElementById('scripts'))
+    </script>
+  </body>
+</html>
