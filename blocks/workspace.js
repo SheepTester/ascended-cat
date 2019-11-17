@@ -16,7 +16,7 @@ class Workspace {
       this.scriptsElem
     ], true)
     wrapper.appendChild(this.svg)
-    this.scrollTo(0, 0)
+    this._transform = {left: 0, top: 0, scale: 1}
 
     this._pointers = {}
     this.svg.addEventListener('pointerdown', this._onPointerDown)
@@ -31,16 +31,31 @@ class Workspace {
     this.scriptsElem.appendChild(script.elem)
   }
 
+  _updateTransformation () {
+    const {left, top, scale} = this._transform
+    this.scriptsElem.setAttributeNS(null, 'transform', `scale(${scale}) translate(${-left}, ${-top})`)
+  }
+
   scrollTo (left, top) {
-    this.scriptsElem.setAttributeNS(null, 'transform', `translate(${-left}, ${-top})`)
-    this.scrollPosition = {left, top}
+    this._transform.left = left
+    this._transform.top = top
+    this._updateTransformation()
+  }
+
+  zoomTo (scale) {
+    this._transform.scale = scale
+    this._updateTransformation()
   }
 
   _onStartScroll (initX, initY) {
-    const {left: initLeft, top: initTop} = this.scrollPosition
+    const {left: initLeft, top: initTop, scale: initScale} = this._transform
     return {
       move: (x, y) => {
-        this.scrollTo(initLeft + initX - x, initTop + initY - y)
+        // Should also notify the dragged blocks to recalculate their snappables
+        this.scrollTo(
+          initLeft + initX / initScale - x / this._transform.scale,
+          initTop + initY / initScale - y / this._transform.scale
+        )
       }
     }
   }
