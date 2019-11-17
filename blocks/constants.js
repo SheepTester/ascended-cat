@@ -9,5 +9,6 @@ const ArgumentType = {
   NUMBER: 'number',
   ANGLE: 'angle',
   BOOLEAN: 'boolean',
-  COLOUR: 'colour'
+  COLOUR: 'colour',
+  BRANCH: 'branch'
 }

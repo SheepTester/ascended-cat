@@ -31,6 +31,17 @@
         color: white;
       }
 
+      #palette {
+        width: 150px;
+        flex: none;
+      }
+      #scripts {
+        flex: auto;
+      }
+
+      .block-back {
+        stroke: rgba(0, 0, 0, 0.2);
+      }
       .block-category-nonexistent {
         --colour: red;
       }
@@ -46,7 +57,6 @@
         fill: white;
         text-shadow: 0 0 2px black;
         font-family: 'Lato', sans-serif;
-        user-select: none;
       }
     </style>
   </head>
@@ -62,7 +72,22 @@ const blocks = new Blocks([
       {
         opcode: 'test',
         blockType: Blocks.BlockType.COMMAND,
-        text: 'wow wow'
+        text: 'wow wow',
+        hat: true
+      },
+      {
+        opcode: 'branch',
+        blockType: Blocks.BlockType.COMMAND,
+        text: 'branchu:[B1]or[B2]',
+        terminal: true,
+        arguments: {
+          B1: {
+            type: Blocks.ArgumentType.BRANCH
+          },
+          B2: {
+            type: Blocks.ArgumentType.BRANCH
+          }
+        }
       }
     ]
   }
@@ -165,9 +190,12 @@ const stack = blocks.createScript([
   blocks.createBlock('test.test'),
   blocks.createBlock('nonexistent.test'),
   blocks.createBlock('test.nonexistent'),
-  blocks.createBlock('test.test')
+  blocks.createBlock('test.branch'),
+  blocks.createBlock('motion.moveSteps'),
+  blocks.createBlock('motion.test')
 ])
 stack.resize()
+stack.setPosition(10, 30)
 scripts.add(stack)
     </script>
   </body>

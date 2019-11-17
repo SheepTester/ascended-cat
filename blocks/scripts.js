@@ -1,9 +1,8 @@
 // Relies on blocks/component
 
-class Script extends Component {
-  constructor (blocks, initBlocks = []) {
+class Stack extends Component {
+  constructor (initBlocks = []) {
     super()
-    this.blocks = blocks
     for (const block of initBlocks) {
       this.add(block)
     }
@@ -20,5 +19,12 @@ class Script extends Component {
       }
     }
     this.measurements = {width: maxWidth, height: y}
+  }
+}
+
+class Script extends Stack {
+  constructor (blocks, initBlocks) {
+    super(initBlocks)
+    this.blocks = blocks
   }
 }

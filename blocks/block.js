@@ -23,6 +23,8 @@ class Block extends Component {
       this.category = 'nonexistent'
       this.blockData = Block.nonexistentBlock
     }
+    this.elem.dataset.category = this.category
+    this.elem.dataset.opcode = this.blockData.opcode
     if (previousCategory) {
       this._path.classList.remove('block-category-' + previousCategory)
     }
@@ -37,7 +39,7 @@ class Block extends Component {
   setLabelFromBlock () {
     // TODO: Use translated string if this.blocks.language is set
     const text = this.blockData.text
-    const paramRegex = /\[([A-Z0-9_])\]/g
+    const paramRegex = /\[([A-Z0-9_]+)\]/g
     // This allows unused parameters from previous block to be discarded
     const oldParams = this._params
     this._params = {}
@@ -55,8 +57,17 @@ class Block extends Component {
         this.add(oldParams[paramID])
         this._params[paramID] = oldParams[paramID]
       } else {
-        const argument = this.blockType.arguments[paramID]
-        // oof
+        const argument = this.blockData.arguments[paramID]
+        let param
+        switch (argument.type) {
+          case ArgumentType.BRANCH:
+            param = new Stack()
+            break
+        }
+        if (param) {
+          this.add(param)
+          this._params[paramID] = param
+        }
       }
       i = exec.index + match.length
     }
@@ -68,16 +79,20 @@ class Block extends Component {
   reposition () {
     const cInserts = []
     const {
-      stackMinWidth: minWidth,
+      stackMinWidth,
       stackMinHeight: minHeight,
       stackHorizPadding: horizPadding,
       stackVertPadding: vertPadding,
-      branchWidth,
       notchLeft,
       notchWallWidth,
       notchHeight,
-      notchWidth
+      notchWidth,
+      branchWidth,
+      branchMinHeight,
+      hat,
+      hatMinWidth
     } = Block.renderOptions
+    const minWidth = this.blockData.hat ? hatMinWidth : stackMinWidth
 
     let maxWidth = minWidth
     let maxHeight = minHeight
@@ -86,9 +101,8 @@ class Block extends Component {
     let firstInRow = 0
     for (let i = 0; i < this.components.length; i++) {
       const component = this.components[i]
-      // TEMP: Will be the C block thing later
-      if (component instanceof Node) {
-        const height = maxHeight + vertPadding
+      if (component instanceof Stack) {
+        const height = maxHeight + vertPadding * 2
         for (let j = firstInRow; j < i; j++) {
           const rowComponent = this.components[j]
           rowComponent.setPosition(
@@ -107,8 +121,9 @@ class Block extends Component {
         firstInRow = i
 
         component.setPosition(branchWidth, y)
-        cInserts.push([y, y + component.measurements.height])
-        y += component.measurements.height
+        const branchHeight = Math.max(branchMinHeight, component.measurements.height)
+        cInserts.push([y, y + branchHeight])
+        y += branchHeight
       } else {
         component.setPosition(x, 0)
         x += component.measurements.width
@@ -117,7 +132,7 @@ class Block extends Component {
         }
       }
     }
-    const height = maxHeight + vertPadding
+    const height = maxHeight + vertPadding * 2
     for (let i = firstInRow; i < this.components.length; i++) {
       const rowComponent = this.components[i]
       rowComponent.setPosition(
@@ -134,12 +149,12 @@ class Block extends Component {
     const totalNotchWidth = notchLeft + notchWallWidth * 2 + notchWidth
     const notchToRight = `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`
     const notchToLeft = `l${-notchWallWidth} ${notchHeight} h${-notchWidth} l${-notchWallWidth} ${-notchHeight}`
-    let path = `M0 0 h${notchLeft} ${notchToRight} H${maxWidth}`
+    let path = `M0 0 ${this.blockData.hat ? hat : `h${notchLeft} ${notchToRight}`} H${maxWidth}`
     for (const [start, end] of cInserts) {
       path += `V${start} H${branchWidth + totalNotchWidth} ${notchToLeft} h${-notchLeft}`
       path += `V${end} h${notchLeft} ${notchToRight} H${maxWidth}`
     }
-    path += `V${y} H${totalNotchWidth} ${notchToLeft} H0 z`
+    path += `V${y} ${this.blockData.terminal ? '' : `H${totalNotchWidth} ${notchToLeft}`} H0 z`
     this._path.setAttributeNS(null, 'd', path)
 
     // TODO: `maxWidth` ignores width of c inserts; this shouldn't be hard to fix
@@ -154,13 +169,16 @@ Block.nonexistentBlock = {
 }
 
 Block.renderOptions = {
-  stackMinWidth: 39,
-  stackMinHeight: 16,
+  stackMinWidth: 34,
+  stackMinHeight: 10,
   stackHorizPadding: 4,
   stackVertPadding: 3,
-  notchLeft: 12,
+  notchLeft: 10,
   notchWallWidth: 3,
-  notchWidth: 9,
+  notchWidth: 8,
   notchHeight: 3,
-  branchWidth: 15
+  branchWidth: 15,
+  branchMinHeight: 9,
+  hat: 'c20 -15 60 -15 80 0',
+  hatMinWidth: 80
 }
