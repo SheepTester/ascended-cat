@@ -6,9 +6,7 @@ class Workspace {
     this._onPointerMove = this._onPointerMove.bind(this)
     this._onPointerUp = this._onPointerUp.bind(this)
     this._onStartScroll = this._onStartScroll.bind(this)
-
-    this.blocks = blocks
-    this.scripts = []
+    this._onInput = this._onInput.bind(this)
 
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
@@ -16,6 +14,19 @@ class Workspace {
       this.scriptsElem
     ], true)
     wrapper.appendChild(this.svg)
+    this._input = Elem('input', {
+      className: 'block-input block-hidden',
+      oninput: this._onInput,
+      onblur: () => {
+        if (this._showingInput) {
+          // this.hideInput()
+        }
+      }
+    })
+    wrapper.appendChild(this._input)
+
+    this.blocks = blocks
+    this.scripts = []
     this._transform = {left: 0, top: 0, scale: 1}
 
     this._pointers = {}
@@ -26,7 +37,36 @@ class Workspace {
     blocks.onDrag(this.svg, this._onStartScroll)
   }
 
+  _onInput () {
+    if (this._inputListener) {
+      this._inputListener(this._input.value)
+    }
+  }
+
+  hideInput () {
+    if (this._inputEndListener) {
+      this._inputEndListener(this._input)
+      this._inputEndListener = null
+    }
+    this._inputListener = null
+    this._showingInput = false
+    this._input.classList.add('block-hidden')
+  }
+
+  showInput (onInput, onEnd) {
+    if (this._showingInput) {
+      this.hideInput()
+    }
+    this._inputListener = onInput
+    this._inputEndListener = onEnd
+    this._showingInput = true
+    this._input.classList.remove('block-hidden')
+    this._input.focus()
+    return this._input
+  }
+
   add (script) {
+    script.workspace = this
     this.scripts.push(script)
     this.scriptsElem.appendChild(script.elem)
   }
@@ -34,6 +74,7 @@ class Workspace {
   _updateTransformation () {
     const {left, top, scale} = this._transform
     this.scriptsElem.setAttributeNS(null, 'transform', `scale(${scale}) translate(${-left}, ${-top})`)
+    this._input.style.transform = `scale(${scale}) translate(${-left}px, ${-top}px)`
   }
 
   scrollTo (left, top) {
@@ -45,6 +86,11 @@ class Workspace {
   zoomTo (scale) {
     this._transform.scale = scale
     this._updateTransformation()
+  }
+
+  getTransform () {
+    const {left, top, scale} = this._transform
+    return {left, top, scale}
   }
 
   _onStartScroll (initX, initY) {

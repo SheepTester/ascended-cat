@@ -28,4 +28,21 @@ class Script extends Stack {
     super(initBlocks)
     this.blocks = blocks
   }
+
+  remove (component) {
+    super.remove(component)
+    if (!this.components.length) {
+      this.removeFromWorkspace()
+    }
+  }
+
+  removeFromWorkspace () {
+    if (!this.workspace) return
+    this.workspace.scriptsElem.removeChild(this.elem)
+    const index = this.workspace.scripts.indexOf(this)
+    if (~index) {
+      this.workspace.scripts.splice(index, 1)
+    }
+    this.workspace = null
+  }
 }

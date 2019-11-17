@@ -7,6 +7,10 @@ class TextComponent {
     if (initText) this.setText(initText)
   }
 
+  getText () {
+    return this.elem.textContent
+  }
+
   setText (text) {
     this.elem.textContent = text
     this.measurements = null
@@ -26,14 +30,14 @@ class TextComponent {
         // `height` is zero so a Block centres it right in the middle, allowing
         // the `dominant-baseline` to deal with centring.
         this.measurements = {width: rect.width, height: rect.height}
-        res(this.measurements)
         if (repositionParents) {
           let parent = this.parent
           while (parent) {
             parent.reposition()
-            parent = this.parent
+            parent = parent.parent
           }
         }
+        res(this.measurements)
       })
     })
   }

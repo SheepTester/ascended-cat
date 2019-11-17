@@ -9,6 +9,22 @@
 .block-input-has-block > .block-input-value {
   visibility: hidden;
 }
+.block-input-open > .block-input-value {
+  opacity: 0;
+}
+
+.block-hidden {
+  display: none;
+}
+.block-input {
+  -webkit-appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
+  position: absolute;
+}
 
 .block-back {
   fill: var(--colour);

@@ -55,7 +55,8 @@
         --colour: #6A92BC;
       }
 
-      .block-text-component {
+      .block-text-component,
+      .block-input {
         font-family: 'Lato', sans-serif;
       }
       .block-block {
@@ -75,9 +76,11 @@
         stroke: rgba(0, 0, 0, 0.2);
         fill: white;
       }
-      .block-input-value {
+      .block-input-value,
+      .block-input {
         font-size: 10px;
         fill: #222;
+        color: #222;
       }
       .block-boolean-input > .block-input-back {
         fill: rgba(0, 0, 0, 0.1);
@@ -85,6 +88,17 @@
       }
       .block-boolean-input > .block-input-value {
         visibility: hidden;
+      }
+      .block-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+      }
+      .block-string-input {
+        padding: 2px 4px;
+      }
+      .block-number-input {
+        padding: 2px 4px;
+        border-radius: 10px;
       }
     </style>
   </head>
@@ -100,7 +114,7 @@ const blocks = new Blocks([
       {
         opcode: 'test',
         blockType: Blocks.BlockType.COMMAND,
-        text: 'wow wow',
+        text: 'wow wow long long hat hat',
         hat: true
       },
       {

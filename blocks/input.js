@@ -3,6 +3,8 @@
 class Input extends Component {
   constructor (blocks, initValue) {
     super()
+    this.onInputClose = this.onInputClose.bind(this)
+
     this.blocks = blocks
     this.elem.classList.add('block-input')
     this.path = Elem('path', {class: 'block-input-back'}, [], true)
@@ -32,7 +34,7 @@ class Input extends Component {
     this.value = value
     this.text.setText(value)
     if (!preventUpdate) {
-      this.text.resize()
+      return this.text.resize()
     }
   }
 
@@ -46,8 +48,36 @@ class Input extends Component {
 
   considerShowingInput () {
     if (!this._block) {
-      console.log('Showing input')
+      let parent = this.parent
+      while (parent && !parent.workspace) {
+        parent = parent.parent
+      }
+      if (parent.workspace) {
+        const transform = parent.workspace.getTransform()
+        const workspaceRect = parent.workspace.svg.getBoundingClientRect()
+        const myRect = this.path.getBoundingClientRect()
+        const input = parent.workspace.showInput(value => {
+          this.setValue(value)
+            .then(() => {
+              input.style.width = this.measurements.width + 'px'
+            })
+        }, this.onInputClose)
+        input.style.left = (myRect.left - workspaceRect.left + transform.left) + 'px'
+        input.style.top = (myRect.top - workspaceRect.top + transform.top) + 'px'
+        input.style.width = this.measurements.width + 'px'
+        input.style.height = this.measurements.height + 'px'
+        this.onInputOpen(input)
+      }
     }
+  }
+
+  onInputOpen (input) {
+    input.value = this.text.getText()
+    this.elem.classList.add('block-input-open')
+  }
+
+  onInputClose (input) {
+    this.elem.classList.remove('block-input-open')
   }
 }
 
@@ -90,6 +120,16 @@ class StringInput extends Input {
   _onClick () {
     this.considerShowingInput()
   }
+
+  onInputOpen (input) {
+    super.onInputOpen(input)
+    input.classList.add('block-string-input')
+  }
+
+  onInputClose (input) {
+    super.onInputClose(input)
+    input.classList.remove('block-string-input')
+  }
 }
 
 class NumberInput extends Input {
@@ -121,6 +161,16 @@ class NumberInput extends Input {
 
   _onClick () {
     this.considerShowingInput()
+  }
+
+  onInputOpen (input) {
+    super.onInputOpen(input)
+    input.classList.add('block-number-input')
+  }
+
+  onInputClose (input) {
+    super.onInputClose(input)
+    input.classList.remove('block-number-input')
   }
 }
 
