@@ -14,17 +14,18 @@ class TextComponent {
 
   /**
    * Calculates the width and height of the text.
-   * @param {boolean} repositionParents - Whether the ancestors should be
+   * @param {boolean} [force] - Whether everything should be remeasured regardless
+   * @param {boolean} [repositionParents] - Whether the ancestors should be
    *  repositioned after the size is calculated.
    * @returns {Promise.<Measurements>} - The new measurements.
    */
-  resize (repositionParents) {
+  resize (force = false, repositionParents = true) {
     return new Promise(res => {
       window.requestAnimationFrame(() => {
         const rect = this.elem.getBBox()
         // `height` is zero so a Block centres it right in the middle, allowing
         // the `dominant-baseline` to deal with centring.
-        this.measurements = {width: rect.width, height: 0, actualHeight: rect.height}
+        this.measurements = {width: rect.width, height: rect.height}
         res(this.measurements)
         if (repositionParents) {
           let parent = this.parent
@@ -84,10 +85,10 @@ class Component {
    * has measurements before repositioning each of them accordinging and
    * saving its new size.
    */
-  async resize (repositionParents = true) {
+  async resize (force = false, repositionParents = true) {
     await Promise.all(this.components.map(component => {
-      if (!component.measurements) {
-        return component.resize(false)
+      if (!component.measurements || force) {
+        return component.resize(force, false)
       }
     }))
     this.reposition()

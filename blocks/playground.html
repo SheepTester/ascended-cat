@@ -13,6 +13,7 @@
     <script src="../utils/elem.js" charset="utf-8"></script>
     <script src="./constants.js" charset="utf-8"></script>
     <script src="./component.js" charset="utf-8"></script>
+    <script src="./input.js" charset="utf-8"></script>
     <script src="./block.js" charset="utf-8"></script>
     <script src="./scripts.js" charset="utf-8"></script>
     <script src="./workspace.js" charset="utf-8"></script>
@@ -53,10 +54,20 @@
       }
 
       .block-text-component {
+        font-family: 'Lato', sans-serif;
+      }
+      .block-block > .block-text-component {
+        text-shadow: 0 0 2px black;
         font-size: 12px;
         fill: white;
-        text-shadow: 0 0 2px black;
-        font-family: 'Lato', sans-serif;
+      }
+      .block-string-input > .block-input-back {
+        stroke: rgba(0, 0, 0, 0.2);
+        fill: white;
+      }
+      .block-input-value {
+        font-size: 10px;
+        fill: #222;
       }
     </style>
   </head>
@@ -78,9 +89,13 @@ const blocks = new Blocks([
       {
         opcode: 'branch',
         blockType: Blocks.BlockType.COMMAND,
-        text: 'branchu:[B1]or[B2]',
+        text: 'branchu [WOW]:[B1]or[B2]',
         terminal: true,
         arguments: {
+          WOW: {
+            type: Blocks.ArgumentType.STRING,
+            default: 'Hmm!'
+          },
           B1: {
             type: Blocks.ArgumentType.BRANCH
           },

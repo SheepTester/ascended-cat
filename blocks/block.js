@@ -4,6 +4,7 @@ class Block extends Component {
   constructor (blocks, initBlock) {
     super()
     this.blocks = blocks
+    this.elem.classList.add('block-block')
     this._path = Elem('path', {class: 'block-back'}, [], true)
     this.elem.appendChild(this._path)
     this._params = {}
@@ -63,6 +64,9 @@ class Block extends Component {
           case ArgumentType.BRANCH:
             param = new Stack()
             break
+          case ArgumentType.STRING:
+            param = new StringInput(this.blocks, argument.default)
+            break
         }
         if (param) {
           this.add(param)
@@ -102,15 +106,18 @@ class Block extends Component {
     for (let i = 0; i < this.components.length; i++) {
       const component = this.components[i]
       if (component instanceof Stack) {
-        const height = maxHeight + vertPadding * 2
         for (let j = firstInRow; j < i; j++) {
           const rowComponent = this.components[j]
-          rowComponent.setPosition(
-            rowComponent.position.x,
-            y + (height - rowComponent.measurements.height) / 2
-          )
+          if (rowComponent instanceof TextComponent) {
+            rowComponent.setPosition(rowComponent.position.x, y + maxHeight / 2)
+          } else {
+            rowComponent.setPosition(
+              rowComponent.position.x,
+              y + (maxHeight - rowComponent.measurements.height) / 2
+            )
+          }
         }
-        y += height
+        y += maxHeight
         x += horizPadding
         if (x > maxWidth) {
           maxWidth = x
@@ -127,20 +134,24 @@ class Block extends Component {
       } else {
         component.setPosition(x, 0)
         x += component.measurements.width
-        if (component.measurements.height > maxHeight) {
-          maxHeight = component.measurements.height
+        const height = minHeight + vertPadding * 2
+        if (height > maxHeight) {
+          maxHeight = height
         }
       }
     }
-    const height = maxHeight + vertPadding * 2
     for (let i = firstInRow; i < this.components.length; i++) {
       const rowComponent = this.components[i]
-      rowComponent.setPosition(
-        rowComponent.position.x,
-        y + (height - rowComponent.measurements.height) / 2
-      )
+      if (rowComponent instanceof TextComponent) {
+        rowComponent.setPosition(rowComponent.position.x, y + maxHeight / 2)
+      } else {
+        rowComponent.setPosition(
+          rowComponent.position.x,
+          y + (maxHeight - rowComponent.measurements.height) / 2
+        )
+      }
     }
-    y += height
+    y += maxHeight
     x += horizPadding
     if (x > maxWidth) {
       maxWidth = x
@@ -170,7 +181,7 @@ Block.nonexistentBlock = {
 
 Block.renderOptions = {
   stackMinWidth: 34,
-  stackMinHeight: 10,
+  stackMinHeight: 16,
   stackHorizPadding: 4,
   stackVertPadding: 3,
   notchLeft: 10,
