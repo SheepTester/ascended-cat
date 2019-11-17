@@ -19,12 +19,10 @@ class Input extends Component {
 
   insertBlock (block) {
     if (block) {
-      this.path.classList.add('block-hidden')
-      this.text.elem.classList.add('block-hidden')
+      this.elem.classList.add('block-input-has-block')
       this.add(block)
     } else {
-      this.path.classList.remove('block-hidden')
-      this.text.elem.classList.remove('block-hidden')
+      this.elem.classList.remove('block-input-has-block')
       if (this._block) this.remove(this._block)
     }
     this._block = block
@@ -45,6 +43,12 @@ class Input extends Component {
   drawInputBack () {
     return this.text.measurements
   }
+
+  considerShowingInput () {
+    if (!this._block) {
+      console.log('Showing input')
+    }
+  }
 }
 
 Input.renderOptions = {
@@ -63,7 +67,11 @@ Input.renderOptions = {
 class StringInput extends Input {
   constructor(blocks, initValue) {
     super(blocks, initValue)
+    this._onClick = this._onClick.bind(this)
+
     this.elem.classList.add('block-string-input')
+
+    this.blocks.onClick(this.elem, this._onClick)
   }
 
   drawInputBack () {
@@ -78,12 +86,20 @@ class StringInput extends Input {
     this.path.setAttributeNS(null, 'd', path)
     return {width: width + horizPadding * 2, height: inputHeight + vertPadding * 2}
   }
+
+  _onClick () {
+    this.considerShowingInput()
+  }
 }
 
 class NumberInput extends Input {
   constructor(blocks, initValue) {
     super(blocks, initValue)
+    this._onClick = this._onClick.bind(this)
+
     this.elem.classList.add('block-number-input')
+
+    this.blocks.onClick(this.elem, this._onClick)
   }
 
   drawInputBack () {
@@ -101,6 +117,10 @@ class NumberInput extends Input {
       + `H${width + horizPadding * 2 - radius} a${radius} ${radius} 0 0 1 0 ${radius * 2} z`
     this.path.setAttributeNS(null, 'd', path)
     return {width: width + horizPadding * 2, height: radius * 2}
+  }
+
+  _onClick () {
+    this.considerShowingInput()
   }
 }
 

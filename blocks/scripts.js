@@ -22,6 +22,7 @@ class Stack extends Component {
   }
 }
 
+// Autodelete when last block is removed?
 class Script extends Stack {
   constructor (blocks, initBlocks) {
     super(initBlocks)

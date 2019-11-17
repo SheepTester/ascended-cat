@@ -62,6 +62,7 @@ class Block extends Component {
         let param
         switch (argument.type) {
           case ArgumentType.BRANCH:
+            // Should a new subclass be made or is this fine?
             param = new Stack()
             break
           case ArgumentType.STRING:
@@ -103,7 +104,7 @@ class Block extends Component {
       hatMinWidth,
       booleanTextFirstPadding,
       reporterTextFirstPadding
-    } = Block.renderOptions
+    } = this.constructor.renderOptions
     const minWidth = this.blockData.hat ? hatMinWidth : stackMinWidth
     const minHeight = stackMinHeight
     const horizPadding = stackHorizPadding

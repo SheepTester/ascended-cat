@@ -56,10 +56,17 @@
       .block-text-component {
         font-family: 'Lato', sans-serif;
       }
+      .block-block {
+        cursor: grab;
+      }
       .block-block > .block-text-component {
         text-shadow: 0 0 2px black;
         font-size: 12px;
         fill: white;
+      }
+      .block-string-input:not(.block-input-has-block),
+      .block-number-input:not(.block-input-has-block) {
+        cursor: text;
       }
       .block-string-input > .block-input-back,
       .block-number-input > .block-input-back {

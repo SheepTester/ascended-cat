@@ -14,10 +14,25 @@ class Blocks {
     for (const category of initCategories) {
       this.addCategory(category)
     }
+    this._id = 0
+    this.clickListeners = {}
+    this.dragListeners = {}
   }
 
   addCategory (category) {
     this.categories.push(category)
+  }
+
+  onClick (elem, fn) {
+    const id = ++this._id
+    this.clickListeners[id] = fn
+    elem.dataset.blockClick = id
+  }
+
+  onDrag (elem, fn) {
+    const id = ++this._id
+    this.dragListeners[id] = fn
+    elem.dataset.blockDrag = id
   }
 
   createPaletteWorkspace (wrapper) {
