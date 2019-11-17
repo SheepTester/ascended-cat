@@ -115,6 +115,7 @@ class Block extends Component {
       : stackHorizPadding
 
     let maxWidth = minWidth
+    let cSlotMaxWidth = 0
     let maxHeight = minHeight
     let y = 0
     let x = horizPadding
@@ -147,6 +148,9 @@ class Block extends Component {
         const branchHeight = Math.max(branchMinHeight, component.measurements.height)
         cInserts.push([y, y + branchHeight])
         y += branchHeight
+        if (component.measurements.width > cSlotMaxWidth) {
+          cSlotMaxWidth = component.measurements.width
+        }
       } else {
         if (i === firstInRow && component instanceof TextComponent) {
           x = textFirstPadding
@@ -206,8 +210,7 @@ class Block extends Component {
       }
     }
 
-    // TODO: `maxWidth` ignores width of c inserts; this shouldn't be hard to fix
-    this.measurements = {width: maxWidth, height: y}
+    this.measurements = {width: Math.max(maxWidth, branchWidth + cSlotMaxWidth), height: y}
   }
 }
 
