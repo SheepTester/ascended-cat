@@ -90,9 +90,9 @@ class Block extends Component {
     const cInserts = []
     const {
       stackMinWidth,
-      stackMinHeight: minHeight,
-      stackHorizPadding: horizPadding,
-      stackVertPadding: vertPadding,
+      stackMinHeight,
+      stackHorizPadding,
+      stackVertPadding,
       notchLeft,
       notchWallWidth,
       notchHeight,
@@ -100,9 +100,16 @@ class Block extends Component {
       branchWidth,
       branchMinHeight,
       hat,
-      hatMinWidth
+      hatMinWidth,
+      booleanTextFirstPadding
     } = Block.renderOptions
     const minWidth = this.blockData.hat ? hatMinWidth : stackMinWidth
+    const minHeight = stackMinHeight
+    const horizPadding = stackHorizPadding
+    const vertPadding = stackVertPadding
+    const textFirstPadding = this.blockData.blockType === BlockType.BOOLEAN
+      ? booleanTextFirstPadding
+      : stackHorizPadding
 
     let maxWidth = minWidth
     let maxHeight = minHeight
@@ -131,13 +138,16 @@ class Block extends Component {
 
         maxHeight = minHeight
         x = horizPadding
-        firstInRow = i
+        firstInRow = i + 1
 
         component.setPosition(branchWidth, y)
         const branchHeight = Math.max(branchMinHeight, component.measurements.height)
         cInserts.push([y, y + branchHeight])
         y += branchHeight
       } else {
+        if (i === firstInRow && component instanceof TextComponent) {
+          x = textFirstPadding
+        }
         component.setPosition(x, 0)
         x += component.measurements.width
         const height = minHeight + vertPadding * 2
@@ -163,16 +173,35 @@ class Block extends Component {
       maxWidth = x
     }
 
-    const totalNotchWidth = notchLeft + notchWallWidth * 2 + notchWidth
-    const notchToRight = `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`
-    const notchToLeft = `l${-notchWallWidth} ${notchHeight} h${-notchWidth} l${-notchWallWidth} ${-notchHeight}`
-    let path = `M0 0 ${this.blockData.hat ? hat : `h${notchLeft} ${notchToRight}`} H${maxWidth}`
-    for (const [start, end] of cInserts) {
-      path += `V${start} H${branchWidth + totalNotchWidth} ${notchToLeft} h${-notchLeft}`
-      path += `V${end} h${notchLeft} ${notchToRight} H${maxWidth}`
+    switch (this.blockData.blockType) {
+      case BlockType.COMMAND: {
+        const totalNotchWidth = notchLeft + notchWallWidth * 2 + notchWidth
+        const notchToRight = `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`
+        const notchToLeft = `l${-notchWallWidth} ${notchHeight} h${-notchWidth} l${-notchWallWidth} ${-notchHeight}`
+        let path = `M0 0 ${this.blockData.hat ? hat : `h${notchLeft} ${notchToRight}`} H${maxWidth}`
+        for (const [start, end] of cInserts) {
+          path += `V${start} H${branchWidth + totalNotchWidth} ${notchToLeft} h${-notchLeft}`
+          path += `V${end} h${notchLeft} ${notchToRight} H${maxWidth}`
+        }
+        path += `V${y} ${this.blockData.terminal ? '' : `H${totalNotchWidth} ${notchToLeft}`} H0 z`
+        this._path.setAttributeNS(null, 'd', path)
+        break
+      }
+      case BlockType.REPORTER: {
+        const radius = y / 2
+        const path = `M${radius} ${y} a${radius} ${radius} 0 0 1 0 ${-y}`
+          + `H${maxWidth - radius} a${radius} ${radius} 0 0 1 0 ${y} z`
+        this._path.setAttributeNS(null, 'd', path)
+        break
+      }
+      case BlockType.BOOLEAN: {
+        const side = y / 2
+        const path = `M0 ${side} L${side} 0 H${maxWidth - side} L${maxWidth} ${side}`
+          + `L${maxWidth - side} ${y} H${side} z`
+        this._path.setAttributeNS(null, 'd', path)
+        break
+      }
     }
-    path += `V${y} ${this.blockData.terminal ? '' : `H${totalNotchWidth} ${notchToLeft}`} H0 z`
-    this._path.setAttributeNS(null, 'd', path)
 
     // TODO: `maxWidth` ignores width of c inserts; this shouldn't be hard to fix
     this.measurements = {width: maxWidth, height: y}
@@ -197,5 +226,6 @@ Block.renderOptions = {
   branchWidth: 15,
   branchMinHeight: 9,
   hat: 'c20 -15 60 -15 80 0',
-  hatMinWidth: 80
+  hatMinWidth: 80,
+  booleanTextFirstPadding: 10
 }
