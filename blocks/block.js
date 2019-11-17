@@ -67,6 +67,12 @@ class Block extends Component {
           case ArgumentType.STRING:
             param = new StringInput(this.blocks, argument.default)
             break
+          case ArgumentType.NUMBER:
+            param = new NumberInput(this.blocks, argument.default)
+            break
+          case ArgumentType.BOOLEAN:
+            param = new BooleanInput(this.blocks)
+            break
         }
         if (param) {
           this.add(param)

@@ -61,13 +61,21 @@
         font-size: 12px;
         fill: white;
       }
-      .block-string-input > .block-input-back {
+      .block-string-input > .block-input-back,
+      .block-number-input > .block-input-back {
         stroke: rgba(0, 0, 0, 0.2);
         fill: white;
       }
       .block-input-value {
         font-size: 10px;
         fill: #222;
+      }
+      .block-boolean-input > .block-input-back {
+        fill: rgba(0, 0, 0, 0.1);
+        stroke: rgba(0, 0, 0, 0.2);
+      }
+      .block-boolean-input > .block-input-value {
+        visibility: hidden;
       }
     </style>
   </head>
@@ -89,7 +97,7 @@ const blocks = new Blocks([
       {
         opcode: 'branch',
         blockType: Blocks.BlockType.COMMAND,
-        text: 'branchu [WOW]:[B1]or[B2]',
+        text: 'branchu [WOW]: [B1] or [B2]',
         terminal: true,
         arguments: {
           WOW: {
@@ -101,6 +109,31 @@ const blocks = new Blocks([
           },
           B2: {
             type: Blocks.ArgumentType.BRANCH
+          }
+        }
+      },
+      {
+        opcode: 'join',
+        blockType: Blocks.BlockType.REPORTER,
+        text: 'join [A] [B]',
+        arguments: {
+          A: {
+            type: Blocks.ArgumentType.STRING,
+            default: 'Hello '
+          },
+          B: {
+            type: Blocks.ArgumentType.STRING,
+            default: 'world!'
+          }
+        }
+      },
+      {
+        opcode: 'not',
+        blockType: Blocks.BlockType.BOOLEAN,
+        text: 'not [TEST]',
+        arguments: {
+          TEST: {
+            type: Blocks.ArgumentType.BOOLEAN
           }
         }
       }
@@ -207,7 +240,9 @@ const stack = blocks.createScript([
   blocks.createBlock('test.nonexistent'),
   blocks.createBlock('test.branch'),
   blocks.createBlock('motion.moveSteps'),
-  blocks.createBlock('motion.test')
+  blocks.createBlock('motion.test'),
+  blocks.createBlock('test.join'),
+  blocks.createBlock('test.not')
 ])
 stack.resize()
 stack.setPosition(10, 30)
