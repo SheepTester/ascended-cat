@@ -18,14 +18,16 @@ class Input extends Component {
   }
 
   insertBlock (block) {
-    this._block = block
     if (block) {
       this.path.classList.add('block-hidden')
-      this.text.classList.add('block-hidden')
+      this.text.elem.classList.add('block-hidden')
+      this.add(block)
     } else {
       this.path.classList.remove('block-hidden')
-      this.text.classList.remove('block-hidden')
+      this.text.elem.classList.remove('block-hidden')
+      if (this._block) this.remove(this._block)
     }
+    this._block = block
   }
 
   setValue (value, preventUpdate = false) {

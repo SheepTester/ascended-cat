@@ -101,7 +101,8 @@ class Block extends Component {
       branchMinHeight,
       hat,
       hatMinWidth,
-      booleanTextFirstPadding
+      booleanTextFirstPadding,
+      reporterTextFirstPadding
     } = Block.renderOptions
     const minWidth = this.blockData.hat ? hatMinWidth : stackMinWidth
     const minHeight = stackMinHeight
@@ -109,6 +110,8 @@ class Block extends Component {
     const vertPadding = stackVertPadding
     const textFirstPadding = this.blockData.blockType === BlockType.BOOLEAN
       ? booleanTextFirstPadding
+      : this.blockData.blockType === BlockType.REPORTER
+      ? reporterTextFirstPadding
       : stackHorizPadding
 
     let maxWidth = minWidth
@@ -150,7 +153,7 @@ class Block extends Component {
         }
         component.setPosition(x, 0)
         x += component.measurements.width
-        const height = minHeight + vertPadding * 2
+        const height = Math.max(minHeight, component.measurements.height) + vertPadding * 2
         if (height > maxHeight) {
           maxHeight = height
         }
@@ -227,5 +230,6 @@ Block.renderOptions = {
   branchMinHeight: 9,
   hat: 'c20 -15 60 -15 80 0',
   hatMinWidth: 80,
-  booleanTextFirstPadding: 10
+  booleanTextFirstPadding: 10,
+  reporterTextFirstPadding: 6
 }

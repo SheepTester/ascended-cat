@@ -128,6 +128,19 @@ const blocks = new Blocks([
         }
       },
       {
+        opcode: 'add',
+        blockType: Blocks.BlockType.REPORTER,
+        text: '[A] + [B]',
+        arguments: {
+          A: {
+            type: Blocks.ArgumentType.NUMBER
+          },
+          B: {
+            type: Blocks.ArgumentType.NUMBER
+          }
+        }
+      },
+      {
         opcode: 'not',
         blockType: Blocks.BlockType.BOOLEAN,
         text: 'not [TEST]',
@@ -234,15 +247,21 @@ blocks.addCategory({
 const palette = blocks.createPaletteWorkspace(document.getElementById('palette'))
 const scripts = blocks.createWorkspace(document.getElementById('scripts'))
 
+const branch = blocks.createBlock('test.branch')
+const join = blocks.createBlock('test.join')
+branch._params.WOW.insertBlock(join)
+join._params.A.insertBlock(blocks.createBlock('test.add'))
+join._params.B.insertBlock(blocks.createBlock('test.join'))
+const moveSteps = blocks.createBlock('motion.moveSteps')
+moveSteps._params.STEPS.insertBlock(blocks.createBlock('test.not'))
+branch._params.B1.add(moveSteps)
+branch._params.B1.add(blocks.createBlock('motion.moveSteps'))
 const stack = blocks.createScript([
   blocks.createBlock('test.test'),
   blocks.createBlock('nonexistent.test'),
   blocks.createBlock('test.nonexistent'),
-  blocks.createBlock('test.branch'),
-  blocks.createBlock('motion.moveSteps'),
   blocks.createBlock('motion.test'),
-  blocks.createBlock('test.join'),
-  blocks.createBlock('test.not')
+  branch
 ])
 stack.resize()
 stack.setPosition(10, 30)
