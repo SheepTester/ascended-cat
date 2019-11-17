@@ -4,10 +4,12 @@
  * Issues:
  * - Cannot add blocks to an existing category
  * - Should be able to get a category or block using a method
+ * - Get translations from ID
  */
 
 class Blocks {
   constructor (initCategories) {
+    this.language = null
     this.categories = []
     for (const category of initCategories) {
       this.addCategory(category)

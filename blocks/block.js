@@ -4,8 +4,9 @@ class Block extends Component {
   constructor (blocks, initBlock) {
     super()
     this.blocks = blocks
-    this._path = Elem('path', {class: 'block'}, [], true)
+    this._path = Elem('path', {class: 'block-back'}, [], true)
     this.elem.appendChild(this._path)
+    this._params = {}
     if (initBlock) this.setBlock(initBlock)
   }
 
@@ -26,6 +27,42 @@ class Block extends Component {
       this._path.classList.remove('block-category-' + previousCategory)
     }
     this._path.classList.add('block-category-' + this.category)
+    this.clear()
+    this.setLabelFromBlock()
+  }
+
+  /**
+   * Used for both changing languages and swapping blocks by means of right-click.
+   */
+  setLabelFromBlock () {
+    // TODO: Use translated string if this.blocks.language is set
+    const text = this.blockData.text
+    const paramRegex = /\[([A-Z0-9_])\]/g
+    // This allows unused parameters from previous block to be discarded
+    const oldParams = this._params
+    this._params = {}
+    let i = 0
+    let exec
+    while (exec = paramRegex.exec(text)) {
+      if (exec.index > i) {
+        this.add(new TextComponent(text.slice(i, exec.index)))
+      }
+      const [match, paramID] = exec
+      // It is assumed that if they have the same ID and the block was changed by
+      // right click, they are effectively the same parameter and should be kept.
+      if (oldParams[paramID]) {
+        // Welcome back!
+        this.add(oldParams[paramID])
+        this._params[paramID] = oldParams[paramID]
+      } else {
+        const argument = this.blockType.arguments[paramID]
+        // oof
+      }
+      i = exec.index + match.length
+    }
+    if (i < text.length) {
+      this.add(new TextComponent(text.slice(i)))
+    }
   }
 
   reposition () {
@@ -75,8 +112,8 @@ class Block extends Component {
       } else {
         component.setPosition(x, 0)
         x += component.measurements.width
-        if (block.measurements.height > maxHeight) {
-          maxHeight = block.measurements.height
+        if (component.measurements.height > maxHeight) {
+          maxHeight = component.measurements.height
         }
       }
     }
@@ -89,6 +126,10 @@ class Block extends Component {
       )
     }
     y += height
+    x += horizPadding
+    if (x > maxWidth) {
+      maxWidth = x
+    }
 
     const totalNotchWidth = notchLeft + notchWallWidth * 2 + notchWidth
     const notchToRight = `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`

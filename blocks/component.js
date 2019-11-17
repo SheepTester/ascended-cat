@@ -1,9 +1,10 @@
 // Relies on utils/elem
 
 class TextComponent {
-  constructor () {
+  constructor (initText) {
     this.elem = Elem('text', {class: 'block-text-component'}, [], true)
     this.measurements = null
+    if (initText) this.setText(initText)
   }
 
   setText (text) {
@@ -21,7 +22,9 @@ class TextComponent {
     return new Promise(res => {
       window.requestAnimationFrame(() => {
         const rect = this.elem.getBBox()
-        this.measurements = {width: rect.width, height: rect.height}
+        // `height` is zero so a Block centres it right in the middle, allowing
+        // the `dominant-baseline` to deal with centring.
+        this.measurements = {width: rect.width, height: 0, actualHeight: rect.height}
         res(this.measurements)
         if (repositionParents) {
           let parent = this.parent
@@ -32,6 +35,11 @@ class TextComponent {
         }
       })
     })
+  }
+
+  setPosition (x, y) {
+    this.position = {x, y}
+    this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
   }
 }
 
@@ -61,6 +69,14 @@ class Component {
     }
     this.elem.removeChild(component.elem)
     component.parent = null
+  }
+
+  clear () {
+    for (const component of this.components) {
+      this.elem.removeChild(component.elem)
+      component.parent = null
+    }
+    this.components.splice(0, this.components.length)
   }
 
   /**
