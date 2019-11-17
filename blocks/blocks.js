@@ -1,4 +1,10 @@
-// Relies on blocks/workspace.js
+// Relies on blocks/workspace, blocks/scripts, blocks/block, blocks/constants
+
+/**
+ * Issues:
+ * - Cannot add blocks to an existing category
+ * - Should be able to get a category or block using a method
+ */
 
 class Blocks {
   constructor (initCategories) {
@@ -19,18 +25,16 @@ class Blocks {
   createWorkspace (wrapper) {
     return new Workspace(this, wrapper)
   }
+
+  createScript (initBlocks) {
+    return new Script(this, initBlocks)
+  }
+
+  createBlock (initBlock) {
+    return new Block(this, initBlock)
+  }
 }
 
-Blocks.BlockType = {
-  BOOLEAN: 'boolean',
-  COMMAND: 'command',
-  REPORTER: 'reporter'
-}
+Blocks.BlockType = BlockType
 
-Blocks.ArgumentType = {
-  STRING: 'string',
-  NUMBER: 'number',
-  ANGLE: 'angle',
-  BOOLEAN: 'boolean',
-  COLOUR: 'colour'
-}
+Blocks.ArgumentType = ArgumentType

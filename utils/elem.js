@@ -41,12 +41,12 @@ function Elem (tag = 'div', data = {}, children = [], svg = false) {
       }
     } else if (elem[prop] === undefined) {
       if (svg) {
-        elem.setAttributeNS(null, attr, value)
+        elem.setAttributeNS(null, prop, value)
       } else {
-        elem.setAttribute(attr, value)
+        elem.setAttribute(prop, value)
       }
     } else {
-      elem[attr] = value
+      elem[prop] = value
     }
   }
   for (const child of children) {

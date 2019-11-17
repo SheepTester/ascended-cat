@@ -5,11 +5,16 @@
     <title>Ascended Cat blocks playground</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <link rel="stylesheet" type="text/css" href="/sheep3.css">
+    <!-- <link rel="stylesheet" type="text/css" href="/sheep3.css"> -->
     <link rel="stylesheet" href="./blocks.css">
 
-    <script src="/sheep3.js" charset="utf-8"></script>
+    <!-- <script src="/sheep3.js" charset="utf-8"></script> -->
     <script src="../utils/elem.js" charset="utf-8"></script>
+    <script src="./constants.js" charset="utf-8"></script>
+    <script src="./component.js" charset="utf-8"></script>
+    <script src="./block.js" charset="utf-8"></script>
+    <script src="./scripts.js" charset="utf-8"></script>
+    <script src="./workspace.js" charset="utf-8"></script>
     <script src="./blocks.js" charset="utf-8"></script>
 
     <style>
@@ -25,8 +30,11 @@
         color: white;
       }
 
-      .block-motion {
-        fill: #6A92BC;
+      .block-category-test {
+        --colour: #6AB6BC;
+      }
+      .block-category-motion {
+        --colour: #6A92BC;
       }
     </style>
   </head>
@@ -34,7 +42,19 @@
     <div id="palette"></div>
     <div id="scripts"></div>
     <script>
-const blocks = new Blocks()
+const blocks = new Blocks([
+  {
+    id: 'test',
+    name: 'Test',
+    blocks: [
+      {
+        opcode: 'test',
+        blockType: Blocks.BlockType.COMMAND,
+        text: 'wow wow'
+      }
+    ]
+  }
+])
 // Add categories
 blocks.addCategory({
   id: 'motion',
@@ -128,6 +148,15 @@ blocks.addCategory({
 
 const palette = blocks.createPaletteWorkspace(document.getElementById('palette'))
 const scripts = blocks.createWorkspace(document.getElementById('scripts'))
+
+const stack = blocks.createScript([
+  blocks.createBlock('test.test'),
+  blocks.createBlock('nonexistent.test'),
+  blocks.createBlock('test.nonexistent'),
+  blocks.createBlock('test.test')
+])
+stack.resize()
+scripts.add(stack)
     </script>
   </body>
 </html>

@@ -1,0 +1,4 @@
+.block {
+  fill: var(--colour);
+  stroke: rgba(0, 0, 0, 0.5);
+}

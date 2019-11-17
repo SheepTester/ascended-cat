@@ -1,8 +1,8 @@
-// Relies on utils/elem.js
+// Relies on utils/elem
 
 class TextComponent {
   constructor () {
-    this.elem = Elem('text', {className: 'text-component'}, [], true)
+    this.elem = Elem('text', {class: 'block-text-component'}, [], true)
     this.measurements = null
   }
 
@@ -37,18 +37,19 @@ class TextComponent {
 
 class Component {
   constructor () {
-    this.elem = Elem('g', {className: 'component'}, [], true)
+    this.elem = Elem('g', {class: 'block-component'}, [], true)
     this.components = []
     this.measurements = null
+    this.setPosition(0, 0)
   }
 
   add (component, beforeIndex = this.components.length) {
-    this.components.splice(beforeIndex, 0, component)
     if (beforeIndex < this.components.length) {
-      this.elem.insertBefore(component.elem, this.elem.children[beforeIndex])
+      this.elem.insertBefore(component.elem, this.components[beforeIndex].elem)
     } else {
       this.elem.appendChild(component.elem)
     }
+    this.components.splice(beforeIndex, 0, component)
     component.parent = this
     return component
   }
@@ -89,5 +90,10 @@ class Component {
    */
   reposition () {
     this.measurements = {width: 0, height: 0}
+  }
+
+  setPosition (x, y) {
+    this.position = {x, y}
+    this.elem.style.transform = `translate(${x}, ${y})`
   }
 }
