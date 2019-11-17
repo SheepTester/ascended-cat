@@ -91,15 +91,14 @@ class Block extends Component {
     y += height
 
     const totalNotchWidth = notchLeft + notchWallWidth * 2 + notchWidth
-    const notchStart = maxWidth - branchWidth - totalNotchWidth
     const notchToRight = `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`
     const notchToLeft = `l${-notchWallWidth} ${notchHeight} h${-notchWidth} l${-notchWallWidth} ${-notchHeight}`
     let path = `M0 0 h${notchLeft} ${notchToRight} H${maxWidth}`
     for (const [start, end] of cInserts) {
-      path += `V${start} H${notchStart} ${notchToLeft} h${-notchLeft}`
+      path += `V${start} H${branchWidth + totalNotchWidth} ${notchToLeft} h${-notchLeft}`
       path += `V${end} h${notchLeft} ${notchToRight} H${maxWidth}`
     }
-    path += `V${y} H${maxWidth - branchWidth} ${notchToLeft} H0 z`
+    path += `V${y} H${totalNotchWidth} ${notchToLeft} H0 z`
     this._path.setAttributeNS(null, 'd', path)
 
     // TODO: `maxWidth` ignores width of c inserts; this shouldn't be hard to fix

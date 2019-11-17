@@ -94,6 +94,6 @@ class Component {
 
   setPosition (x, y) {
     this.position = {x, y}
-    this.elem.style.transform = `translate(${x}, ${y})`
+    this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
   }
 }
