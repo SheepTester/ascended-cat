@@ -243,11 +243,15 @@ class PaletteWorkspace extends Workspace {
     // TEMP:
     const masterScript = blocks.createScript()
     for (const category of blocks.categories) {
-      for (const {opcode} of category.blocks) {
-        const block = blocks.createBlock(`${category.id}.${opcode}`)
-        block.cloneOnDrag = true
-        masterScript.add(block)
-        masterScript.add(new PaletteSpace(10))
+      for (const blockData of category.blocks) {
+        if (blockData[0] === '-') {
+          masterScript.add(new PaletteSpace(10))
+        } else {
+          const block = blocks.createBlock(`${category.id}.${blockData.opcode}`)
+          block.cloneOnDrag = true
+          masterScript.add(block)
+          masterScript.add(new PaletteSpace(10))
+        }
       }
     }
     this.add(masterScript)
