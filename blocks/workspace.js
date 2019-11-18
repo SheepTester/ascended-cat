@@ -12,7 +12,21 @@ class Workspace {
 
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
-    this.svg = Elem('svg', {class: 'block-workspace'}, [
+    this.svg = Elem('svg', {
+      class: 'block-workspace',
+      onwheel: e => {
+        if (!e.altKey) {
+          if (e.ctrlKey || e.metaKey) {
+            // Zoom
+          } else if (e.shiftKey) {
+            this.scrollTo(this._transform.left + e.deltaY, this._transform.top + e.deltaX)
+          } else {
+            this.scrollTo(this._transform.left + e.deltaX, this._transform.top + e.deltaY)
+          }
+          e.preventDefault()
+        }
+      }
+    }, [
       this.scriptsElem
     ], true)
     wrapper.appendChild(this.svg)
