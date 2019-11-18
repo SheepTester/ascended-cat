@@ -25,23 +25,26 @@ class Stack extends Component {
    * Stack block connections are just the rough locations of each notch.
    */
   getStackBlockConnections () {
-    const {notchLeft, notchWallWidth, notchWidth, branchWidth} = Block.renderOptions
-    const connectionX = notchLeft + notchWallWidth + notchWidth
+    const blocks = this.components.filter(block => block instanceof Block)
+    const {branchWidth, notchX} = Block.renderOptions
     const arr = []
-    if (!this.components[0] || !this.components[0].blockData.hat) {
-      arr.push([connectionX, 0, {before: true, in: this}])
+    if (!blocks.length || !blocks[0].blockData.hat) {
+      arr.push([notchX, 0, {before: true, in: this}])
+      if (!blocks.length) return arr
     }
-    for (const block of this.components) {
-      if (!(block instanceof Block)) continue
+    for (const block of blocks) {
+      if (blocks[0] !== block) {
+        arr.push([notchX, block.position.y, {insertBefore: block, in: this}])
+      }
       for (const component of block.components) {
         if (component instanceof Stack) {
           arr.push(...component.getStackBlockConnections()
             .map(([x, y, data]) => [branchWidth + x, block.position.y + component.position.y + y, data]))
         }
       }
-      if (!block.blockData.terminal) {
-        arr.push([connectionX, block.position.y + block.measurements.height, {after: block, in: this}])
-      }
+    }
+    if (!blocks[blocks.length - 1].blockData.terminal) {
+      arr.push([notchX, this.measurements.height, {after: true, in: this}])
     }
     return arr
   }

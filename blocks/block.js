@@ -267,13 +267,13 @@ class Block extends Component {
       }
       oldParent.resize()
     }
-    script.resize()
     script.setPosition(workspaceX + x - left, workspaceY + y - top)
     return this.blocks.dragBlocks({
       script,
       dx: initMouseX - script.position.x,
       dy: initMouseY - script.position.y,
-      type: this.blockData.blockType
+      type: this.blockData.blockType,
+      onReady: script.resize()
     })
   }
 
@@ -300,6 +300,10 @@ Block.renderOptions = {
   notchWallWidth: 3,
   notchWidth: 8,
   notchHeight: 3,
+  get notchX () {
+    const {notchLeft, notchWallWidth, notchWidth} = this
+    return notchLeft + notchWallWidth + notchWidth / 2
+  },
   branchWidth: 15,
   branchMinHeight: 9,
   hat: 'c20 -15 60 -15 80 0',
