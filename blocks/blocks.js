@@ -17,6 +17,10 @@ class Blocks {
     this._id = 0
     this.clickListeners = {}
     this.dragListeners = {}
+
+    this._dragSvg = Elem('svg', {class: 'block-dragged'}, [], true)
+    document.body.appendChild(this._dragSvg)
+    this._dragging = 0
   }
 
   addCategory (category) {
@@ -33,6 +37,26 @@ class Blocks {
     const id = ++this._id
     this.dragListeners[id] = fn
     elem.dataset.blockDrag = id
+  }
+
+  dragBlocks ({script, initX, initY, dx, dy}) {
+    if (!this._dragging) {
+      document.body.classList.add('block-dragging-blocks')
+    }
+    this._dragging++
+    this._dragSvg.appendChild(script.elem)
+    return {
+      move: (x, y) => {
+        script.setPosition(x - dx, y - dy)
+      },
+      end: () => {
+        this._dragging--
+        if (!this._dragging) {
+          document.body.classList.remove('block-dragging-blocks')
+        }
+        this._dragSvg.removeChild(script.elem)
+      }
+    }
   }
 
   createPaletteWorkspace (wrapper) {

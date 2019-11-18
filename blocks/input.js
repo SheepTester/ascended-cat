@@ -21,13 +21,26 @@ class Input extends Component {
     }
   }
 
+  /**
+   * Pass in `null` to pull out the block.
+   */
   insertBlock (block) {
+    if (this._block) {
+      this.remove(this._block)
+    }
     if (block) {
       this.elem.classList.add('block-input-has-block')
       this.add(block)
+      if (this._block) {
+        const workspace = this.getWorkspace()
+        if (workspace) {
+          const script = this.blocks.createScript()
+          script.add(this._block)
+          workspace.add(script)
+        }
+      }
     } else {
       this.elem.classList.remove('block-input-has-block')
-      if (this._block) this.remove(this._block)
     }
     this._block = block
   }
@@ -50,15 +63,8 @@ class Input extends Component {
 
   considerShowingInput () {
     if (!this._block) {
-      let parent = this.parent
-      while (parent && !parent.workspace) {
-        parent = parent.parent
-      }
-      const workspace = parent.workspace
+      const workspace = this.getWorkspace()
       if (workspace) {
-        const transform = workspace.getTransform()
-        const workspaceRect = workspace.svg.getBoundingClientRect()
-        const myRect = this.path.getBoundingClientRect()
         const input = workspace.showInput({
           change: value => {
             this.setValue(value)
@@ -75,8 +81,9 @@ class Input extends Component {
             }
           }
         }, this.isNumber)
-        input.style.left = (myRect.left - workspaceRect.left + transform.left) + 'px'
-        input.style.top = (myRect.top - workspaceRect.top + transform.top) + 'px'
+        const {x, y} = this.getWorkspaceOffset()
+        input.style.left = x + 'px'
+        input.style.top = y + 'px'
         input.style.width = this.measurements.width + 'px'
         input.style.height = this.measurements.height + 'px'
         this.onInputShow(input)

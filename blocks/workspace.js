@@ -105,7 +105,9 @@ class Workspace {
   }
 
   _onStartScroll (initX, initY) {
+    if (this._scrolling) return
     const {left: initLeft, top: initTop, scale: initScale} = this._transform
+    this._scrolling = true
     return {
       move: (x, y) => {
         // Should also notify the dragged blocks to recalculate their snappables
@@ -113,6 +115,9 @@ class Workspace {
           initLeft + initX / initScale - x / this._transform.scale,
           initTop + initY / initScale - y / this._transform.scale
         )
+      },
+      end: () => {
+        this._scrolling = false
       }
     }
   }
@@ -143,10 +148,12 @@ class Workspace {
       const dragElem = pointerEntry.elem.closest('[data-block-drag]')
       if (dragElem) {
         const listener = this.blocks.dragListeners[dragElem.dataset.blockDrag]
-        const {move, end} = listener(pointerEntry.startX, pointerEntry.startY)
-        pointerEntry.dragMove = move
-        pointerEntry.dragEnd = end
-        this.svg.setPointerCapture(e.pointerId)
+        const dragListeners = listener(pointerEntry.startX, pointerEntry.startY)
+        if (dragListeners) {
+          pointerEntry.dragMove = dragListeners.move
+          pointerEntry.dragEnd = dragListeners.end
+          this.svg.setPointerCapture(e.pointerId)
+        }
       }
     }
   }

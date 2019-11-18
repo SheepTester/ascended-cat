@@ -1,14 +1,17 @@
-// Relies on blocks/component, utils/elem, blocks/constants
+// Relies on blocks/component, utils/elem, blocks/constants, blocks/input
 
 class Block extends Component {
   constructor (blocks, initBlock) {
     super()
+    this._onDrag = this._onDrag.bind(this)
+
     this.blocks = blocks
     this.elem.classList.add('block-block')
     this._path = Elem('path', {class: 'block-back'}, [], true)
     this.elem.appendChild(this._path)
     this._params = {}
     if (initBlock) this.setBlock(initBlock)
+    blocks.onDrag(this.elem, this._onDrag)
   }
 
   setBlock(blockOpcode) {
@@ -212,6 +215,41 @@ class Block extends Component {
     }
 
     this.measurements = {width: Math.max(maxWidth, branchWidth + cSlotMaxWidth), height: y}
+  }
+
+  _onDrag (initMouseX, initMouseY) {
+    const workspace = this.getWorkspace()
+    const workspaceRect = workspace.svg.getBoundingClientRect()
+    const workspaceTransform = workspace.getTransform()
+    const workspaceOffset = this.getWorkspaceOffset()
+    const script = this.blocks.createScript()
+    const oldParent = this.parent
+    if (oldParent instanceof Input) {
+      oldParent.insertBlock(null)
+      script.add(this)
+    } else {
+      const index = oldParent.components.indexOf(this)
+      if (~index) {
+        let component
+        while (component = oldParent.components[index]) {
+          oldParent.remove(component)
+          script.add(component)
+        }
+      } else {
+        return
+      }
+    }
+    oldParent.resize()
+    script.resize()
+    script.setPosition(
+      workspaceRect.left + workspaceOffset.x - workspaceTransform.left,
+      workspaceRect.top + workspaceOffset.y - workspaceTransform.top
+    )
+    return this.blocks.dragBlocks({
+      script,
+      dx: initMouseX - script.position.x,
+      dy: initMouseY - script.position.y
+    })
   }
 }
 

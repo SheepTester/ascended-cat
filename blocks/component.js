@@ -61,6 +61,9 @@ class Component {
   }
 
   add (component, beforeIndex = this.components.length) {
+    if (component.parent) {
+      component.parent.remove(component)
+    }
     if (beforeIndex < this.components.length) {
       this.elem.insertBefore(component.elem, this.components[beforeIndex].elem)
     } else {
@@ -104,7 +107,7 @@ class Component {
       let parent = this.parent
       while (parent) {
         parent.reposition()
-        parent = this.parent
+        parent = parent.parent
       }
     }
   }
@@ -124,5 +127,26 @@ class Component {
 
   storeAllInputsIn (arr) {
     this.components.forEach(component => component.storeAllInputsIn(arr))
+  }
+
+  /**
+   * Does not take into account scrolling.
+   */
+  getWorkspaceOffset () {
+    const {x, y} = this.position
+    if (this.parent) {
+      const {x: px, y: py} = this.parent.getWorkspaceOffset()
+      return {x: px + x, y: py + y}
+    } else {
+      return {x, y}
+    }
+  }
+
+  getWorkspace () {
+    let parent = this
+    while (parent && !parent.workspace) {
+      parent = parent.parent
+    }
+    return parent.workspace
   }
 }
