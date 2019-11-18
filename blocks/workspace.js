@@ -215,6 +215,15 @@ class Workspace {
     this.rect = {x: left, y: top, width, height}
   }
 
+  getStackBlockConnections () {
+    const arr = []
+    for (const script of this.scripts) {
+      arr.push(...script.getStackBlockConnections()
+        .map(([x, y, data]) => [x + script.position.x, y + script.position.y, data]))
+    }
+    return arr
+  }
+
   /**
    * Compares the legs and hypotenuse
    */

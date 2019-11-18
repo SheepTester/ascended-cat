@@ -1,4 +1,4 @@
-// Relies on blocks/component
+// Relies on blocks/component, blocks/block
 
 class Stack extends Component {
   constructor (initBlocks = []) {
@@ -19,6 +19,25 @@ class Stack extends Component {
       }
     }
     this.measurements = {width: maxWidth, height: y}
+  }
+
+  /**
+   * Stack block connections are just the rough locations of each notch.
+   */
+  getStackBlockConnections () {
+    const {notchLeft, notchWallWidth, notchWidth, branchWidth} = Block.renderOptions
+    const connectionX = notchLeft + notchWallWidth + notchWidth
+    const arr = []
+    for (const block of this.components) {
+      arr.push([connectionX, block.position.y, {before: block, in: this}])
+      for (const component of block.components) {
+        if (component instanceof Stack) {
+          arr.push(...component.getStackBlockConnections()
+            .map(([x, y, data]) => [branchWidth + x, y, data]))
+        }
+      }
+    }
+    arr.push([connectionX, this.measurements.height, {before: null, in: this}])
   }
 }
 

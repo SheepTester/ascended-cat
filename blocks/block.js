@@ -272,7 +272,8 @@ class Block extends Component {
     return this.blocks.dragBlocks({
       script,
       dx: initMouseX - script.position.x,
-      dy: initMouseY - script.position.y
+      dy: initMouseY - script.position.y,
+      type: this.blockData.blockType
     })
   }
 

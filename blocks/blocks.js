@@ -46,7 +46,7 @@ class Blocks {
     elem.dataset.blockDrop = id
   }
 
-  dragBlocks ({script, dx, dy}) {
+  dragBlocks ({script, dx, dy, type}) {
     if (!this._dragging) {
       document.body.classList.add('block-dragging-blocks')
     }
@@ -63,7 +63,12 @@ class Blocks {
         }
         if (dropTarget) {
           possibleDropTarget = this.dropListeners[dropTarget.dataset.blockDrop]
-          // Get snap areas
+          if (type === BlockType.COMMAND) {
+            // Get stack block connections and compare them; show a preview
+            // etc etc
+          } else {
+            //
+          }
         } else {
           possibleDropTarget = null
         }
