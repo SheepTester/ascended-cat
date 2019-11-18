@@ -3,9 +3,11 @@
 class Input extends Component {
   constructor (blocks, initValue) {
     super()
-    this.onInputClose = this.onInputClose.bind(this)
+    this.onInputHide = this.onInputHide.bind(this)
 
     this.blocks = blocks
+    this.isEditable = false
+    this.isNumber = false
     this.elem.classList.add('block-input')
     this.path = Elem('path', {class: 'block-input-back'}, [], true)
     this.elem.appendChild(this.path)
@@ -52,32 +54,51 @@ class Input extends Component {
       while (parent && !parent.workspace) {
         parent = parent.parent
       }
-      if (parent.workspace) {
-        const transform = parent.workspace.getTransform()
-        const workspaceRect = parent.workspace.svg.getBoundingClientRect()
+      const workspace = parent.workspace
+      if (workspace) {
+        const transform = workspace.getTransform()
+        const workspaceRect = workspace.svg.getBoundingClientRect()
         const myRect = this.path.getBoundingClientRect()
-        const input = parent.workspace.showInput(value => {
-          this.setValue(value)
-            .then(() => {
-              input.style.width = this.measurements.width + 'px'
-            })
-        }, this.onInputClose)
+        const input = workspace.showInput({
+          change: value => {
+            this.setValue(value)
+              .then(() => {
+                input.style.width = this.measurements.width + 'px'
+              })
+          },
+          hide: this.onInputHide,
+          tab: next => {
+            const inputs = workspace.getAllInputs()
+            const index = inputs.indexOf(this)
+            if (~index) {
+              return inputs[next ? index + 1 : index - 1]
+            }
+          }
+        }, this.isNumber)
         input.style.left = (myRect.left - workspaceRect.left + transform.left) + 'px'
         input.style.top = (myRect.top - workspaceRect.top + transform.top) + 'px'
         input.style.width = this.measurements.width + 'px'
         input.style.height = this.measurements.height + 'px'
-        this.onInputOpen(input)
+        this.onInputShow(input)
       }
     }
   }
 
-  onInputOpen (input) {
+  onInputShow (input) {
     input.value = this.text.getText()
     this.elem.classList.add('block-input-open')
   }
 
-  onInputClose (input) {
+  onInputHide (input) {
     this.elem.classList.remove('block-input-open')
+  }
+
+  storeAllInputsIn (arr) {
+    if (this._block) {
+      super.storeAllInputsIn(arr)
+    } else if (this.isEditable) {
+      arr.push(this)
+    }
   }
 }
 
@@ -100,6 +121,7 @@ class StringInput extends Input {
     this._onClick = this._onClick.bind(this)
 
     this.elem.classList.add('block-string-input')
+    this.isEditable = true
 
     this.blocks.onClick(this.elem, this._onClick)
   }
@@ -121,13 +143,13 @@ class StringInput extends Input {
     this.considerShowingInput()
   }
 
-  onInputOpen (input) {
-    super.onInputOpen(input)
+  onInputShow (input) {
+    super.onInputShow(input)
     input.classList.add('block-string-input')
   }
 
-  onInputClose (input) {
-    super.onInputClose(input)
+  onInputHide (input) {
+    super.onInputHide(input)
     input.classList.remove('block-string-input')
   }
 }
@@ -138,6 +160,8 @@ class NumberInput extends Input {
     this._onClick = this._onClick.bind(this)
 
     this.elem.classList.add('block-number-input')
+    this.isEditable = true
+    this.isNumber = true
 
     this.blocks.onClick(this.elem, this._onClick)
   }
@@ -163,13 +187,13 @@ class NumberInput extends Input {
     this.considerShowingInput()
   }
 
-  onInputOpen (input) {
-    super.onInputOpen(input)
+  onInputShow (input) {
+    super.onInputShow(input)
     input.classList.add('block-number-input')
   }
 
-  onInputClose (input) {
-    super.onInputClose(input)
+  onInputHide (input) {
+    super.onInputHide(input)
     input.classList.remove('block-number-input')
   }
 }

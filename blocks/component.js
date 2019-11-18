@@ -46,6 +46,10 @@ class TextComponent {
     this.position = {x, y}
     this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
   }
+
+  storeAllInputsIn (arr) {
+    //
+  }
 }
 
 class Component {
@@ -116,5 +120,9 @@ class Component {
   setPosition (x, y) {
     this.position = {x, y}
     this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
+  }
+
+  storeAllInputsIn (arr) {
+    this.components.forEach(component => component.storeAllInputsIn(arr))
   }
 }

@@ -1,12 +1,13 @@
 // Relies on utils/elem
 
+const numberInputKeys = /^[0-9e.\-]$/i
+
 class Workspace {
   constructor (blocks, wrapper) {
     this._onPointerDown = this._onPointerDown.bind(this)
     this._onPointerMove = this._onPointerMove.bind(this)
     this._onPointerUp = this._onPointerUp.bind(this)
     this._onStartScroll = this._onStartScroll.bind(this)
-    this._onInput = this._onInput.bind(this)
 
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
@@ -16,10 +17,27 @@ class Workspace {
     wrapper.appendChild(this.svg)
     this._input = Elem('input', {
       className: 'block-input block-hidden',
-      oninput: this._onInput,
-      onblur: () => {
-        if (this._showingInput) {
-          // this.hideInput()
+      oninput: () => {
+        if (this._showingInput && this._showingInput.on.change) {
+          this._showingInput.on.change(this._input.value)
+        }
+      },
+      onkeypress: e => {
+        if (this._showingInput && this._showingInput.number) {
+          if (!numberInputKeys.test(e.key)) {
+            e.preventDefault()
+          }
+        }
+      },
+      onkeydown: e => {
+        if (e.key === 'Tab' && !(e.ctrlKey || e.metaKey || e.altKey)) {
+          if (this._showingInput && this._showingInput.on.tab) {
+            const nextInput = this._showingInput.on.tab(!e.shiftKey)
+            if (nextInput) {
+              nextInput.considerShowingInput()
+              e.preventDefault()
+            }
+          }
         }
       }
     })
@@ -37,29 +55,22 @@ class Workspace {
     blocks.onDrag(this.svg, this._onStartScroll)
   }
 
-  _onInput () {
-    if (this._inputListener) {
-      this._inputListener(this._input.value)
-    }
-  }
-
   hideInput () {
-    if (this._inputEndListener) {
-      this._inputEndListener(this._input)
-      this._inputEndListener = null
+    if (this._showingInput && this._showingInput.on.hide) {
+      this._showingInput.on.hide(this._input)
     }
-    this._inputListener = null
-    this._showingInput = false
+    this._showingInput = null
     this._input.classList.add('block-hidden')
   }
 
-  showInput (onInput, onEnd) {
+  showInput (listeners, isNumber) {
     if (this._showingInput) {
       this.hideInput()
     }
-    this._inputListener = onInput
-    this._inputEndListener = onEnd
-    this._showingInput = true
+    this._showingInput = {
+      on: listeners,
+      number: isNumber
+    }
     this._input.classList.remove('block-hidden')
     this._input.focus()
     return this._input
@@ -155,6 +166,12 @@ class Workspace {
       }
     }
     delete this._pointers[e.pointerId]
+  }
+
+  getAllInputs () {
+    const arr = []
+    this.scripts.forEach(script => script.storeAllInputsIn(arr))
+    return arr
   }
 
   /**
