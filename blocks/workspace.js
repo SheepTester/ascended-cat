@@ -1,4 +1,4 @@
-// Relies on utils/elem, blocks/component, utils/math
+// Relies on utils/elem, blocks/component, utils/math, blocks/scripts
 
 const numberInputKeys = /^[0-9e.\-]$/i
 
@@ -244,8 +244,7 @@ class PaletteWorkspace extends Workspace {
   constructor (blocks, wrapper) {
     super(blocks, wrapper)
 
-    // TEMP:
-    const masterScript = blocks.createScript()
+    const masterScript = new PaletteStack()
     for (const category of blocks.categories) {
       for (const blockData of category.blocks) {
         if (blockData[0] === '-') {

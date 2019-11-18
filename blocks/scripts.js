@@ -32,6 +32,7 @@ class Stack extends Component {
       arr.push([connectionX, 0, {before: true, in: this}])
     }
     for (const block of this.components) {
+      if (!(block instanceof Block)) continue
       for (const component of block.components) {
         if (component instanceof Stack) {
           arr.push(...component.getStackBlockConnections()
@@ -46,7 +47,9 @@ class Stack extends Component {
   }
 }
 
-// Autodelete when last block is removed?
+/**
+ * Autodeletes when the last block is removed.
+ */
 class Script extends Stack {
   constructor (blocks, initBlocks) {
     super(initBlocks)
@@ -68,5 +71,15 @@ class Script extends Stack {
       this.workspace.scripts.splice(index, 1)
     }
     this.workspace = null
+  }
+}
+
+class PaletteStack extends Stack {
+  constructor (initBlocks) {
+    super(initBlocks)
+  }
+
+  getStackBlockConnections () {
+    return []
   }
 }
