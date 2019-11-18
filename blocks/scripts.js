@@ -28,16 +28,21 @@ class Stack extends Component {
     const {notchLeft, notchWallWidth, notchWidth, branchWidth} = Block.renderOptions
     const connectionX = notchLeft + notchWallWidth + notchWidth
     const arr = []
+    if (!this.components[0] || !this.components[0].blockData.hat) {
+      arr.push([connectionX, 0, {before: true, in: this}])
+    }
     for (const block of this.components) {
-      arr.push([connectionX, block.position.y, {before: block, in: this}])
       for (const component of block.components) {
         if (component instanceof Stack) {
           arr.push(...component.getStackBlockConnections()
-            .map(([x, y, data]) => [branchWidth + x, y, data]))
+            .map(([x, y, data]) => [branchWidth + x, block.position.y + component.position.y + y, data]))
         }
       }
+      if (!block.blockData.terminal) {
+        arr.push([connectionX, block.position.y + block.measurements.height, {after: block, in: this}])
+      }
     }
-    arr.push([connectionX, this.measurements.height, {before: null, in: this}])
+    return arr
   }
 }
 

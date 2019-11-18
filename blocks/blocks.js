@@ -1,4 +1,5 @@
-// Relies on blocks/workspace, blocks/scripts, blocks/block, blocks/constants
+// Relies on blocks/workspace, blocks/scripts, blocks/block, blocks/constants,
+// utils/math
 
 /**
  * Issues:
@@ -52,25 +53,43 @@ class Blocks {
     }
     this._dragging++
     this._dragSvg.appendChild(script.elem)
-    let possibleDropTarget
+    let possibleDropTarget, connections = [], snapTo
     return {
       move: (x, y) => {
         script.setPosition(x - dx, y - dy)
         const elems = document.elementsFromPoint(x, y)
-        let dropTarget
-        for (let i = 0; !dropTarget && i < elems.length; i++) {
-          dropTarget = elems[i].closest('[data-block-drop]')
+        let dropTargetElem
+        for (let i = 0; !dropTargetElem && i < elems.length; i++) {
+          dropTargetElem = elems[i].closest('[data-block-drop]')
         }
-        if (dropTarget) {
-          possibleDropTarget = this.dropListeners[dropTarget.dataset.blockDrop]
-          if (type === BlockType.COMMAND) {
-            // Get stack block connections and compare them; show a preview
-            // etc etc
-          } else {
-            //
+        if (dropTargetElem) {
+          const dropTarget = this.dropListeners[dropTargetElem.dataset.blockDrop]
+          if (possibleDropTarget !== dropTarget) {
+            possibleDropTarget = dropTarget
+            if (type === BlockType.COMMAND) {
+              if (dropTarget.getStackBlockConnections) {
+                connections = dropTarget.getStackBlockConnections()
+              }
+            } else {
+              if (dropTarget.getReporterConnections) {
+                connections = dropTarget.getReporterConnections()
+              }
+            }
+            snapTo = null
           }
-        } else {
+          if (connections.length) {
+            if (type === BlockType.COMMAND) {
+              const closest = connections.reduce((closestSoFar, connection) => {
+                //
+              })
+            } else {
+              //
+            }
+          }
+        } else if (possibleDropTarget) {
           possibleDropTarget = null
+          connections = []
+          snapTo = null
         }
       },
       end: () => {

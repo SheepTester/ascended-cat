@@ -1,4 +1,4 @@
-// Relies on utils/elem, blocks/component
+// Relies on utils/elem, blocks/component, utils/math
 
 const numberInputKeys = /^[0-9e.\-]$/i
 
@@ -9,6 +9,7 @@ class Workspace {
     this._onPointerUp = this._onPointerUp.bind(this)
     this._onStartScroll = this._onStartScroll.bind(this)
     this.acceptDrop = this.acceptDrop.bind(this)
+    this.getStackBlockConnections = this.getStackBlockConnections.bind(this)
 
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
@@ -69,7 +70,8 @@ class Workspace {
 
     blocks.onDrag(this.svg, this._onStartScroll)
     blocks.onDrop(this.svg, {
-      acceptDrop: this.acceptDrop
+      acceptDrop: this.acceptDrop,
+      getStackBlockConnections: this.getStackBlockConnections
     })
   }
 
@@ -166,7 +168,7 @@ class Workspace {
       if (pointerEntry.dragMove) {
         pointerEntry.dragMove(e.clientX, e.clientY)
       }
-    } else if (this.constructor._pythagoreanMagic(
+    } else if (pythagoreanCompare(
       e.clientX - pointerEntry.startX,
       e.clientY - pointerEntry.startY,
       this.constructor.minDragDistance
@@ -222,13 +224,6 @@ class Workspace {
         .map(([x, y, data]) => [x + script.position.x, y + script.position.y, data]))
     }
     return arr
-  }
-
-  /**
-   * Compares the legs and hypotenuse
-   */
-  static _pythagoreanMagic(a, b, c) {
-    return c * c - (a * a + b * b)
   }
 }
 
