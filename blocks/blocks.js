@@ -53,28 +53,25 @@ class Blocks {
     }
     this._dragging++
     this._dragSvg.appendChild(script.elem)
-    let possibleDropTarget, connections = [], snapPoints, snapTo, ready = false
+    let possibleDropTarget, connections = [], snapPoints, snapTo
     onReady.then(() => {
-      ready = true
       const {notchX} = Block.renderOptions
       if (type === BlockType.COMMAND) {
         snapPoints = {
           top: [notchX, 0],
           bottom: [notchX, script.measurements.height],
-          // innerLoop:
+          // inner:
         }
       } else {
         snapPoints = {
           // TODO
         }
       }
-      console.log(snapPoints)
     })
     return {
       move: (x, y) => {
         script.setPosition(x - dx, y - dy)
         const elems = document.elementsFromPoint(x, y)
-        if (!ready) return
         let dropTargetElem
         for (let i = 0; !dropTargetElem && i < elems.length; i++) {
           dropTargetElem = elems[i].closest('[data-block-drop]')
@@ -94,10 +91,20 @@ class Blocks {
             }
             snapTo = null
           }
-          if (ready && connections.length) {
+          if (snapPoints && connections.length) {
             if (type === BlockType.COMMAND) {
               const closest = connections.reduce((closestSoFar, connection) => {
-                //
+                let myConnection
+                if (connection.before) {
+                  myConnection = snapPoints.bottom
+                } else if (connection.insertBefore) {
+                  myConnection = snapPoints.inner || snapPoints.top
+                } else if (connection.after) {
+                  myConnection = snapPoints.top
+                } else {
+                  return closestSoFar
+                }
+                // if (pythagoreanCompare())
               })
             } else {
               //
