@@ -14,7 +14,6 @@ class Blocks {
     for (const category of initCategories) {
       this.addCategory(category)
     }
-    this._id = 0
     this.clickListeners = {}
     this.dragListeners = {}
     this.dropListeners = {}
@@ -30,19 +29,19 @@ class Blocks {
   }
 
   onClick (elem, fn) {
-    const id = ++this._id
+    const id = ++this.constructor._id
     this.clickListeners[id] = fn
     elem.dataset.blockClick = id
   }
 
   onDrag (elem, fn) {
-    const id = ++this._id
+    const id = ++this.constructor._id
     this.dragListeners[id] = fn
     elem.dataset.blockDrag = id
   }
 
   onDrop (elem, listeners) {
-    const id = ++this._id
+    const id = ++this.constructor._id
     this.dropListeners[id] = listeners
     elem.dataset.blockDrop = id
   }
@@ -57,8 +56,17 @@ class Blocks {
     return {
       move: (x, y) => {
         script.setPosition(x - dx, y - dy)
-        const dropTarget = document.elementFromPoint(x, y).closest('[data-block-drop]')
-        possibleDropTarget = this.dropListeners[dropTarget.dataset.blockDrop]
+        const elems = document.elementsFromPoint(x, y)
+        let dropTarget
+        for (let i = 0; !dropTarget && i < elems.length; i++) {
+          dropTarget = elems[i].closest('[data-block-drop]')
+        }
+        if (dropTarget) {
+          possibleDropTarget = this.dropListeners[dropTarget.dataset.blockDrop]
+          // Get snap areas
+        } else {
+          possibleDropTarget = null
+        }
       },
       end: () => {
         this._dragging--
@@ -100,6 +108,8 @@ class Blocks {
     return new Block(this, initBlock, initParams)
   }
 }
+
+Blocks._id = 0
 
 Blocks.BlockType = BlockType
 
