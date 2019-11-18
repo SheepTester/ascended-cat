@@ -17,6 +17,8 @@ class Blocks {
     this._id = 0
     this.clickListeners = {}
     this.dragListeners = {}
+    this.dropListeners = {}
+    this._workspaces = []
 
     this._dragSvg = Elem('svg', {class: 'block-dragged'}, [], true)
     document.body.appendChild(this._dragSvg)
@@ -39,15 +41,24 @@ class Blocks {
     elem.dataset.blockDrag = id
   }
 
-  dragBlocks ({script, initX, initY, dx, dy}) {
+  onDrop (elem, listeners) {
+    const id = ++this._id
+    this.dropListeners[id] = listeners
+    elem.dataset.blockDrop = id
+  }
+
+  dragBlocks ({script, dx, dy}) {
     if (!this._dragging) {
       document.body.classList.add('block-dragging-blocks')
     }
     this._dragging++
     this._dragSvg.appendChild(script.elem)
+    let possibleDropTarget
     return {
       move: (x, y) => {
         script.setPosition(x - dx, y - dy)
+        const dropTarget = document.elementFromPoint(x, y).closest('[data-block-drop]')
+        possibleDropTarget = this.dropListeners[dropTarget.dataset.blockDrop]
       },
       end: () => {
         this._dragging--
@@ -55,16 +66,30 @@ class Blocks {
           document.body.classList.remove('block-dragging-blocks')
         }
         this._dragSvg.removeChild(script.elem)
+        if (possibleDropTarget && possibleDropTarget.acceptDrop) {
+          const {x, y} = script.position
+          possibleDropTarget.acceptDrop(script, x, y)
+        }
       }
     }
   }
 
+  updateRects () {
+    this._workspaces.forEach(workspace => {
+      workspace.updateRect()
+    })
+  }
+
   createPaletteWorkspace (wrapper) {
-    return new PaletteWorkspace(this, wrapper)
+    const workspace = new PaletteWorkspace(this, wrapper)
+    this._workspaces.push(workspace)
+    return workspace
   }
 
   createWorkspace (wrapper) {
-    return new Workspace(this, wrapper)
+    const workspace = new Workspace(this, wrapper)
+    this._workspaces.push(workspace)
+    return workspace
   }
 
   createScript (initBlocks) {

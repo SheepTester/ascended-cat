@@ -219,9 +219,7 @@ class Block extends Component {
 
   _onDrag (initMouseX, initMouseY) {
     const workspace = this.getWorkspace()
-    const workspaceRect = workspace.svg.getBoundingClientRect()
-    const workspaceTransform = workspace.getTransform()
-    const workspaceOffset = this.getWorkspaceOffset()
+    const {x, y} = this.getWorkspaceOffset()
     const script = this.blocks.createScript()
     const oldParent = this.parent
     if (oldParent instanceof Input) {
@@ -241,10 +239,9 @@ class Block extends Component {
     }
     oldParent.resize()
     script.resize()
-    script.setPosition(
-      workspaceRect.left + workspaceOffset.x - workspaceTransform.left,
-      workspaceRect.top + workspaceOffset.y - workspaceTransform.top
-    )
+    const {x: workspaceX, y: workspaceY} = workspace.rect
+    const {left, top} = workspace.getTransform()
+    script.setPosition(workspaceX + x - left, workspaceY + y - top)
     return this.blocks.dragBlocks({
       script,
       dx: initMouseX - script.position.x,

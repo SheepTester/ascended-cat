@@ -287,9 +287,12 @@ const stack = blocks.createScript([
   blocks.createBlock('motion.test'),
   branch
 ])
-stack.resize()
 stack.setPosition(10, 30)
 scripts.add(stack)
+window.requestAnimationFrame(() => {
+  blocks.updateRects()
+  stack.resize()
+})
     </script>
   </body>
 </html>

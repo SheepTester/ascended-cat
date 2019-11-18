@@ -8,6 +8,7 @@ class Workspace {
     this._onPointerMove = this._onPointerMove.bind(this)
     this._onPointerUp = this._onPointerUp.bind(this)
     this._onStartScroll = this._onStartScroll.bind(this)
+    this.acceptDrop = this.acceptDrop.bind(this)
 
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
@@ -53,6 +54,17 @@ class Workspace {
     this.svg.addEventListener('pointerup', this._onPointerUp)
 
     blocks.onDrag(this.svg, this._onStartScroll)
+    blocks.onDrop(this.svg, {
+      acceptDrop: this.acceptDrop
+    })
+  }
+
+  acceptDrop (script, x, y) {
+    this.add(script)
+    script.setPosition(
+      x - this.rect.x + this._transform.left,
+      y - this.rect.y + this._transform.top
+    )
   }
 
   hideInput () {
@@ -123,6 +135,7 @@ class Workspace {
   }
 
   _onPointerDown (e) {
+    if (this._pointers[e.pointerId]) return
     this._pointers[e.pointerId] = {
       elem: e.target,
       startX: e.clientX,
@@ -181,6 +194,11 @@ class Workspace {
     return arr
   }
 
+  updateRect () {
+    const {left, top, width, height} = this.svg.getBoundingClientRect()
+    this.rect = {x: left, y: top, width, height}
+  }
+
   /**
    * Compares the legs and hypotenuse
    */
@@ -191,8 +209,13 @@ class Workspace {
 
 Workspace.minDragDistance = 3
 
-class PaletteWorkspace {
-  constructor () {
+class PaletteWorkspace extends Workspace {
+  constructor (blocks, wrapper) {
+    super(blocks, wrapper)
     // TODO
+  }
+
+  acceptDrop (script, x, y) {
+    // YEET
   }
 }
