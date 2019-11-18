@@ -1,20 +1,27 @@
 // Relies on blocks/component, utils/elem, blocks/constants, blocks/input
 
 class Block extends Component {
-  constructor (blocks, initBlock) {
+  constructor (blocks, initBlock, initParams = {}) {
     super()
     this._onDrag = this._onDrag.bind(this)
 
     this.blocks = blocks
+    this.cloneOnDrag = false
     this.elem.classList.add('block-block')
     this._path = Elem('path', {class: 'block-back'}, [], true)
     this.elem.appendChild(this._path)
     this._params = {}
-    if (initBlock) this.setBlock(initBlock)
+    if (initBlock) {
+      this.setBlock(initBlock)
+      for (const [paramID, value] of Object.entries(initParams)) {
+        this._params[paramID] = this.createParam(this.blockData.arguments[paramID], value)
+      }
+      this.updateLabel()
+    }
     blocks.onDrag(this.elem, this._onDrag)
   }
 
-  setBlock(blockOpcode) {
+  setBlock (blockOpcode) {
     const previousCategory = this.category
     const previousBlockData = this.blockData
     const [categoryID, opcode] = blockOpcode.split('.')
@@ -33,14 +40,13 @@ class Block extends Component {
       this._path.classList.remove('block-category-' + previousCategory)
     }
     this._path.classList.add('block-category-' + this.category)
-    this.clear()
-    this.setLabelFromBlock()
   }
 
   /**
    * Used for both changing languages and swapping blocks by means of right-click.
    */
-  setLabelFromBlock () {
+  updateLabel () {
+    this.clear()
     // TODO: Use translated string if this.blocks.language is set
     const text = this.blockData.text
     const paramRegex = /\[([A-Z0-9_]+)\]/g
@@ -61,23 +67,7 @@ class Block extends Component {
         this.add(oldParams[paramID])
         this._params[paramID] = oldParams[paramID]
       } else {
-        const argument = this.blockData.arguments[paramID]
-        let param
-        switch (argument.type) {
-          case ArgumentType.BRANCH:
-            // Should a new subclass be made or is this fine?
-            param = new Stack()
-            break
-          case ArgumentType.STRING:
-            param = new StringInput(this.blocks, argument.default)
-            break
-          case ArgumentType.NUMBER:
-            param = new NumberInput(this.blocks, argument.default)
-            break
-          case ArgumentType.BOOLEAN:
-            param = new BooleanInput(this.blocks)
-            break
-        }
+        const param = this.createParam(this.blockData.arguments[paramID])
         if (param) {
           this.add(param)
           this._params[paramID] = param
@@ -88,6 +78,38 @@ class Block extends Component {
     if (i < text.length) {
       this.add(new TextComponent(text.slice(i)))
     }
+  }
+
+  createParam (argumentData, value = argumentData.default) {
+    switch (argumentData.type) {
+      case ArgumentType.BRANCH:
+        return new Stack(value)
+      case ArgumentType.STRING:
+        return new StringInput(this.blocks, value)
+      case ArgumentType.NUMBER:
+        return new NumberInput(this.blocks, value)
+      case ArgumentType.BOOLEAN:
+        return new BooleanInput(this.blocks, value)
+      default:
+        return null
+    }
+  }
+
+  getParams (cloneBlocks = false) {
+    const params = {}
+    for (const [paramID, input] of Object.entries(this._params)) {
+      if (input instanceof Input) {
+        const value = input.getValue()
+        params[paramID] = cloneBlocks && value instanceof Block
+          ? value.clone()
+          : value
+      } else {
+        params[paramID] = cloneBlocks
+          ? input.components.map(block => block.clone())
+          : input.components
+      }
+    }
+    return params
   }
 
   reposition () {
@@ -104,6 +126,7 @@ class Block extends Component {
       branchWidth,
       branchMinHeight,
       hat,
+      hatTopPadding,
       hatMinWidth,
       booleanTextFirstPadding,
       reporterTextFirstPadding
@@ -121,7 +144,7 @@ class Block extends Component {
     let maxWidth = minWidth
     let cSlotMaxWidth = 0
     let maxHeight = minHeight
-    let y = 0
+    let y = this.blockData.hat ? hatTopPadding : 0
     let x = horizPadding
     let firstInRow = 0
     for (let i = 0; i < this.components.length; i++) {
@@ -189,7 +212,7 @@ class Block extends Component {
         const totalNotchWidth = notchLeft + notchWallWidth * 2 + notchWidth
         const notchToRight = `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`
         const notchToLeft = `l${-notchWallWidth} ${notchHeight} h${-notchWidth} l${-notchWallWidth} ${-notchHeight}`
-        let path = `M0 0 ${this.blockData.hat ? hat : `h${notchLeft} ${notchToRight}`} H${maxWidth}`
+        let path = `${this.blockData.hat ? `M0 ${hatTopPadding} ${hat}` : `M0 0 h${notchLeft} ${notchToRight}`} H${maxWidth}`
         for (const [start, end] of cInserts) {
           path += `V${start} H${branchWidth + totalNotchWidth} ${notchToLeft} h${-notchLeft}`
           path += `V${end} h${notchLeft} ${notchToRight} H${maxWidth}`
@@ -220,33 +243,44 @@ class Block extends Component {
   _onDrag (initMouseX, initMouseY) {
     const workspace = this.getWorkspace()
     const {x, y} = this.getWorkspaceOffset()
-    const script = this.blocks.createScript()
-    const oldParent = this.parent
-    if (oldParent instanceof Input) {
-      oldParent.insertBlock(null)
-      script.add(this)
-    } else {
-      const index = oldParent.components.indexOf(this)
-      if (~index) {
-        let component
-        while (component = oldParent.components[index]) {
-          oldParent.remove(component)
-          script.add(component)
-        }
-      } else {
-        return
-      }
-    }
-    oldParent.resize()
-    script.resize()
     const {x: workspaceX, y: workspaceY} = workspace.rect
     const {left, top} = workspace.getTransform()
+    const script = this.blocks.createScript()
+    if (this.cloneOnDrag) {
+      script.add(this.clone())
+    } else {
+      const oldParent = this.parent
+      if (oldParent instanceof Input) {
+        oldParent.insertBlock(null)
+        script.add(this)
+      } else {
+        const index = oldParent.components.indexOf(this)
+        if (~index) {
+          let component
+          while (component = oldParent.components[index]) {
+            oldParent.remove(component)
+            script.add(component)
+          }
+        } else {
+          return
+        }
+      }
+      oldParent.resize()
+    }
+    script.resize()
     script.setPosition(workspaceX + x - left, workspaceY + y - top)
     return this.blocks.dragBlocks({
       script,
       dx: initMouseX - script.position.x,
       dy: initMouseY - script.position.y
     })
+  }
+
+  clone () {
+    return this.blocks.createBlock(
+      `${this.category}.${this.blockData.opcode}`,
+      this.getParams(true)
+    )
   }
 }
 
@@ -268,6 +302,7 @@ Block.renderOptions = {
   branchWidth: 15,
   branchMinHeight: 9,
   hat: 'c20 -15 60 -15 80 0',
+  hatTopPadding: 15,
   hatMinWidth: 80,
   booleanTextFirstPadding: 10,
   reporterTextFirstPadding: 6

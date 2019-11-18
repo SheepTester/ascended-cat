@@ -75,9 +75,9 @@ class Blocks {
   }
 
   updateRects () {
-    this._workspaces.forEach(workspace => {
+    for (const workspace of this._workspaces) {
       workspace.updateRect()
-    })
+    }
   }
 
   createPaletteWorkspace (wrapper) {
@@ -96,8 +96,8 @@ class Blocks {
     return new Script(this, initBlocks)
   }
 
-  createBlock (initBlock) {
-    return new Block(this, initBlock)
+  createBlock (initBlock, initParams) {
+    return new Block(this, initBlock, initParams)
   }
 }
 

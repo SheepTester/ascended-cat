@@ -271,21 +271,23 @@ blocks.addCategory({
 const palette = blocks.createPaletteWorkspace(document.getElementById('palette'))
 const scripts = blocks.createWorkspace(document.getElementById('scripts'))
 
-const branch = blocks.createBlock('test.branch')
-const join = blocks.createBlock('test.join')
-branch._params.WOW.insertBlock(join)
-join._params.A.insertBlock(blocks.createBlock('test.add'))
-join._params.B.insertBlock(blocks.createBlock('test.join'))
-const moveSteps = blocks.createBlock('motion.moveSteps')
-moveSteps._params.STEPS.insertBlock(blocks.createBlock('test.not'))
-branch._params.B1.add(moveSteps)
-branch._params.B1.add(blocks.createBlock('motion.moveSteps'))
 const stack = blocks.createScript([
   blocks.createBlock('test.test'),
   blocks.createBlock('nonexistent.test'),
   blocks.createBlock('test.nonexistent'),
   blocks.createBlock('motion.test'),
-  branch
+  blocks.createBlock('test.branch', {
+    WOW: blocks.createBlock('test.join', {
+      A: blocks.createBlock('test.add'),
+      B: blocks.createBlock('test.join')
+    }),
+    B1: [
+      blocks.createBlock('motion.moveSteps', {
+        STEPS: blocks.createBlock('test.not')
+      }),
+      blocks.createBlock('motion.moveSteps')
+    ]
+  })
 ])
 stack.setPosition(10, 30)
 scripts.add(stack)

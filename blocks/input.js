@@ -53,6 +53,10 @@ class Input extends Component {
     }
   }
 
+  getValue () {
+    return this._block || this.value
+  }
+
   reposition () {
     this.measurements = this._block ? this._block.measurements : this.drawInputBack()
   }
@@ -206,8 +210,8 @@ class NumberInput extends Input {
 }
 
 class BooleanInput extends Input {
-  constructor(blocks) {
-    super(blocks)
+  constructor(blocks, initValue) {
+    super(blocks, initValue)
     this.elem.classList.add('block-boolean-input')
   }
 

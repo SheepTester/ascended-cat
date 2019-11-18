@@ -1,4 +1,4 @@
-// Relies on utils/elem
+// Relies on utils/elem, blocks/component
 
 const numberInputKeys = /^[0-9e.\-]$/i
 
@@ -190,7 +190,9 @@ class Workspace {
 
   getAllInputs () {
     const arr = []
-    this.scripts.forEach(script => script.storeAllInputsIn(arr))
+    for (const script of this.scripts) {
+      script.storeAllInputsIn(arr)
+    }
     return arr
   }
 
@@ -209,13 +211,42 @@ class Workspace {
 
 Workspace.minDragDistance = 3
 
+class PaletteSpace extends Component {
+  constructor (height) {
+    super()
+    this.height = height
+  }
+
+  reposition () {
+    this.measurements = {width: 0, height: this.height}
+  }
+}
+
 class PaletteWorkspace extends Workspace {
   constructor (blocks, wrapper) {
     super(blocks, wrapper)
-    // TODO
+
+    // TEMP:
+    const masterScript = blocks.createScript()
+    for (const category of blocks.categories) {
+      for (const {opcode} of category.blocks) {
+        const block = blocks.createBlock(`${category.id}.${opcode}`)
+        block.cloneOnDrag = true
+        masterScript.add(block)
+        masterScript.add(new PaletteSpace(10))
+      }
+    }
+    this.add(masterScript)
+    masterScript.setPosition(10, 10)
+    masterScript.resize()
+    this.list = masterScript
+  }
+
+  scrollTo (left, top) {
+    super.scrollTo(0, Math.max(Math.min(top, this.list.measurements.height), 0))
   }
 
   acceptDrop (script, x, y) {
-    // YEET
+    // Delete by doing nothing!
   }
 }

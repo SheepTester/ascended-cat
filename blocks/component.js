@@ -126,7 +126,9 @@ class Component {
   }
 
   storeAllInputsIn (arr) {
-    this.components.forEach(component => component.storeAllInputsIn(arr))
+    for (const component of this.components) {
+      component.storeAllInputsIn(arr)
+    }
   }
 
   /**
