@@ -53,14 +53,18 @@ class Blocks {
     }
     this._dragging++
     this._dragSvg.appendChild(script.elem)
-    let possibleDropTarget, connections = [], snapPoints, snapTo
+    let possibleDropTarget, connections = [], snapPoints, snapTo, wrappingC = false
     onReady.then(() => {
-      const {notchX} = Block.renderOptions
+      const {notchX, branchWidth} = Block.renderOptions
       if (type === BlockType.COMMAND) {
+        const firstLoop = script.components[0].components
+          .find(component => component instanceof Stack)
         snapPoints = {
           top: [notchX, 0],
           bottom: [notchX, script.measurements.height],
-          // inner:
+          inner: firstLoop && !firstLoop.components.length
+            ? [firstLoop.position.x + branchWidth, firstLoop.position.y]
+            : null
         }
       } else {
         snapPoints = {
@@ -92,20 +96,45 @@ class Blocks {
             snapTo = null
           }
           if (snapPoints && connections.length) {
+            const workspaceRect = dropTarget.getRect()
             if (type === BlockType.COMMAND) {
               const closest = connections.reduce((closestSoFar, connection) => {
-                let myConnection
-                if (connection.before) {
-                  myConnection = snapPoints.bottom
-                } else if (connection.insertBefore) {
-                  myConnection = snapPoints.inner || snapPoints.top
-                } else if (connection.after) {
-                  myConnection = snapPoints.top
-                } else {
-                  return closestSoFar
+                return [
+                  connection[2].beforeScript ? snapPoints.bottom : null,
+                  connection[2].insertBefore ? snapPoints.inner : null,
+                  connection[2].insertBefore && !snapPoints.inner
+                    || connection[2].after ? snapPoints.top : null
+                ].reduce((closestSoFar, myConnection) => {
+                  if (!myConnection) return closestSoFar
+                  const myX = script.position.x + myConnection[0]
+                  const myY = script.position.y + myConnection[1]
+                  const connectionX = workspaceRect.x + connection[0]
+                  const connectionY = workspaceRect.y + connection[1]
+                  const distance = square(myX - connectionX)
+                    + square(myY - connectionY)
+                  if (distance > Block.maxSnapDistance * Block.maxSnapDistance
+                    || closestSoFar && distance >= closestSoFar.distanceSquared) {
+                    return closestSoFar
+                  } else {
+                    return {
+                      distanceSquared: distance,
+                      connection,
+                      myConnection
+                    }
+                  }
+                }, closestSoFar)
+              }, null)
+              if (closest) {
+                if (snapTo !== closest.connection[2]) {
+                  snapTo = closest.connection[2]
+                  wrappingC = closest.myConnection === snapPoints.inner
+                  // show/move preview
                 }
-                // if (pythagoreanCompare())
-              })
+              } else if (snapTo) {
+                snapTo = null
+                wrappingC = false
+                // hide preview
+              }
             } else {
               //
             }
@@ -114,6 +143,7 @@ class Blocks {
           possibleDropTarget = null
           connections = []
           snapTo = null
+          wrappingC = false
         }
       },
       end: () => {
@@ -124,7 +154,13 @@ class Blocks {
         this._dragSvg.removeChild(script.elem)
         if (possibleDropTarget && possibleDropTarget.acceptDrop) {
           const {x, y} = script.position
-          possibleDropTarget.acceptDrop(script, x, y)
+          possibleDropTarget.acceptDrop(
+            script,
+            x,
+            y,
+            snapTo,
+            wrappingC
+          )
         }
       }
     }

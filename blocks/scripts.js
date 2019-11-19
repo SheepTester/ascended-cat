@@ -27,19 +27,22 @@ class Stack extends Component {
   getStackBlockConnections () {
     const blocks = this.components.filter(block => block instanceof Block)
     const {branchWidth, notchX} = Block.renderOptions
-    const arr = []
-    if (!blocks.length || !blocks[0].blockData.hat) {
-      arr.push([notchX, 0, {before: true, in: this}])
-      if (!blocks.length) return arr
+    if (!blocks.length) {
+      return [[notchX, 0, {after: true, in: this}]]
     }
+    const arr = []
     for (const block of blocks) {
-      if (blocks[0] !== block) {
+      if (!block.blockData.hat) {
         arr.push([notchX, block.position.y, {insertBefore: block, in: this}])
       }
       for (const component of block.components) {
         if (component instanceof Stack) {
           arr.push(...component.getStackBlockConnections()
-            .map(([x, y, data]) => [branchWidth + x, block.position.y + component.position.y + y, data]))
+            .map(([x, y, data]) => [
+              branchWidth + x,
+              block.position.y + component.position.y + y,
+              data
+            ]))
         }
       }
     }
@@ -74,6 +77,18 @@ class Script extends Stack {
       this.workspace.scripts.splice(index, 1)
     }
     this.workspace = null
+  }
+  
+  getStackBlockConnections () {
+    const arr = super.getStackBlockConnections()
+    // In 2.0, I believe you attach on the bottom for scripts, but insert
+    // with the top in C blocks. Also with C blocks you can both attach
+    // from the bottom or wrap around by connecting to the top. It's rather
+    // complex.
+    if (arr[0][2].insertBefore && arr[0][2].in === this) {
+      arr[0][2].beforeScript = true
+    }
+    return arr
   }
 }
 

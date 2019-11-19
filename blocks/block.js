@@ -312,3 +312,5 @@ Block.renderOptions = {
   booleanTextFirstPadding: 10,
   reporterTextFirstPadding: 6
 }
+
+Block.maxSnapDistance = 20
