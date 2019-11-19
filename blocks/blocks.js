@@ -60,8 +60,9 @@ class Blocks {
         const firstLoop = script.components[0].components
           .find(component => component instanceof Stack)
         snapPoints = {
-          top: [notchX, 0],
-          bottom: [notchX, script.measurements.height],
+          top: script.components[0].blockData.hat ? null : [notchX, 0],
+          bottom: script.components[script.components.length - 1].blockData.terminal
+            ? null : [notchX, script.measurements.height],
           inner: firstLoop && !firstLoop.components.length
             ? [firstLoop.position.x + branchWidth, firstLoop.position.y]
             : null

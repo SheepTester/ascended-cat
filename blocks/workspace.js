@@ -79,24 +79,46 @@ class Workspace {
   }
 
   acceptDrop (script, x, y, snapTo, wrappingC) {
-    console.log(snapTo)
+    console.log(snapTo, wrappingC)
     if (snapTo) {
       if (snapTo.insertBefore) {
         const index = snapTo.in.components.indexOf(snapTo.insertBefore)
-        // Prepend each component in the script from bottom to top
-        // to the insert index of the target script.
-        while (script.components.length) {
-          const component = script.components[script.components.length - 1]
-          script.remove(component)
-          snapTo.in.add(component, index)
-        }
-        // Shift the target script up so it looks like they were merged
-        // rather than inserted if this was a prepending.
-        if (snapTo.beforeScript) {
-          snapTo.in.setPosition(
-            snapTo.in.position.x,
-            snapTo.in.position.y - script.measurements.height
-          )
+        if (wrappingC) {
+          const firstLoop = script.components[0].components
+            .find(component => component instanceof Stack)
+          const blocksInserted = script.components.length
+          while (script.components.length) {
+            const component = script.components[script.components.length - 1]
+            script.remove(component)
+            snapTo.in.add(component, index)
+          }
+          while (snapTo.in.components[blocksInserted + index]) {
+            const component = snapTo.in.components[blocksInserted + index]
+            snapTo.in.remove(component)
+            firstLoop.add(component)
+          }
+          if (snapTo.beforeScript) {
+            snapTo.in.setPosition(
+              snapTo.in.position.x - script.position.x,
+              snapTo.in.position.y - script.position.y
+            )
+          }
+        } else {
+          // Prepend each component in the script from bottom to top
+          // to the insert index of the target script.
+          while (script.components.length) {
+            const component = script.components[script.components.length - 1]
+            script.remove(component)
+            snapTo.in.add(component, index)
+          }
+          // Shift the target script up so it looks like they were merged
+          // rather than inserted if this was a prepending.
+          if (snapTo.beforeScript) {
+            snapTo.in.setPosition(
+              snapTo.in.position.x,
+              snapTo.in.position.y - script.measurements.height
+            )
+          }
         }
       } else if (snapTo.after) {
         // Append each component in the script from top to bottom
