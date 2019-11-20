@@ -111,6 +111,18 @@ class Input extends Component {
       arr.push(this)
     }
   }
+  
+  getReporterConnections () {
+    const arr = [[
+      this.constructor.renderOptions.reporterConnectionLeft,
+      this.measurements.height / 2,
+      this
+    ]]
+    if (this._block) {
+      arr.push(...this._block.getReporterConnections())
+    }
+    return arr
+  }
 }
 
 Input.renderOptions = {
@@ -123,7 +135,8 @@ Input.renderOptions = {
   numberMinWidth: 8,
   booleanHeight: 14,
   booleanWidth: 30,
-  booleanSide: 7
+  booleanSide: 7,
+  reporterConnectionLeft: 8
 }
 
 class StringInput extends Input {

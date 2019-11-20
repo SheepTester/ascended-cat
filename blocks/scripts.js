@@ -51,6 +51,21 @@ class Stack extends Component {
     }
     return arr
   }
+  
+  /**
+   * Reporter connections are vertically the centre of the block but
+   * horizontally on the left.
+   */
+  getReporterConnections () {
+    const arr = []
+    for (const component of this.components) {
+      if (component instanceof Block) {
+        arr.push(...component.getReporterConnections()
+          .map(([x, y, data]) => [x + component.position.x, y + component.position.y, data]))
+      }
+    }
+    return arr
+  }
 }
 
 /**

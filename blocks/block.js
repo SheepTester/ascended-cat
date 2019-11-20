@@ -280,6 +280,17 @@ class Block extends Component {
       this.getParams(true)
     )
   }
+  
+  getReporterConnections () {
+    const arr = []
+    for (const component of this.components) {
+      if (component instanceof Input || component instanceof Stack) {
+        arr.push(...component.getReporterConnections()
+          .map(([x, y, data]) => [x + component.position.x, y + component.position.y, data]))
+      }
+    }
+    return arr
+  }
 }
 
 Block.nonexistentBlock = {

@@ -281,6 +281,15 @@ class Workspace {
     }
     return arr
   }
+
+  getReporterConnections () {
+    const arr = []
+    for (const script of this.scripts) {
+      arr.push(...script.getReporterConnections()
+        .map(([x, y, data]) => [x + script.position.x, y + script.position.y, data]))
+    }
+    return arr
+  }
 }
 
 Workspace.minDragDistance = 3
