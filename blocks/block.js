@@ -120,9 +120,9 @@ class Block extends Component {
       stackHorizPadding,
       stackVertPadding,
       notchLeft,
-      notchWallWidth,
-      notchHeight,
-      notchWidth,
+      notchTotalWidth,
+      notchToLeft,
+      notchToRight,
       branchWidth,
       branchMinHeight,
       hat,
@@ -209,15 +209,12 @@ class Block extends Component {
 
     switch (this.blockData.blockType) {
       case BlockType.COMMAND: {
-        const totalNotchWidth = notchLeft + notchWallWidth * 2 + notchWidth
-        const notchToRight = `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`
-        const notchToLeft = `l${-notchWallWidth} ${notchHeight} h${-notchWidth} l${-notchWallWidth} ${-notchHeight}`
         let path = `${this.blockData.hat ? `M0 ${hatTopPadding} ${hat}` : `M0 0 h${notchLeft} ${notchToRight}`} H${maxWidth}`
         for (const [start, end] of cInserts) {
-          path += `V${start} H${branchWidth + totalNotchWidth} ${notchToLeft} h${-notchLeft}`
+          path += `V${start} H${branchWidth + notchTotalWidth} ${notchToLeft} h${-notchLeft}`
           path += `V${end} h${notchLeft} ${notchToRight} H${maxWidth}`
         }
-        path += `V${y} ${this.blockData.terminal ? '' : `H${totalNotchWidth} ${notchToLeft}`} H0 z`
+        path += `V${y} ${this.blockData.terminal ? '' : `H${notchTotalWidth} ${notchToLeft}`} H0 z`
         this._path.setAttributeNS(null, 'd', path)
         break
       }
@@ -304,6 +301,18 @@ Block.renderOptions = {
     const {notchLeft, notchWallWidth, notchWidth} = this
     return notchLeft + notchWallWidth + notchWidth / 2
   },
+  get notchTotalWidth () {
+    const {notchLeft, notchWallWidth, notchWidth} = this
+    return notchLeft + notchWallWidth * 2 + notchWidth
+  },
+  get notchToLeft () {
+    const {notchWallWidth, notchWidth, notchHeight} = this
+    return `l${-notchWallWidth} ${notchHeight} h${-notchWidth} l${-notchWallWidth} ${-notchHeight}`
+  },
+  get notchToRight () {
+    const {notchWallWidth, notchWidth, notchHeight} = this
+    return `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`
+  },
   branchWidth: 15,
   branchMinHeight: 9,
   hat: 'c20 -15 60 -15 80 0',
@@ -313,4 +322,4 @@ Block.renderOptions = {
   reporterTextFirstPadding: 6
 }
 
-Block.maxSnapDistance = 20
+Block.maxSnapDistance = 30

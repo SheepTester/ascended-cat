@@ -1,5 +1,5 @@
 // Relies on blocks/workspace, blocks/scripts, blocks/block, blocks/constants,
-// utils/math, blocks/component
+// utils/math, blocks/component, utils/elem
 
 /**
  * Issues:
@@ -54,7 +54,10 @@ class Blocks {
     this._dragging++
     this._dragSvg.appendChild(script.elem)
     let possibleDropTarget, connections = [], snapPoints, snapTo, wrappingC = false
-    let spacePlaceholder = new Space()
+    const spacePlaceholder = new Space()
+    const snapMarker = Elem('path', {class: 'block-snap-marker'}, [], true)
+    const {notchLeft, notchTotalWidth, notchToLeft, notchToRight} = Block.renderOptions
+    let normalInsertPath
     onReady.then(() => {
       const {notchX, branchWidth} = Block.renderOptions
       if (type === BlockType.COMMAND) {
@@ -69,6 +72,7 @@ class Blocks {
             : null,
           firstLoop
         }
+        normalInsertPath = `M0 0 h${notchLeft} ${notchToRight} H${script.measurements.width}`
       } else {
         snapPoints = {
           // TODO
@@ -135,11 +139,21 @@ class Blocks {
                     spacePlaceholder.height = snapTo.in.measurements.height - snapTo.insertBefore.position.y
                     snapPoints.firstLoop.add(spacePlaceholder)
                     spacePlaceholder.resize()
-                  } else if (spacePlaceholder.parent) {
-                    spacePlaceholder.parent.remove(spacePlaceholder)
-                    snapPoints.firstLoop.resize()
+                    let path = `M${script.measurements.width} 0 H${notchTotalWidth}`
+                      + `${notchToLeft} H0 V${spacePlaceholder.height}`
+                      + `h${notchLeft} ${notchToRight} H${script.measurements.width}`
+                    snapMarker.setAttributeNS(null, 'd', path)
+                  } else {
+                    if (spacePlaceholder.parent) {
+                      spacePlaceholder.parent.remove(spacePlaceholder)
+                      snapPoints.firstLoop.resize()
+                    }
+                    snapMarker.setAttributeNS(null, 'd', normalInsertPath)
                   }
-                  // show/move preview
+                  snapTo.in.elem.appendChild(snapMarker)
+                  let y = snapTo.after ? snapTo.in.measurements.height
+                    : snapTo.insertBefore.position.y
+                  snapMarker.setAttributeNS(null, 'transform', `translate(0, ${y})`)
                 }
               } else if (snapTo) {
                 snapTo = null
@@ -148,7 +162,9 @@ class Blocks {
                   spacePlaceholder.parent.remove(spacePlaceholder)
                   snapPoints.firstLoop.resize()
                 }
-                // hide preview
+                if (snapMarker.parentNode) {
+                  snapMarker.parentNode.removeChild(snapMarker)
+                }
               }
             } else {
               //
@@ -163,12 +179,18 @@ class Blocks {
             spacePlaceholder.parent.remove(spacePlaceholder)
             snapPoints.firstLoop.resize()
           }
+          if (snapMarker.parentNode) {
+            snapMarker.parentNode.removeChild(snapMarker)
+          }
         }
       },
       end: () => {
         if (spacePlaceholder.parent) {
           spacePlaceholder.parent.remove(spacePlaceholder)
           // Should the parent be resized?
+        }
+        if (snapMarker.parentNode) {
+          snapMarker.parentNode.removeChild(snapMarker)
         }
         this._dragging--
         if (!this._dragging) {

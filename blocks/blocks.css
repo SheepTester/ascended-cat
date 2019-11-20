@@ -50,3 +50,8 @@
 .block-dragging-blocks .block-dragged {
   display: block;
 }
+
+.block-snap-marker {
+  stroke: white;
+  fill: none;
+}
