@@ -79,7 +79,6 @@ class Workspace {
   }
 
   acceptDrop (script, x, y, snapTo, wrappingC) {
-    console.log(snapTo, wrappingC)
     if (snapTo) {
       if (snapTo.insertBefore) {
         const index = snapTo.in.components.indexOf(snapTo.insertBefore)
@@ -99,10 +98,11 @@ class Workspace {
           }
           if (snapTo.beforeScript) {
             snapTo.in.setPosition(
-              snapTo.in.position.x - script.position.x,
-              snapTo.in.position.y - script.position.y
+              snapTo.in.position.x - firstLoop.position.x,
+              snapTo.in.position.y - firstLoop.position.y
             )
           }
+          firstLoop.resize()
         } else {
           // Prepend each component in the script from bottom to top
           // to the insert index of the target script.
