@@ -285,17 +285,6 @@ class Workspace {
 
 Workspace.minDragDistance = 3
 
-class PaletteSpace extends Component {
-  constructor (height) {
-    super()
-    this.height = height
-  }
-
-  reposition () {
-    this.measurements = {width: 0, height: this.height}
-  }
-}
-
 class PaletteWorkspace extends Workspace {
   constructor (blocks, wrapper) {
     super(blocks, wrapper)
@@ -304,12 +293,12 @@ class PaletteWorkspace extends Workspace {
     for (const category of blocks.categories) {
       for (const blockData of category.blocks) {
         if (blockData[0] === '-') {
-          masterScript.add(new PaletteSpace(10))
+          masterScript.add(new Space(10))
         } else {
           const block = blocks.createBlock(`${category.id}.${blockData.opcode}`)
           block.cloneOnDrag = true
           masterScript.add(block)
-          masterScript.add(new PaletteSpace(10))
+          masterScript.add(new Space(10))
         }
       }
     }

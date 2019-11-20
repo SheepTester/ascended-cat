@@ -1,5 +1,5 @@
 // Relies on blocks/workspace, blocks/scripts, blocks/block, blocks/constants,
-// utils/math
+// utils/math, blocks/component
 
 /**
  * Issues:
@@ -54,6 +54,7 @@ class Blocks {
     this._dragging++
     this._dragSvg.appendChild(script.elem)
     let possibleDropTarget, connections = [], snapPoints, snapTo, wrappingC = false
+    let spacePlaceholder = new Space()
     onReady.then(() => {
       const {notchX, branchWidth} = Block.renderOptions
       if (type === BlockType.COMMAND) {
@@ -65,7 +66,8 @@ class Blocks {
             ? null : [notchX, script.measurements.height],
           inner: firstLoop && !firstLoop.components.length
             ? [firstLoop.position.x + branchWidth, firstLoop.position.y]
-            : null
+            : null,
+          firstLoop
         }
       } else {
         snapPoints = {
@@ -129,11 +131,23 @@ class Blocks {
                 if (snapTo !== closest.connection[2]) {
                   snapTo = closest.connection[2]
                   wrappingC = closest.myConnection === snapPoints.inner
+                  if (wrappingC) {
+                    spacePlaceholder.height = snapTo.in.measurements.height - snapTo.insertBefore.position.y
+                    snapPoints.firstLoop.add(spacePlaceholder)
+                    spacePlaceholder.resize()
+                  } else if (spacePlaceholder.parent) {
+                    spacePlaceholder.parent.remove(spacePlaceholder)
+                    snapPoints.firstLoop.resize()
+                  }
                   // show/move preview
                 }
               } else if (snapTo) {
                 snapTo = null
                 wrappingC = false
+                if (spacePlaceholder.parent) {
+                  spacePlaceholder.parent.remove(spacePlaceholder)
+                  snapPoints.firstLoop.resize()
+                }
                 // hide preview
               }
             } else {
@@ -145,9 +159,17 @@ class Blocks {
           connections = []
           snapTo = null
           wrappingC = false
+          if (spacePlaceholder.parent) {
+            spacePlaceholder.parent.remove(spacePlaceholder)
+            snapPoints.firstLoop.resize()
+          }
         }
       },
       end: () => {
+        if (spacePlaceholder.parent) {
+          spacePlaceholder.parent.remove(spacePlaceholder)
+          // Should the parent be resized?
+        }
         this._dragging--
         if (!this._dragging) {
           document.body.classList.remove('block-dragging-blocks')

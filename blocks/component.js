@@ -152,3 +152,14 @@ class Component {
     return parent.workspace
   }
 }
+
+class Space extends Component {
+  constructor (height = 0) {
+    super()
+    this.height = height
+  }
+
+  reposition () {
+    this.measurements = {width: 0, height: this.height}
+  }
+}
