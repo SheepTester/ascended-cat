@@ -10,6 +10,7 @@ class Workspace {
     this._onStartScroll = this._onStartScroll.bind(this)
     this.acceptDrop = this.acceptDrop.bind(this)
     this.getStackBlockConnections = this.getStackBlockConnections.bind(this)
+    this.getReporterConnections = this.getReporterConnections.bind(this)
 
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
