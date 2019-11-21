@@ -74,9 +74,7 @@ class Blocks {
         }
         normalInsertPath = `M0 0 h${notchLeft} ${notchToRight} H${script.measurements.width}`
       } else {
-        snapPoints = {
-          // TODO
-        }
+        snapPoints = script.components[0].getReporterAnchorPoint()
       }
     })
     return {
@@ -97,8 +95,11 @@ class Blocks {
               }
             } else {
               if (dropTarget.getReporterConnections) {
-                connections = dropTarget.getReporterConnections()
+                connections = dropTarget.getReporterConnections(script.components[0])
               }
+            }
+            if (snapTo && snapTo instanceof Input) {
+              snapTo.elem.classList.remove('block-input-drop-target')
             }
             snapTo = null
           }
@@ -167,12 +168,43 @@ class Blocks {
                 }
               }
             } else {
-              //
+              const closest = connections.reduce((closestSoFar, connection) => {
+                const myX = script.position.x + snapPoints[0]
+                const myY = script.position.y + snapPoints[1]
+                const connectionX = workspaceRect.x + connection[0]
+                const connectionY = workspaceRect.y + connection[1]
+                const distance = square(myX - connectionX)
+                  + square(myY - connectionY)
+                if (distance > Block.maxSnapDistance * Block.maxSnapDistance
+                  || closestSoFar && distance >= closestSoFar.distanceSquared) {
+                  return closestSoFar
+                } else {
+                  return {
+                    distanceSquared: distance,
+                    connection
+                  }
+                }
+              }, null)
+              if (closest) {
+                if (snapTo !== closest.connection[2]) {
+                  if (snapTo) {
+                    snapTo.elem.classList.remove('block-input-drop-target')
+                  }
+                  snapTo = closest.connection[2]
+                  snapTo.elem.classList.add('block-input-drop-target')
+                }
+              } else if (snapTo) {
+                snapTo.elem.classList.remove('block-input-drop-target')
+                snapTo = null
+              }
             }
           }
         } else if (possibleDropTarget) {
           possibleDropTarget = null
           connections = []
+          if (snapTo && snapTo instanceof Input) {
+            snapTo.elem.classList.remove('block-input-drop-target')
+          }
           snapTo = null
           wrappingC = false
           if (spacePlaceholder.parent) {
@@ -191,6 +223,9 @@ class Blocks {
         }
         if (snapMarker.parentNode) {
           snapMarker.parentNode.removeChild(snapMarker)
+        }
+        if (snapTo && snapTo instanceof Input) {
+          snapTo.elem.classList.remove('block-input-drop-target')
         }
         this._dragging--
         if (!this._dragging) {

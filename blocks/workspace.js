@@ -1,4 +1,4 @@
-// Relies on utils/elem, blocks/component, utils/math, blocks/scripts
+// Relies on utils/elem, blocks/component, utils/math, blocks/scripts, blocks/input
 
 const numberInputKeys = /^[0-9e.\-]$/i
 
@@ -29,6 +29,32 @@ class Workspace {
         }
       }
     }, [
+      Elem('defs', {}, [
+        // https://stackoverflow.com/questions/9630008/how-can-i-create-a-glow-around-a-rectangle-with-svg
+        Elem('filter', {
+          id: 'block-snap-glow'
+        }, [
+          Elem('feGaussianBlur', {
+            stdDeviation: 3,
+            result: 'blur'
+          }, [], true),
+          // https://codepen.io/dipscom/pen/mVYjPw
+          Elem('feFlood', {
+            'flood-color': 'white',
+            result: 'colour'
+          }, [], true),
+          Elem('feComposite', {
+            in: 'colour',
+            in2: 'blur',
+            operator: 'in',
+            result: 'colouredBlur'
+          }, [], true),
+          Elem('feMerge', {}, [
+            Elem('feMergeNode', {in: 'colouredBlur'}, [], true),
+            Elem('feMergeNode', {in: 'SourceGraphic'}, [], true)
+          ], true)
+        ], true)
+      ], true),
       this.scriptsElem
     ], true)
     wrapper.appendChild(this.svg)
@@ -73,6 +99,7 @@ class Workspace {
     blocks.onDrop(this.svg, {
       acceptDrop: this.acceptDrop,
       getStackBlockConnections: this.getStackBlockConnections,
+      getReporterConnections: this.getReporterConnections,
       getRect: () => {
         return this.rect
       }
@@ -81,7 +108,12 @@ class Workspace {
 
   acceptDrop (script, x, y, snapTo, wrappingC) {
     if (snapTo) {
-      if (snapTo.insertBefore) {
+      if (snapTo instanceof Input) {
+        // TEMP
+        snapTo.insertBlock(script.components[0])
+        snapTo.resize()
+        return
+      } else if (snapTo.insertBefore) {
         const index = snapTo.in.components.indexOf(snapTo.insertBefore)
         if (wrappingC) {
           const firstLoop = script.components[0].components
@@ -283,10 +315,10 @@ class Workspace {
     return arr
   }
 
-  getReporterConnections () {
+  getReporterConnections (block) {
     const arr = []
     for (const script of this.scripts) {
-      arr.push(...script.getReporterConnections()
+      arr.push(...script.getReporterConnections(block)
         .map(([x, y, data]) => [x + script.position.x, y + script.position.y, data]))
     }
     return arr
@@ -299,7 +331,7 @@ class PaletteWorkspace extends Workspace {
   constructor (blocks, wrapper) {
     super(blocks, wrapper)
 
-    const masterScript = new PaletteStack()
+    const masterScript = new Stack()
     for (const category of blocks.categories) {
       for (const blockData of category.blocks) {
         if (blockData[0] === '-') {
@@ -324,5 +356,13 @@ class PaletteWorkspace extends Workspace {
 
   acceptDrop (script, x, y) {
     // Delete by doing nothing!
+  }
+  
+  getStackBlockConnections () {
+    return []
+  }
+  
+  getReporterConnections (block) {
+    return []
   }
 }

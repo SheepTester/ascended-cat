@@ -39,7 +39,7 @@ function Elem (tag = 'div', data = {}, children = [], svg = false) {
         if (className === null || className === undefined) continue
         elem.classList.add(className)
       }
-    } else if (elem[prop] === undefined) {
+    } else if (elem[prop] === undefined || elem[prop] && elem[prop].baseVal !== undefined) {
       if (svg) {
         elem.setAttributeNS(null, prop, value)
       } else {

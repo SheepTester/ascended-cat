@@ -112,12 +112,19 @@ class Input extends Component {
     }
   }
   
-  getReporterConnections () {
-    const arr = [[
-      this.constructor.renderOptions.reporterConnectionLeft,
-      this.measurements.height / 2,
-      this
-    ]]
+  canAcceptBlock (block) {
+    return true
+  }
+  
+  getReporterConnections (block) {
+    const arr = []
+    if (this.canAcceptBlock(block)) {
+      arr.push([
+        this.constructor.renderOptions.reporterConnectionLeft,
+        this.measurements.height / 2,
+        this
+      ])
+    }
     if (this._block) {
       arr.push(...this._block.getReporterConnections())
     }

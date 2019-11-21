@@ -281,11 +281,18 @@ class Block extends Component {
     )
   }
   
-  getReporterConnections () {
+  getReporterAnchorPoint () {
+    return [
+      Input.renderOptions.reporterConnectionLeft,
+      this.measurements.height / 2
+    ]
+  }
+  
+  getReporterConnections (block) {
     const arr = []
     for (const component of this.components) {
       if (component instanceof Input || component instanceof Stack) {
-        arr.push(...component.getReporterConnections()
+        arr.push(...component.getReporterConnections(block)
           .map(([x, y, data]) => [x + component.position.x, y + component.position.y, data]))
       }
     }

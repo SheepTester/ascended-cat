@@ -56,11 +56,11 @@ class Stack extends Component {
    * Reporter connections are vertically the centre of the block but
    * horizontally on the left.
    */
-  getReporterConnections () {
+  getReporterConnections (block) {
     const arr = []
     for (const component of this.components) {
       if (component instanceof Block) {
-        arr.push(...component.getReporterConnections()
+        arr.push(...component.getReporterConnections(block)
           .map(([x, y, data]) => [x + component.position.x, y + component.position.y, data]))
       }
     }
@@ -104,15 +104,5 @@ class Script extends Stack {
       arr[0][2].beforeScript = true
     }
     return arr
-  }
-}
-
-class PaletteStack extends Stack {
-  constructor (initBlocks) {
-    super(initBlocks)
-  }
-
-  getStackBlockConnections () {
-    return []
   }
 }

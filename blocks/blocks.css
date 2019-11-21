@@ -55,3 +55,6 @@
   stroke: white;
   fill: none;
 }
+.block-input-drop-target {
+  filter: url('#block-snap-glow');
+}
