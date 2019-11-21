@@ -310,7 +310,11 @@ class Workspace {
     const arr = []
     for (const script of this.scripts) {
       arr.push(...script.getStackBlockConnections()
-        .map(([x, y, data]) => [x + script.position.x, y + script.position.y, data]))
+        .map(([x, y, data]) => [
+          x + script.position.x - this._transform.left,
+          y + script.position.y - this._transform.top,
+          data
+        ]))
     }
     return arr
   }
@@ -319,7 +323,11 @@ class Workspace {
     const arr = []
     for (const script of this.scripts) {
       arr.push(...script.getReporterConnections(block)
-        .map(([x, y, data]) => [x + script.position.x, y + script.position.y, data]))
+        .map(([x, y, data]) => [
+          x + script.position.x - this._transform.left,
+          y + script.position.y - this._transform.top,
+          data
+        ]))
     }
     return arr
   }

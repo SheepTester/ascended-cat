@@ -76,6 +76,14 @@ class Script extends Stack {
     super(initBlocks)
     this.blocks = blocks
   }
+  
+  add (component, beforeIndex) {
+    if (component instanceof Block) {
+      super.add(component, beforeIndex)
+    } else {
+      throw new Error('wucky')
+    }
+  }
 
   remove (component) {
     super.remove(component)
@@ -100,8 +108,10 @@ class Script extends Stack {
     // with the top in C blocks. Also with C blocks you can both attach
     // from the bottom or wrap around by connecting to the top. It's rather
     // complex.
-    if (arr[0][2].insertBefore && arr[0][2].in === this) {
-      arr[0][2].beforeScript = true
+    const first = arr[0][2]
+    const myFirstBlock = this.components[0]
+    if (first.insertBefore && first.insertBefore === myFirstBlock) {
+      first.beforeScript = true
     }
     return arr
   }

@@ -107,30 +107,34 @@ class Blocks {
             const workspaceRect = dropTarget.getRect()
             if (type === BlockType.COMMAND) {
               const closest = connections.reduce((closestSoFar, connection) => {
-                return [
-                  connection[2].beforeScript ? snapPoints.bottom : null,
-                  connection[2].insertBefore ? snapPoints.inner : null,
-                  connection[2].insertBefore && !snapPoints.inner
-                    || connection[2].after ? snapPoints.top : null
-                ].reduce((closestSoFar, myConnection) => {
-                  if (!myConnection) return closestSoFar
-                  const myX = script.position.x + myConnection[0]
-                  const myY = script.position.y + myConnection[1]
-                  const connectionX = workspaceRect.x + connection[0]
-                  const connectionY = workspaceRect.y + connection[1]
-                  const distance = square(myX - connectionX)
-                    + square(myY - connectionY)
-                  if (distance > Block.maxSnapDistance * Block.maxSnapDistance
-                    || closestSoFar && distance >= closestSoFar.distanceSquared) {
-                    return closestSoFar
-                  } else {
-                    return {
-                      distanceSquared: distance,
-                      connection,
-                      myConnection
+                // If the block is terminal, it should not be able to insert before
+                // other blocks.
+                return connection[2].insertBefore && !snapPoints.bottom
+                  ? closestSoFar
+                  : [
+                    connection[2].beforeScript ? snapPoints.bottom : null,
+                    connection[2].insertBefore ? snapPoints.inner : null,
+                    connection[2].insertBefore && !snapPoints.inner
+                      || connection[2].after ? snapPoints.top : null
+                  ].reduce((closestSoFar, myConnection) => {
+                    if (!myConnection) return closestSoFar
+                    const myX = script.position.x + myConnection[0]
+                    const myY = script.position.y + myConnection[1]
+                    const connectionX = workspaceRect.x + connection[0]
+                    const connectionY = workspaceRect.y + connection[1]
+                    const distance = square(myX - connectionX)
+                      + square(myY - connectionY)
+                    if (distance > Block.maxSnapDistance * Block.maxSnapDistance
+                      || closestSoFar && distance >= closestSoFar.distanceSquared) {
+                      return closestSoFar
+                    } else {
+                      return {
+                        distanceSquared: distance,
+                        connection,
+                        myConnection
+                      }
                     }
-                  }
-                }, closestSoFar)
+                  }, closestSoFar)
               }, null)
               if (closest) {
                 if (snapTo !== closest.connection[2]) {
