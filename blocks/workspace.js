@@ -1,4 +1,5 @@
-// Relies on utils/elem, blocks/component, utils/math, blocks/scripts, blocks/input
+// Relies on utils/elem, blocks/component, utils/math, blocks/scripts, blocks/input,
+// blocks/block
 
 const numberInputKeys = /^[0-9e.\-]$/i
 
@@ -109,7 +110,18 @@ class Workspace {
   acceptDrop (script, x, y, snapTo, wrappingC) {
     if (snapTo) {
       if (snapTo instanceof Input) {
-        // TEMP
+        const oldValue = snapTo.getValue()
+        if (oldValue instanceof Block) {
+          // NOTE: Scratch puts it on the right of the script, vertically
+          // in the middle.
+          const offset = Input.renderOptions.popOutOffset
+          const {x, y} = oldValue.getWorkspaceOffset()
+          snapTo.insertBlock(null)
+          const script = this.blocks.createScript()
+          script.setPosition(x + offset, y + offset)
+          script.add(oldValue)
+          this.add(script)
+        }
         snapTo.insertBlock(script.components[0])
         snapTo.resize()
         return

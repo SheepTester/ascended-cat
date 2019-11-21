@@ -31,14 +31,6 @@ class Input extends Component {
     if (block) {
       this.elem.classList.add('block-input-has-block')
       this.add(block)
-      if (this._block) {
-        const workspace = this.getWorkspace()
-        if (workspace) {
-          const script = this.blocks.createScript()
-          script.add(this._block)
-          workspace.add(script)
-        }
-      }
     } else {
       this.elem.classList.remove('block-input-has-block')
     }
@@ -143,7 +135,8 @@ Input.renderOptions = {
   booleanHeight: 14,
   booleanWidth: 30,
   booleanSide: 7,
-  reporterConnectionLeft: 8
+  reporterConnectionLeft: 8,
+  popOutOffset: 10
 }
 
 class StringInput extends Input {
