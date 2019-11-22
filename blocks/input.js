@@ -1,4 +1,7 @@
-// Relies blocks/component
+import {Elem} from '../utils/elem.js'
+
+import {Component, TextComponent} from './component.js'
+import {Block} from './block.js'
 
 class Input extends Component {
   constructor (blocks, initValue) {
@@ -155,7 +158,7 @@ class StringInput extends Input {
       stringHorizPadding: horizPadding,
       stringVertPadding: vertPadding,
       stringHeight: inputHeight
-    } = Input.renderOptions
+    } = super.constructor.renderOptions
     const {width, height} = this.text.measurements
     this.text.setPosition(horizPadding, vertPadding + inputHeight / 2)
     const path = `M0 0 H${width + horizPadding * 2} V${inputHeight + vertPadding * 2} H0 z`
@@ -196,7 +199,7 @@ class NumberInput extends Input {
       numberVertPadding: vertPadding,
       numberHeight: inputHeight,
       numberMinWidth: minWidth
-    } = Input.renderOptions
+    } = super.constructor.renderOptions
     const {height} = this.text.measurements
     const width = Math.max(this.text.measurements.width, minWidth)
     const radius = vertPadding + inputHeight / 2
@@ -233,10 +236,12 @@ class BooleanInput extends Input {
       booleanHeight: height,
       booleanWidth: width,
       booleanSide: side
-    } = Input.renderOptions
+    } = super.constructor.renderOptions
     const path = `M0 ${height / 2} L${side} 0 H${width - side} L${width} ${height / 2}`
       + `L${width - side} ${height} H${side} z`
     this.path.setAttributeNS(null, 'd', path)
     return {width, height}
   }
 }
+
+export {Input, StringInput, NumberInput, BooleanInput}

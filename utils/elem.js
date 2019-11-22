@@ -79,3 +79,5 @@ function Fragment (elems) {
   }
   return fragment
 }
+
+export {Elem, Fragment}

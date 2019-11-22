@@ -1,4 +1,4 @@
-// Relies on utils/elem
+import {Elem} from '../utils/elem.js'
 
 class TextComponent {
   constructor (initText) {
@@ -163,3 +163,5 @@ class Space extends Component {
     this.measurements = {width: 0, height: this.height}
   }
 }
+
+export {TextComponent, Component, Space}

@@ -10,15 +10,15 @@
     <link rel="stylesheet" href="./blocks.css">
 
     <!-- <script src="/sheep3.js" charset="utf-8"></script> -->
-    <script src="../utils/elem.js" charset="utf-8"></script>
-    <script src="../utils/math.js" charset="utf-8"></script>
-    <script src="./constants.js" charset="utf-8"></script>
-    <script src="./component.js" charset="utf-8"></script>
-    <script src="./input.js" charset="utf-8"></script>
-    <script src="./block.js" charset="utf-8"></script>
-    <script src="./scripts.js" charset="utf-8"></script>
-    <script src="./workspace.js" charset="utf-8"></script>
-    <script src="./blocks.js" charset="utf-8"></script>
+    <!--<script src="../utils/elem.js" charset="utf-8"></script>-->
+    <!--<script src="../utils/math.js" charset="utf-8"></script>-->
+    <!--<script src="./constants.js" charset="utf-8"></script>-->
+    <!--<script src="./component.js" charset="utf-8"></script>-->
+    <!--<script src="./input.js" charset="utf-8"></script>-->
+    <!--<script src="./block.js" charset="utf-8"></script>-->
+    <!--<script src="./scripts.js" charset="utf-8"></script>-->
+    <!--<script src="./workspace.js" charset="utf-8"></script>-->
+    <!--<script src="./blocks.js" charset="utf-8"></script>-->
 
     <style>
       html, body {
@@ -107,7 +107,9 @@
   <body>
     <div id="palette"></div>
     <div id="scripts"></div>
-    <script>
+    <script type="module">
+import {Blocks} from './blocks.js'
+
 const blocks = new Blocks([
   {
     id: 'test',
@@ -309,6 +311,8 @@ window.requestAnimationFrame(() => {
   blocks.updateRects()
   stack.resize()
 })
+
+window.scripts = scripts
     </script>
   </body>
 </html>

@@ -12,3 +12,5 @@ const ArgumentType = {
   COLOUR: 'colour',
   BRANCH: 'branch'
 }
+
+export {BlockType, ArgumentType}

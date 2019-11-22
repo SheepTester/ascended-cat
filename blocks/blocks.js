@@ -1,5 +1,14 @@
 // Relies on blocks/workspace, blocks/scripts, blocks/block, blocks/constants,
 // utils/math, blocks/component, utils/elem
+import {Elem} from '../utils/elem.js'
+import {square} from '../utils/math.js'
+
+import {Workspace, PaletteWorkspace} from './workspace.js'
+import {BlockType, ArgumentType} from './constants.js'
+import {Stack, Script} from './scripts.js'
+import {Block} from './block.js'
+import {Space} from './component.js'
+import {Input} from './input.js'
 
 /**
  * Issues:
@@ -282,3 +291,5 @@ Blocks._id = 0
 Blocks.BlockType = BlockType
 
 Blocks.ArgumentType = ArgumentType
+
+export {Blocks}

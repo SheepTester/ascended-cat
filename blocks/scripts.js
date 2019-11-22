@@ -1,4 +1,5 @@
-// Relies on blocks/component, blocks/block
+import {Component} from './component.js'
+import {Block} from './block.js'
 
 class Stack extends Component {
   constructor (initBlocks = []) {
@@ -116,3 +117,5 @@ class Script extends Stack {
     return arr
   }
 }
+
+export {Stack, Script}

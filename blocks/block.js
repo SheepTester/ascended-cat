@@ -1,4 +1,9 @@
-// Relies on blocks/component, utils/elem, blocks/constants, blocks/input
+import {Elem} from '../utils/elem.js'
+
+import {Component, TextComponent} from './component.js'
+import {BlockType, ArgumentType} from './constants.js'
+import {Input, StringInput, NumberInput, BooleanInput} from './input.js'
+import {Stack} from './scripts.js'
 
 class Block extends Component {
   constructor (blocks, initBlock, initParams = {}) {
@@ -29,10 +34,10 @@ class Block extends Component {
     if (category) {
       this.category = categoryID
       this.blockData = category.blocks.find(block => block.opcode === opcode)
-        || Block.nonexistentBlock
+        || this.constructor.nonexistentBlock
     } else {
       this.category = 'nonexistent'
-      this.blockData = Block.nonexistentBlock
+      this.blockData = this.constructor.nonexistentBlock
     }
     this.elem.dataset.category = this.category
     this.elem.dataset.opcode = this.blockData.opcode
@@ -341,3 +346,5 @@ Block.renderOptions = {
 }
 
 Block.maxSnapDistance = 30
+
+export {Block}

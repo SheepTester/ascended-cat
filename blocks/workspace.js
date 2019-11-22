@@ -1,6 +1,14 @@
 // Relies on utils/elem, blocks/component, utils/math, blocks/scripts, blocks/input,
 // blocks/block
 
+import {Elem} from '../utils/elem.js'
+import {pythagoreanCompare} from '../utils/math.js'
+
+import {Input} from './input.js'
+import {Block} from './block.js'
+import {Stack} from './scripts.js'
+import {Space} from './component.js'
+
 const numberInputKeys = /^[0-9e.\-]$/i
 
 class Workspace {
@@ -386,3 +394,5 @@ class PaletteWorkspace extends Workspace {
     return []
   }
 }
+
+export {Workspace, PaletteWorkspace}

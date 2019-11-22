@@ -8,3 +8,5 @@ function pythagoreanCompare (a, b, c) {
 function square (n) {
   return n * n
 }
+
+export {pythagoreanCompare, square}
