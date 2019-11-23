@@ -47,13 +47,13 @@
       .block-back {
         stroke: rgba(0, 0, 0, 0.2);
       }
-      .block-category-nonexistent {
+      [data-category="nonexistent"] {
         --colour: red;
       }
-      .block-category-test {
+      [data-category="test"] {
         --colour: #6AB6BC;
       }
-      .block-category-motion {
+      [data-category="motion"] {
         --colour: #6A92BC;
       }
 
@@ -190,7 +190,20 @@ const blocks = new Blocks([
           }
         }
       }
-    ]
+    ],
+    translationMap: {
+      xl: {
+        '__name__': '!sgo8iu',
+        'repeatUntil': 'hato [LOOP] et [CONDITION]',
+        'not': '[TEST]n\'t',
+        'add': '+ [A] [B]',
+        'join': '+ [B] [A]',
+        'join.A_default': 'Ooogoo',
+        'join.B_default': '\\',
+        'branch': 'dsfug idsfg [B2] [WOW] [B1]',
+        'test': '.'
+      }
+    }
   }
 ])
 // Add categories

@@ -8,6 +8,8 @@ import {Stack} from './scripts.js'
 class Block extends Component {
   constructor (blocks, initBlock, initParams = {}) {
     super()
+    this.updateLabel = this.updateLabel.bind(this)
+
     this.blocks = blocks
     this.cloneOnDrag = false
     this.elem.classList.add('block-block')
@@ -17,32 +19,32 @@ class Block extends Component {
     if (initBlock) {
       this.setBlock(initBlock)
       for (const [paramID, value] of Object.entries(initParams)) {
-        this._params[paramID] = this.createParam(this.blockData.arguments[paramID], value)
+        this._params[paramID] = this.createParam(this.blockData.args[paramID], value)
       }
       this.updateLabel()
     }
+
     blocks.onDrag(this.elem, this._onDrag.bind(this))
+    blocks.on('language-change', this.updateLabel)
   }
 
   setBlock (blockOpcode) {
-    const previousCategory = this.category
-    const previousBlockData = this.blockData
-    const [categoryID, opcode] = blockOpcode.split('.')
-    const category = this.blocks.categories.find(({id}) => id === categoryID)
-    if (category) {
-      this.category = categoryID
-      this.blockData = category.blocks.find(block => block.opcode === opcode)
-        || this.constructor.nonexistentBlock
-    } else {
-      this.category = 'nonexistent'
-      this.blockData = this.constructor.nonexistentBlock
+    if (this._onBlockAdded) {
+      this.blocks.off('block-added', this._onBlockAdded)
+      this._onBlockAdded = null
     }
-    this.elem.dataset.category = this.category
-    this.elem.dataset.opcode = this.blockData.opcode
-    if (previousCategory) {
-      this._path.classList.remove('block-category-' + previousCategory)
+    const {category, blockData, opcode} = this.blocks.getBlockData(blockOpcode)
+    this.blockOpcode = blockOpcode
+    this.blockData = blockData || this.constructor.nonexistentBlock
+    if (!blockData) {
+      this._onBlockAdded = this.blocks.on('block-added', opcode => {
+        if (blockOpcode === opcode) {
+          this.setBlock(blockOpcode)
+        }
+      })
     }
-    this._path.classList.add('block-category-' + this.category)
+    this.elem.dataset.category = category || 'nonexistent'
+    this.elem.dataset.opcode = opcode
   }
 
   /**
@@ -50,8 +52,7 @@ class Block extends Component {
    */
   updateLabel () {
     this.clear()
-    // TODO: Use translated string if this.blocks.language is set
-    const text = this.blockData.text
+    const text = this.blocks.getTranslation(this.blockOpcode)
     const paramRegex = /\[([A-Z0-9_]+)\]/g
     // This allows unused parameters from previous block to be discarded
     const oldParams = this._params
@@ -70,7 +71,7 @@ class Block extends Component {
         this.add(oldParams[paramID])
         this._params[paramID] = oldParams[paramID]
       } else {
-        const param = this.createParam(this.blockData.arguments[paramID])
+        const param = this.createParam(this.blockData.args[paramID])
         if (param) {
           this.add(param)
           this._params[paramID] = param
@@ -83,6 +84,7 @@ class Block extends Component {
     }
   }
 
+  // TODO: Translate default strings
   createParam (argumentData, value = argumentData.default) {
     if (value) {
       if (value.opcode) {
@@ -292,7 +294,7 @@ class Block extends Component {
 
   clone () {
     return this.blocks.createBlock(
-      `${this.category}.${this.blockData.opcode}`,
+      this.blockOpcode,
       this.getParams(true)
     )
   }
@@ -315,6 +317,11 @@ class Block extends Component {
     return arr
   }
 
+  destroy () {
+    super.destroy()
+    this.blocks.off('language-change', this._updateLanguage)
+  }
+
   toJSON () {
     const params = this.getParams()
     for (const [paramID, value] of Object.entries(params)) {
@@ -325,7 +332,7 @@ class Block extends Component {
       }
     }
     return {
-      opcode: `${this.category}.${this.blockData.opcode}`,
+      opcode: this.blockOpcode,
       params
     }
   }

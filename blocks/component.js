@@ -89,6 +89,13 @@ class TextComponent extends GenericComponent {
       })
     })
   }
+
+  destroy () {
+    if (this.parent) {
+      throw new Error('Component cannot be destroyed in plain sight.')
+    }
+    this.elem = null
+  }
 }
 
 class Component extends GenericComponent {
@@ -156,6 +163,21 @@ class Component extends GenericComponent {
     for (const component of this.components) {
       component.storeAllInputsIn(arr)
     }
+  }
+
+  /**
+   * This is not suicide; this is the obliteration of the SELF.
+   */
+  destroy () {
+    if (this.parent) {
+      throw new Error('Component cannot be destroyed in plain sight.')
+    }
+    while (this.components[0]) {
+      const component = this.components[0]
+      this.remove(component)
+      component.destroy()
+    }
+    this.elem = null
   }
 }
 

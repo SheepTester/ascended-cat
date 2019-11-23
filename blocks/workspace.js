@@ -128,6 +128,9 @@ class Workspace {
         }
         snapTo.insertBlock(script.components[0])
         snapTo.resize()
+        // Destroy the rest of the blocks in case the reporter
+        // had blocks connected to it.
+        script.destroy()
         return
       } else if (snapTo.insertBefore) {
         const index = snapTo.in.components.indexOf(snapTo.insertBefore)
@@ -359,6 +362,10 @@ class Workspace {
     return arr
   }
 
+  resizeAll (force = false) {
+    return Promise.all(this.scripts.map(script => script.resize(force)))
+  }
+
   toJSON () {
     return this.scripts.map(script => script.toJSON())
   }
@@ -371,12 +378,12 @@ class PaletteWorkspace extends Workspace {
     super(blocks, wrapper)
 
     const masterScript = new Stack()
-    for (const category of blocks.categories) {
-      for (const blockData of category.blocks) {
+    for (const [categoryID, category] of Object.entries(blocks.categories)) {
+      for (const [opcode, blockData] of Object.entries(category)) {
         if (blockData[0] === '-') {
           masterScript.add(new Space(10))
         } else {
-          const block = blocks.createBlock(`${category.id}.${blockData.opcode}`)
+          const block = blocks.createBlock(`${categoryID}.${opcode}`)
           block.cloneOnDrag = true
           masterScript.add(block)
           masterScript.add(new Space(10))
@@ -394,7 +401,7 @@ class PaletteWorkspace extends Workspace {
   }
 
   acceptDrop (script, x, y) {
-    // Delete by doing nothing!
+    script.destroy()
   }
 
   getStackBlockConnections () {

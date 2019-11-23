@@ -2,6 +2,7 @@
 // utils/math, blocks/component, utils/elem
 import {Elem} from '../utils/elem.js'
 import {square} from '../utils/math.js'
+import {Newsletter} from '../utils/newsletter.js'
 
 import {Workspace, PaletteWorkspace} from './workspace.js'
 import {BlockType, ArgumentType} from './constants.js'
@@ -10,20 +11,17 @@ import {Block} from './block.js'
 import {Space} from './component.js'
 import {Input} from './input.js'
 
-/**
- * Issues:
- * - Cannot add blocks to an existing category
- * - Should be able to get a category or block using a method
- * - Get translations from ID
- */
-
-class Blocks {
+class Blocks extends Newsletter {
   constructor (initCategories) {
-    this.language = null
-    this.categories = []
+    super()
+
+    this._language = null
+    this.translations = {default: {}}
+    this.categories = {}
     for (const category of initCategories) {
       this.addCategory(category)
     }
+
     this.clickListeners = {}
     this.dragListeners = {}
     this.dropListeners = {}
@@ -34,8 +32,86 @@ class Blocks {
     this._dragging = 0
   }
 
-  addCategory (category) {
-    this.categories.push(category)
+  addCategory ({
+    id,
+    name = `Category ${id}`,
+    blocks = [],
+    translationMap = {}
+  }) {
+    this.categories[id] = {}
+    this.translations.default[id] = name
+    // TODO: Fix or redesign separators, somehow.
+    for (const block of blocks) {
+      if (block && typeof block === 'object') {
+        this.addBlock(id, block)
+      }
+    }
+    for (const [language, translations] of Object.entries(translationMap)) {
+      this.addTranslations(
+        language,
+        Object.entries(translations)
+          .map(([transID, translation]) => [
+            transID === '__name__' ? id : `${id}.${transID}`,
+            translation
+          ])
+      )
+    }
+  }
+
+  addBlock (category, {
+    opcode,
+    blockType = BlockType.COMMAND,
+    text = `block ${opcode}`,
+    hat = false,
+    terminal = false,
+    arguments: args = {},
+    // func, filter, menus?
+  }) {
+    const blockOpcode = `${category}.${opcode}`
+    this.translations.default[blockOpcode] = text
+    this.categories[category][opcode] = {
+      blockType,
+      hat,
+      terminal,
+      args
+    }
+    this.trigger('block-added', blockOpcode)
+  }
+
+  addTranslations (language = null, translations = []) {
+    if (!language) {
+      language = 'default'
+    }
+    if (!this.translations[language]) {
+      this.translations[language] = {}
+    }
+    for (const [id, translation] of translations) {
+      this.translations[language][id] = translation
+    }
+  }
+
+  setLanguage (language) {
+    this._language = language
+    this.trigger('language-change', language)
+    return Promise.all(this._workspaces.map(workspace => workspace.resizeAll(true)))
+  }
+
+  getBlockData (blockOpcode) {
+    const [categoryID, opcode] = blockOpcode.split('.')
+    const category = this.categories[categoryID]
+    return {
+      category: category ? categoryID : null,
+      blockData: category ? category[opcode] : null,
+      opcode
+    }
+  }
+
+  getTranslation (id) {
+    if (this._language && this.translations[this._language]
+      && this.translations[this._language][id]) {
+      return this.translations[this._language][id]
+    }
+    return this.translations.default[id]
   }
 
   onClick (elem, fn) {
