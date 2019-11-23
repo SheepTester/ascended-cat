@@ -102,11 +102,19 @@
         padding: 2px 4px;
         border-radius: 10px;
       }
+
+      #toggle-lang {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
     <div id="palette"></div>
     <div id="scripts"></div>
+    <button id="toggle-lang">Toggle language</button>
     <script type="module">
 import {Blocks} from './blocks.js'
 
@@ -320,6 +328,14 @@ scripts.add(stack)
 window.requestAnimationFrame(() => {
   blocks.updateRects()
   stack.resize()
+})
+
+document.getElementById('toggle-lang').addEventListener('click', e => {
+  if (blocks.language === 'xl') {
+    blocks.setLanguage()
+  } else {
+    blocks.setLanguage('xl')
+  }
 })
 
 window.scripts = scripts

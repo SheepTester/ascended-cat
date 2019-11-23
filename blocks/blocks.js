@@ -90,6 +90,10 @@ class Blocks extends Newsletter {
     }
   }
 
+  get language () {
+    return this._language
+  }
+
   setLanguage (language) {
     this._language = language
     this.trigger('language-change', language)
