@@ -26,10 +26,8 @@ class Workspace {
     this.svg = Elem('svg', {
       class: 'block-workspace',
       onwheel: e => {
-        if (!e.altKey) {
-          if (e.ctrlKey || e.metaKey) {
-            // Zoom
-          } else if (e.shiftKey) {
+        if (!e.altKey && !e.ctrlKey && !e.metaKey) {
+          if (e.shiftKey) {
             this.scrollTo(this._transform.left + e.deltaY, this._transform.top + e.deltaX)
           } else {
             this.scrollTo(this._transform.left + e.deltaX, this._transform.top + e.deltaY)
@@ -41,7 +39,11 @@ class Workspace {
       Elem('defs', {}, [
         // https://stackoverflow.com/questions/9630008/how-can-i-create-a-glow-around-a-rectangle-with-svg
         Elem('filter', {
-          id: 'block-snap-glow'
+          id: 'block-snap-glow',
+          x: '-30%',
+          y: '-30%',
+          width: '160%',
+          height: '160%'
         }, [
           Elem('feGaussianBlur', {
             stdDeviation: 3,
@@ -385,11 +387,11 @@ class PaletteWorkspace extends Workspace {
   acceptDrop (script, x, y) {
     // Delete by doing nothing!
   }
-  
+
   getStackBlockConnections () {
     return []
   }
-  
+
   getReporterConnections (block) {
     return []
   }
