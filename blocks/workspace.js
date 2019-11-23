@@ -20,6 +20,7 @@ class Workspace {
     this.acceptDrop = this.acceptDrop.bind(this)
     this.getStackBlockConnections = this.getStackBlockConnections.bind(this)
     this.getReporterConnections = this.getReporterConnections.bind(this)
+    this.getTransform = this.getTransform.bind(this)
 
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
@@ -100,6 +101,7 @@ class Workspace {
     this.blocks = blocks
     this.scripts = []
     this._transform = {left: 0, top: 0, scale: 1}
+    this._recallMoveEvents = true
 
     this._pointers = {}
     this.svg.addEventListener('pointerdown', this._onPointerDown)
@@ -113,7 +115,8 @@ class Workspace {
       getReporterConnections: this.getReporterConnections,
       getRect: () => {
         return this.rect
-      }
+      },
+      getTransform: this.getTransform
     })
   }
 
@@ -225,6 +228,14 @@ class Workspace {
     const {left, top, scale} = this._transform
     this.scriptsElem.setAttributeNS(null, 'transform', `scale(${scale}) translate(${-left}, ${-top})`)
     this._input.style.transform = `scale(${scale}) translate(${-left}px, ${-top}px)`
+    if (this._recallMoveEvents) {
+      // Prevent the move event listeners from being recursively called
+      this._recallMoveEvents = false
+      for (const {lastMoveEvent} of Object.values(this._pointers)) {
+        this._onPointerMove(lastMoveEvent)
+      }
+      this._recallMoveEvents = true
+    }
   }
 
   scrollTo (left, top) {
@@ -275,7 +286,9 @@ class Workspace {
     const pointerEntry = this._pointers[e.pointerId]
     if (!pointerEntry) {
       return
-    } else if (pointerEntry.dragging) {
+    }
+    pointerEntry.lastMoveEvent = e
+    if (pointerEntry.dragging) {
       if (pointerEntry.dragMove) {
         pointerEntry.dragMove(e.clientX, e.clientY)
       }
@@ -333,8 +346,8 @@ class Workspace {
     for (const script of this.scripts) {
       arr.push(...script.getStackBlockConnections()
         .map(([x, y, data]) => [
-          x + script.position.x - this._transform.left,
-          y + script.position.y - this._transform.top,
+          x + script.position.x,
+          y + script.position.y,
           data
         ]))
     }
@@ -346,8 +359,8 @@ class Workspace {
     for (const script of this.scripts) {
       arr.push(...script.getReporterConnections(block)
         .map(([x, y, data]) => [
-          x + script.position.x - this._transform.left,
-          y + script.position.y - this._transform.top,
+          x + script.position.x,
+          y + script.position.y,
           data
         ]))
     }

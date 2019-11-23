@@ -69,6 +69,7 @@ class Input extends Component {
             this.setValue(value)
               .then(() => {
                 input.style.width = this.measurements.width + 'px'
+                input.style.height = this.measurements.height + 'px'
               })
           },
           hide: this.onInputHide,
@@ -80,14 +81,36 @@ class Input extends Component {
             }
           }
         }, this.isNumber)
-        const {x, y} = this.getWorkspaceOffset()
-        input.style.left = x + 'px'
-        input.style.top = y + 'px'
-        input.style.width = this.measurements.width + 'px'
-        input.style.height = this.measurements.height + 'px'
+        this._updateInputPosition(input)
         this.onInputShow(input)
+        this._removingListeners = []
+        this._positionChangeListeners = []
+        let component = this
+        while (component) {
+          this._removingListeners.push([
+            component,
+            component.on('removing', () => {
+              workspace.hideInput()
+            })
+          ])
+          this._positionChangeListeners.push([
+            component,
+            component.on('position-change', () => {
+              this._updateInputPosition(input)
+            })
+          ])
+          component = component.parent
+        }
       }
     }
+  }
+
+  _updateInputPosition (input) {
+    const {x, y} = this.getWorkspaceOffset()
+    input.style.left = x + 'px'
+    input.style.top = y + 'px'
+    input.style.width = this.measurements.width + 'px'
+    input.style.height = this.measurements.height + 'px'
   }
 
   onInputShow (input) {
@@ -97,6 +120,14 @@ class Input extends Component {
 
   onInputHide (input) {
     this.elem.classList.remove('block-input-open')
+    for (const [component, listener] of this._removingListeners) {
+      component.off('removing', listener)
+    }
+    for (const [component, listener] of this._positionChangeListeners) {
+      component.off('position-change', listener)
+    }
+    this._removingListeners = null
+    this._positionChangeListeners = null
   }
 
   storeAllInputsIn (arr) {
@@ -106,11 +137,11 @@ class Input extends Component {
       arr.push(this)
     }
   }
-  
+
   canAcceptBlock (block) {
     return true
   }
-  
+
   getReporterConnections (block) {
     const arr = []
     if (this.canAcceptBlock(block)) {

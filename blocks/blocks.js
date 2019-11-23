@@ -114,6 +114,7 @@ class Blocks {
           }
           if (snapPoints && connections.length) {
             const workspaceRect = dropTarget.getRect()
+            const {left, top} = dropTarget.getTransform()
             if (type === BlockType.COMMAND) {
               const closest = connections.reduce((closestSoFar, connection) => {
                 return [
@@ -127,8 +128,8 @@ class Blocks {
                   if (!myConnection) return closestSoFar
                   const myX = script.position.x + myConnection[0]
                   const myY = script.position.y + myConnection[1]
-                  const connectionX = workspaceRect.x + connection[0]
-                  const connectionY = workspaceRect.y + connection[1]
+                  const connectionX = workspaceRect.x + connection[0] - left
+                  const connectionY = workspaceRect.y + connection[1] - top
                   const distance = square(myX - connectionX)
                     + square(myY - connectionY)
                   if (distance > Block.maxSnapDistance * Block.maxSnapDistance
@@ -182,8 +183,8 @@ class Blocks {
               const closest = connections.reduce((closestSoFar, connection) => {
                 const myX = script.position.x + snapPoints[0]
                 const myY = script.position.y + snapPoints[1]
-                const connectionX = workspaceRect.x + connection[0]
-                const connectionY = workspaceRect.y + connection[1]
+                const connectionX = workspaceRect.x + connection[0] - left
+                const connectionY = workspaceRect.y + connection[1] - top
                 const distance = square(myX - connectionX)
                   + square(myY - connectionY)
                 if (distance > Block.maxSnapDistance * Block.maxSnapDistance

@@ -1,9 +1,83 @@
 import {Elem} from '../utils/elem.js'
 
-class TextComponent {
-  constructor (initText) {
-    this.elem = Elem('text', {class: 'block-text-component'}, [], true)
+class GenericComponent {
+  constructor () {
     this.measurements = null
+    this._listeners = {}
+    this.position = {x: 0, y: 0}
+  }
+
+  /**
+   * Called to reposition components when sizes are updated. This will update
+   * its own `measurements`.
+   */
+  reposition () {
+    this.measurements = {width: 0, height: 0}
+  }
+
+  setPosition (x, y) {
+    this.position = {x, y}
+    this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
+    this.trigger('position-change', x, y)
+  }
+
+  storeAllInputsIn (arr) {
+    //
+  }
+
+  /**
+   * Does not take into account scrolling.
+   */
+  getWorkspaceOffset () {
+    const {x, y} = this.position
+    if (this.parent) {
+      const {x: px, y: py} = this.parent.getWorkspaceOffset()
+      return {x: px + x, y: py + y}
+    } else {
+      return {x, y}
+    }
+  }
+
+  getWorkspace () {
+    let parent = this
+    while (parent && !parent.workspace) {
+      parent = parent.parent
+    }
+    return parent.workspace
+  }
+
+  on (eventName, fn) {
+    if (!this._listeners[eventName]) {
+      this._listeners[eventName] = []
+    }
+    this._listeners[eventName].push(fn)
+    return fn
+  }
+
+  off (eventName, fn) {
+    const listeners = this._listeners[eventName]
+    if (listeners) {
+      const index = listeners.indexOf(fn)
+      if (~index) {
+        listeners.splice(index, 1)
+      }
+    }
+  }
+
+  trigger (eventName, ...args) {
+    const listeners = this._listeners[eventName]
+    if (listeners) {
+      for (const fn of listeners) {
+        fn(...args)
+      }
+    }
+  }
+}
+
+class TextComponent extends GenericComponent {
+  constructor (initText) {
+    super()
+    this.elem = Elem('text', {class: 'block-text-component'}, [], true)
     if (initText) this.setText(initText)
   }
 
@@ -41,23 +115,13 @@ class TextComponent {
       })
     })
   }
-
-  setPosition (x, y) {
-    this.position = {x, y}
-    this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
-  }
-
-  storeAllInputsIn (arr) {
-    //
-  }
 }
 
-class Component {
+class Component extends GenericComponent {
   constructor () {
+    super()
     this.elem = Elem('g', {class: 'block-component'}, [], true)
     this.components = []
-    this.measurements = null
-    this.setPosition(0, 0)
   }
 
   add (component, beforeIndex = this.components.length) {
@@ -71,10 +135,12 @@ class Component {
     }
     this.components.splice(beforeIndex, 0, component)
     component.parent = this
+    component.trigger('added', this)
     return component
   }
 
   remove (component) {
+    component.trigger('removing', this)
     const index = this.components.indexOf(component)
     if (~index) {
       this.components.splice(index, 1)
@@ -112,44 +178,10 @@ class Component {
     }
   }
 
-  /**
-   * Called to reposition components when sizes are updated. This will update
-   * its own `measurements`.
-   */
-  reposition () {
-    this.measurements = {width: 0, height: 0}
-  }
-
-  setPosition (x, y) {
-    this.position = {x, y}
-    this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
-  }
-
   storeAllInputsIn (arr) {
     for (const component of this.components) {
       component.storeAllInputsIn(arr)
     }
-  }
-
-  /**
-   * Does not take into account scrolling.
-   */
-  getWorkspaceOffset () {
-    const {x, y} = this.position
-    if (this.parent) {
-      const {x: px, y: py} = this.parent.getWorkspaceOffset()
-      return {x: px + x, y: py + y}
-    } else {
-      return {x, y}
-    }
-  }
-
-  getWorkspace () {
-    let parent = this
-    while (parent && !parent.workspace) {
-      parent = parent.parent
-    }
-    return parent.workspace
   }
 }
 
