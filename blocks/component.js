@@ -1,5 +1,5 @@
 import {Elem} from '../utils/elem.js'
-import {Newsletter} from '../utils/elem.js'
+import {Newsletter} from '../utils/newsletter.js'
 
 class GenericComponent extends Newsletter {
   constructor () {

@@ -8,8 +8,6 @@ import {Stack} from './scripts.js'
 class Block extends Component {
   constructor (blocks, initBlock, initParams = {}) {
     super()
-    this._onDrag = this._onDrag.bind(this)
-
     this.blocks = blocks
     this.cloneOnDrag = false
     this.elem.classList.add('block-block')
@@ -23,7 +21,7 @@ class Block extends Component {
       }
       this.updateLabel()
     }
-    blocks.onDrag(this.elem, this._onDrag)
+    blocks.onDrag(this.elem, this._onDrag.bind(this))
   }
 
   setBlock (blockOpcode) {
@@ -285,14 +283,14 @@ class Block extends Component {
       this.getParams(true)
     )
   }
-  
+
   getReporterAnchorPoint () {
     return [
       Input.renderOptions.reporterConnectionLeft,
       this.measurements.height / 2
     ]
   }
-  
+
   getReporterConnections (block) {
     const arr = []
     for (const component of this.components) {

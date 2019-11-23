@@ -13,15 +13,6 @@ const numberInputKeys = /^[0-9e.\-]$/i
 
 class Workspace {
   constructor (blocks, wrapper) {
-    this._onPointerDown = this._onPointerDown.bind(this)
-    this._onPointerMove = this._onPointerMove.bind(this)
-    this._onPointerUp = this._onPointerUp.bind(this)
-    this._onStartScroll = this._onStartScroll.bind(this)
-    this.acceptDrop = this.acceptDrop.bind(this)
-    this.getStackBlockConnections = this.getStackBlockConnections.bind(this)
-    this.getReporterConnections = this.getReporterConnections.bind(this)
-    this.getTransform = this.getTransform.bind(this)
-
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
     this.svg = Elem('svg', {
@@ -104,19 +95,19 @@ class Workspace {
     this._recallMoveEvents = true
 
     this._pointers = {}
-    this.svg.addEventListener('pointerdown', this._onPointerDown)
-    this.svg.addEventListener('pointermove', this._onPointerMove)
-    this.svg.addEventListener('pointerup', this._onPointerUp)
+    this.svg.addEventListener('pointerdown', this._onPointerDown.bind(this))
+    this.svg.addEventListener('pointermove', this._onPointerMove.bind(this))
+    this.svg.addEventListener('pointerup', this._onPointerUp.bind(this))
 
-    blocks.onDrag(this.svg, this._onStartScroll)
+    blocks.onDrag(this.svg, this._onStartScroll.bind(this))
     blocks.onDrop(this.svg, {
-      acceptDrop: this.acceptDrop,
-      getStackBlockConnections: this.getStackBlockConnections,
-      getReporterConnections: this.getReporterConnections,
+      acceptDrop: this.acceptDrop.bind(this),
+      getStackBlockConnections: this.getStackBlockConnections.bind(this),
+      getReporterConnections: this.getReporterConnections.bind(this),
       getRect: () => {
         return this.rect
       },
-      getTransform: this.getTransform
+      getTransform: this.getTransform.bind(this)
     })
   }
 

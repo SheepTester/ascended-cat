@@ -6,8 +6,6 @@ import {Block} from './block.js'
 class Input extends Component {
   constructor (blocks, initValue) {
     super()
-    this.onInputHide = this.onInputHide.bind(this)
-
     this.blocks = blocks
     this.isEditable = false
     this.isNumber = false
@@ -72,7 +70,7 @@ class Input extends Component {
                 input.style.height = this.measurements.height + 'px'
               })
           },
-          hide: this.onInputHide,
+          hide: this.onInputHide.bind(this),
           tab: next => {
             const inputs = workspace.getAllInputs()
             const index = inputs.indexOf(this)
@@ -176,12 +174,11 @@ Input.renderOptions = {
 class StringInput extends Input {
   constructor(blocks, initValue) {
     super(blocks, initValue)
-    this._onClick = this._onClick.bind(this)
 
     this.elem.classList.add('block-string-input')
     this.isEditable = true
 
-    this.blocks.onClick(this.elem, this._onClick)
+    this.blocks.onClick(this.elem, this._onClick.bind(this))
   }
 
   drawInputBack () {
@@ -215,13 +212,12 @@ class StringInput extends Input {
 class NumberInput extends Input {
   constructor(blocks, initValue) {
     super(blocks, initValue)
-    this._onClick = this._onClick.bind(this)
 
     this.elem.classList.add('block-number-input')
     this.isEditable = true
     this.isNumber = true
 
-    this.blocks.onClick(this.elem, this._onClick)
+    this.blocks.onClick(this.elem, this._onClick.bind(this))
   }
 
   drawInputBack () {
