@@ -139,9 +139,11 @@ class Block extends Component {
       hatTopPadding,
       hatMinWidth,
       booleanTextFirstPadding,
-      reporterTextFirstPadding
+      reporterTextFirstPadding,
+      undefinedMinBlockWidth
     } = this.constructor.renderOptions
-    const minWidth = this.blockData.hat ? hatMinWidth : stackMinWidth
+    const minWidth = !this.blockData.blockType ? undefinedMinBlockWidth
+      : this.blockData.hat ? hatMinWidth : stackMinWidth
     const minHeight = stackMinHeight
     const horizPadding = stackHorizPadding
     const vertPadding = stackVertPadding
@@ -242,6 +244,10 @@ class Block extends Component {
         this._path.setAttributeNS(null, 'd', path)
         break
       }
+      default: {
+        const path = `M0 0 H${maxWidth} V${y} H0 z`
+        this._path.setAttributeNS(null, 'd', path)
+      }
     }
 
     this.measurements = {width: Math.max(maxWidth, branchWidth + cSlotMaxWidth), height: y}
@@ -327,7 +333,7 @@ class Block extends Component {
 
 Block.nonexistentBlock = {
   opcode: 'nonexistent',
-  blockType: BlockType.COMMAND,
+  blockType: null,
   text: '???'
 }
 
@@ -362,7 +368,8 @@ Block.renderOptions = {
   hatTopPadding: 15,
   hatMinWidth: 80,
   booleanTextFirstPadding: 10,
-  reporterTextFirstPadding: 6
+  reporterTextFirstPadding: 6,
+  undefinedMinBlockWidth: 10
 }
 
 Block.maxSnapDistance = 30

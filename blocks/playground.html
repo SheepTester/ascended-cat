@@ -289,9 +289,6 @@ const scripts = blocks.createWorkspace(document.getElementById('scripts'))
 
 const stack = blocks.createScript([
   blocks.createBlock('test.test'),
-  blocks.createBlock('nonexistent.test'),
-  blocks.createBlock('test.nonexistent'),
-  blocks.createBlock('motion.test'),
   blocks.createBlock('test.branch', {
     WOW: blocks.createBlock('test.join', {
       A: blocks.createBlock('test.add'),
