@@ -283,6 +283,16 @@ class Blocks {
   createBlock (initBlock, initParams) {
     return new Block(this, initBlock, initParams)
   }
+
+  scriptFromJSON ({x, y, blocks}) {
+    const script = this.createScript(blocks.map(data => this.blockFromJSON(data)))
+    script.setPosition(x, y)
+    return script
+  }
+
+  blockFromJSON ({opcode, params}) {
+    return this.createBlock(opcode, params)
+  }
 }
 
 Blocks._id = 0

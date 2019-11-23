@@ -84,6 +84,13 @@ class Block extends Component {
   }
 
   createParam (argumentData, value = argumentData.default) {
+    if (value) {
+      if (value.opcode) {
+        value = this.blocks.blockFromJSON(value)
+      } else if (value[0] && value[0].opcode) {
+        value = value.map(data => this.blocks.blockFromJSON(data))
+      }
+    }
     switch (argumentData.type) {
       case ArgumentType.BRANCH:
         return new Stack(value)
@@ -300,6 +307,21 @@ class Block extends Component {
       }
     }
     return arr
+  }
+
+  toJSON () {
+    const params = this.getParams()
+    for (const [paramID, value] of Object.entries(params)) {
+      if (value instanceof Block) {
+        params[paramID] = value.toJSON()
+      } else if (Array.isArray(value)) {
+        params[paramID] = value.map(block => block.toJSON())
+      }
+    }
+    return {
+      opcode: `${this.category}.${this.blockData.opcode}`,
+      params
+    }
   }
 }
 

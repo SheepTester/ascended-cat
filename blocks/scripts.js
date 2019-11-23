@@ -52,7 +52,7 @@ class Stack extends Component {
     }
     return arr
   }
-  
+
   /**
    * Reporter connections are vertically the centre of the block but
    * horizontally on the left.
@@ -77,10 +77,10 @@ class Script extends Stack {
     super(initBlocks)
     this.blocks = blocks
   }
-  
+
   add (component, beforeIndex) {
     if (component instanceof Block) {
-      super.add(component, beforeIndex)
+      return super.add(component, beforeIndex)
     } else {
       throw new Error('wucky')
     }
@@ -102,7 +102,7 @@ class Script extends Stack {
     }
     this.workspace = null
   }
-  
+
   getStackBlockConnections () {
     const arr = super.getStackBlockConnections()
     // In 2.0, I believe you attach on the bottom for scripts, but insert
@@ -115,6 +115,13 @@ class Script extends Stack {
       first.beforeScript = true
     }
     return arr
+  }
+
+  toJSON () {
+    return {
+      ...this.position,
+      blocks: this.components.map(block => block.toJSON())
+    }
   }
 }
 

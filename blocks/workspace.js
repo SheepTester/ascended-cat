@@ -213,6 +213,7 @@ class Workspace {
     script.workspace = this
     this.scripts.push(script)
     this.scriptsElem.appendChild(script.elem)
+    return script
   }
 
   _updateTransformation () {
@@ -356,6 +357,10 @@ class Workspace {
         ]))
     }
     return arr
+  }
+
+  toJSON () {
+    return this.scripts.map(script => script.toJSON())
   }
 }
 
