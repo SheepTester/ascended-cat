@@ -1,38 +1,5 @@
-.block-workspace {
-  width: 100%;
-  height: 100%;
-  touch-action: none;
-}
-
-.block-input-has-block > .block-input-back,
-.block-input-has-block > .block-input-value {
-  visibility: hidden;
-}
-.block-input-open > .block-input-value {
-  opacity: 0;
-}
-
 .block-hidden {
   display: none;
-}
-.block-input {
-  -webkit-appearance: none;
-  border: none;
-  background: none;
-  font: inherit;
-  color: inherit;
-  box-sizing: border-box;
-  position: absolute;
-}
-
-.block-back {
-  fill: var(--colour);
-}
-
-.block-text-component {
-  dominant-baseline: central;
-  white-space: pre;
-  user-select: none;
 }
 
 .block-dragged {
@@ -43,6 +10,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
+  z-index: 1000;
 }
 .block-dragging-blocks {
   cursor: grabbing;
@@ -57,4 +25,41 @@
 }
 .block-input-drop-target {
   filter: url('#block-snap-glow');
+}
+
+/* component */
+.block-text-component {
+  dominant-baseline: central;
+  white-space: pre;
+  user-select: none;
+}
+
+/* workspace */
+.block-workspace {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.block-input {
+  -webkit-appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
+  position: absolute;
+}
+
+/* block */
+.block-back {
+  fill: var(--colour);
+}
+
+/* input */
+.block-input-has-block > .block-input-back,
+.block-input-has-block > .block-input-value {
+  visibility: hidden;
+}
+.block-input-open > .block-input-value {
+  opacity: 0;
 }
