@@ -212,6 +212,9 @@ class Workspace {
   }
 
   add (script) {
+    if (!(script instanceof Stack)) {
+      throw new Error('wucky: Workspaces are picky and only want Stacks.')
+    }
     script.workspace = this
     this.scripts.push(script)
     this.scriptsElem.appendChild(script.elem)
@@ -372,6 +375,59 @@ class Workspace {
 
 Workspace.minDragDistance = 3
 
+class ScriptsWorkspace extends Workspace {
+  constructor (blocks, wrapper) {
+    super(blocks, wrapper)
+  }
+
+  _recalculateScrollBounds () {
+    let minX = 0, minY = 0, maxX = 0, maxY = 0
+    for (const script of this.scripts) {
+      const {x, y} = script.position
+      const {width, height} = script.measurements
+      if (x < minX) minX = x
+      if (y < minY) minY = y
+      if (x + width > maxX) maxX = x + width
+      if (y + height > maxY) maxY = y + height
+    }
+    this._scrollBounds = {minX, minY, maxX, maxY}
+  }
+
+  add (script) {
+    super.add(script)
+    this._scrollBounds = null
+    const onPositionChange = () => {
+      this._scrollBounds = null
+    }
+    const onWorkspaceRemove = () => {
+      this._recalculateScrollBounds()
+      script.off('position-change', onPositionChange)
+      script.off('workspace-remove', onWorkspaceRemove)
+    }
+    script.on('position-change', onPositionChange)
+    script.on('workspace-remove', onWorkspaceRemove)
+  }
+
+  scrollTo (left, top) {
+    if (!this._scrollBounds) {
+      this._recalculateScrollBounds()
+    }
+    const maxLeft = Math.max(this._scrollBounds.maxX - this.rect.width, 0)
+    if (left < this._scrollBounds.minX) {
+      left = this._scrollBounds.minX
+    } else if (left > maxLeft) {
+      left = maxLeft
+    }
+    const maxTop = Math.max(this._scrollBounds.maxY - this.rect.height, 0)
+    if (top < this._scrollBounds.minY) {
+      top = this._scrollBounds.minY
+    } else if (top > maxTop) {
+      top = maxTop
+    }
+    super.scrollTo(left, top)
+  }
+}
+
 class PaletteWorkspace extends Workspace {
   constructor (blocks, wrapper) {
     super(blocks, wrapper)
@@ -412,4 +468,4 @@ class PaletteWorkspace extends Workspace {
   }
 }
 
-export {Workspace, PaletteWorkspace}
+export {Workspace, ScriptsWorkspace, PaletteWorkspace}

@@ -82,7 +82,7 @@ class Script extends Stack {
     if (component instanceof Block) {
       return super.add(component, beforeIndex)
     } else {
-      throw new Error('wucky')
+      throw new Error('wucky: Scripts strictly only accept blocks.')
     }
   }
 
@@ -100,6 +100,7 @@ class Script extends Stack {
     if (~index) {
       this.workspace.scripts.splice(index, 1)
     }
+    this.trigger('workspace-remove', this.workspace)
     this.workspace = null
   }
 

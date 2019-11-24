@@ -2,7 +2,7 @@ import {Elem} from '../utils/elem.js'
 import {square} from '../utils/math.js'
 import {Newsletter} from '../utils/newsletter.js'
 
-import {Workspace, PaletteWorkspace} from './workspace.js'
+import {Workspace, ScriptsWorkspace, PaletteWorkspace} from './workspace.js'
 import {BlockType, ArgumentType} from './constants.js'
 import {Stack, Script} from './scripts.js'
 import {Block} from './block.js'
@@ -348,8 +348,8 @@ class Blocks extends Newsletter {
     return workspace
   }
 
-  createWorkspace (wrapper) {
-    const workspace = new Workspace(this, wrapper)
+  createScriptsWorkspace (wrapper) {
+    const workspace = new ScriptsWorkspace(this, wrapper)
     this._workspaces.push(workspace)
     return workspace
   }
