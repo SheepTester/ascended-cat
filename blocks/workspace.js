@@ -1,15 +1,19 @@
 import {Elem} from '../utils/elem.js'
 import {pythagoreanCompare} from '../utils/math.js'
+import {Newsletter} from '../utils/newsletter.js'
 
 import {Input} from './input.js'
 import {Block} from './block.js'
 import {Stack} from './scripts.js'
 import {Space} from './component.js'
+import {Scrollbar} from './scrollbar.js'
 
 const numberInputKeys = /^[0-9e.\-]$/i
 
-class Workspace {
+class Workspace extends Newsletter {
   constructor (blocks, wrapper) {
+    super()
+
     this.wrapper = wrapper
     this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
     this.svg = Elem('svg', {
@@ -233,6 +237,7 @@ class Workspace {
       }
       this._recallMoveEvents = true
     }
+    this.trigger('scroll', {left, top, scale})
   }
 
   scrollTo (left, top) {
@@ -336,6 +341,7 @@ class Workspace {
   updateRect () {
     const {left, top, width, height} = this.svg.getBoundingClientRect()
     this.rect = {x: left, y: top, width, height}
+    this.trigger('rect-update', this.rect)
   }
 
   getStackBlockConnections () {
@@ -378,6 +384,9 @@ Workspace.minDragDistance = 3
 class ScriptsWorkspace extends Workspace {
   constructor (blocks, wrapper) {
     super(blocks, wrapper)
+
+    this._horizScrollbar = new Scrollbar(this, true)
+    this._vertScrollbar = new Scrollbar(this, false)
   }
 
   _recalculateScrollBounds () {
@@ -390,7 +399,12 @@ class ScriptsWorkspace extends Workspace {
       if (x + width > maxX) maxX = x + width
       if (y + height > maxY) maxY = y + height
     }
+    minX -= this.constructor.scrollPadding
+    minY -= this.constructor.scrollPadding
+    maxX += this.constructor.scrollPadding
+    maxY += this.constructor.scrollPadding
     this._scrollBounds = {minX, minY, maxX, maxY}
+    this.trigger('scroll-bounds', this._scrollBounds)
   }
 
   add (script) {
@@ -427,6 +441,8 @@ class ScriptsWorkspace extends Workspace {
     super.scrollTo(left, top)
   }
 }
+
+ScriptsWorkspace.scrollPadding = 10
 
 class PaletteWorkspace extends Workspace {
   constructor (blocks, wrapper) {

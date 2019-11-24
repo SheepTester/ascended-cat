@@ -50,6 +50,26 @@
   position: absolute;
 }
 
+/* scrollbar */
+.block-scrollbar {
+  cursor: pointer;
+  fill: rgba(255, 255, 255, 0.2);
+  rx: 2.5px;
+  ry: 2.5px;
+}
+.block-scrollbar-vertical {
+  width: 5px;
+  x: calc(var(--window) - 10px);
+  y: calc(var(--offset) + 5px);
+  height: calc(var(--range) - 10px);
+}
+.block-scrollbar-horizontal {
+  height: 5px;
+  y: calc(var(--window) - 10px);
+  x: calc(var(--offset) + 5px);
+  width: calc(var(--range) - 10px);
+}
+
 /* block */
 .block-back {
   fill: var(--colour);
