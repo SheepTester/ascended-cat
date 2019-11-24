@@ -40,7 +40,7 @@ class Input extends Component {
 
   setValue (value, preventUpdate = false) {
     this.value = value
-    this.text.setText(value)
+    this.text.text = value
     if (!preventUpdate) {
       return this.text.resize()
     }
@@ -112,7 +112,7 @@ class Input extends Component {
   }
 
   onInputShow (input) {
-    input.value = this.text.getText()
+    input.value = this.text.text
     this.elem.classList.add('block-input-open')
   }
 

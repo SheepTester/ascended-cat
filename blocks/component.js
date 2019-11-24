@@ -5,7 +5,7 @@ class GenericComponent extends Newsletter {
   constructor () {
     super()
     this.measurements = null
-    this.position = {x: 0, y: 0}
+    this._position = {x: 0, y: 0}
   }
 
   /**
@@ -16,8 +16,12 @@ class GenericComponent extends Newsletter {
     this.measurements = {width: 0, height: 0}
   }
 
+  get position () {
+    return this._position
+  }
+
   setPosition (x, y) {
-    this.position = {x, y}
+    this._position = {x, y}
     this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
     this.trigger('position-change', x, y)
   }
@@ -52,14 +56,14 @@ class TextComponent extends GenericComponent {
   constructor (initText) {
     super()
     this.elem = Elem('text', {class: 'block-text-component'}, [], true)
-    if (initText) this.setText(initText)
+    if (initText) this.text = initText
   }
 
-  getText () {
+  get text () {
     return this.elem.textContent
   }
 
-  setText (text) {
+  set text (text) {
     this.elem.textContent = text
     this.measurements = null
   }

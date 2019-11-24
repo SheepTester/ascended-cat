@@ -1,5 +1,3 @@
-// Relies on blocks/workspace, blocks/scripts, blocks/block, blocks/constants,
-// utils/math, blocks/component, utils/elem
 import {Elem} from '../utils/elem.js'
 import {square} from '../utils/math.js'
 import {Newsletter} from '../utils/newsletter.js'

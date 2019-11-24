@@ -1,6 +1,3 @@
-// Relies on utils/elem, blocks/component, utils/math, blocks/scripts, blocks/input,
-// blocks/block
-
 import {Elem} from '../utils/elem.js'
 import {pythagoreanCompare} from '../utils/math.js'
 
@@ -107,7 +104,9 @@ class Workspace {
       getRect: () => {
         return this.rect
       },
-      getTransform: this.getTransform.bind(this)
+      getTransform: () => {
+        return this.transform
+      }
     })
   }
 
@@ -244,7 +243,7 @@ class Workspace {
     this._updateTransformation()
   }
 
-  getTransform () {
+  get transform () {
     const {left, top, scale} = this._transform
     return {left, top, scale}
   }

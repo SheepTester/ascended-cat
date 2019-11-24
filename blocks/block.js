@@ -259,7 +259,7 @@ class Block extends Component {
     const workspace = this.getWorkspace()
     const {x, y} = this.getWorkspaceOffset()
     const {x: workspaceX, y: workspaceY} = workspace.rect
-    const {left, top} = workspace.getTransform()
+    const {left, top} = workspace.transform
     const script = this.blocks.createScript()
     if (this.cloneOnDrag) {
       script.add(this.clone())
