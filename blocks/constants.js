@@ -13,4 +13,6 @@ const ArgumentType = {
   BRANCH: 'branch'
 }
 
-export { BlockType, ArgumentType }
+const NullCategory = 'nonexistent'
+
+export { BlockType, ArgumentType, NullCategory }

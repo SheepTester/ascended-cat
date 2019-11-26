@@ -94,6 +94,15 @@
         border-radius: 10px;
       }
 
+      .block-category-header .block-text-component {
+        fill: var(--colour);
+        font-size: 14px;
+      }
+      .block-category-header-line {
+        stroke: rgba(255, 255, 255, 0.3);
+        stroke-width: 1.5;
+      }
+
       #toggle-lang {
         position: fixed;
         left: 0;
@@ -191,7 +200,7 @@ const specA = {
   ],
   translationMap: {
     xl: {
-      '__name__': '!sgo8iu',
+      '__name__': '!sgo8iu Ñsdf e è dsfg u ondu   .',
       'repeatUntil': 'hato [LOOP] et [CONDITION]',
       'not': '[TEST]n\'t',
       'add': '+ [A] [B]',
@@ -334,6 +343,7 @@ document.getElementById('toggle-lang').addEventListener('click', e => {
   } else {
     blocks.setLanguage('xl')
   }
+  palette.updateBlockOrder().filter()
 })
 
 window.scripts = scripts

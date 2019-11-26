@@ -5,7 +5,6 @@ import { Newsletter } from '../utils/newsletter.js'
 import { Input } from './input.js'
 import { Block } from './block.js'
 import { Stack } from './scripts.js'
-import { Space } from './component.js'
 import { Scrollbar } from './scrollbar.js'
 
 const numberInputKeys = /^[0-9e.-]$/i
@@ -433,11 +432,11 @@ class ScriptsWorkspace extends Workspace {
     this.updateScroll()
     const onWorkspaceRemove = () => {
       script.off('reposition', this.updateScroll)
-      script.off('workspace-remove', this.updateScroll)
+      script.off('workspace-remove', onWorkspaceRemove)
       this.updateScroll()
     }
     script.on('reposition', this.updateScroll)
-    script.on('workspace-remove', this.updateScroll)
+    script.on('workspace-remove', onWorkspaceRemove)
   }
 
   scrollTo (left, top) {

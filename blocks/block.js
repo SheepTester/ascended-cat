@@ -1,7 +1,7 @@
 import { Elem } from '../utils/elem.js'
 
 import { Component, TextComponent } from './component.js'
-import { BlockType, ArgumentType } from './constants.js'
+import { BlockType, ArgumentType, NullCategory } from './constants.js'
 import { Input, StringInput, NumberInput, BooleanInput } from './input.js'
 import { Stack } from './scripts.js'
 
@@ -43,7 +43,7 @@ class Block extends Component {
         }
       })
     }
-    this.elem.dataset.category = category || 'nonexistent'
+    this.elem.dataset.category = category || NullCategory
     this.elem.dataset.opcode = opcode
   }
 

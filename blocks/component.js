@@ -148,10 +148,11 @@ class Component extends GenericComponent {
     component.parent = null
   }
 
-  clear () {
+  clear (destroy = false) {
     for (const component of this.components) {
       this.elem.removeChild(component.elem)
       component.parent = null
+      if (destroy) component.destroy()
     }
     this.components.splice(0, this.components.length)
   }

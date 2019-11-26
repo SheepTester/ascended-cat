@@ -39,7 +39,6 @@ class Blocks extends Newsletter {
   }) {
     this.categories[id] = {}
     this.translations.default[id] = name
-    // TODO: Fix or redesign separators, somehow.
     for (const block of blocks) {
       if (block && typeof block === 'object') {
         this.addBlock(id, block)
