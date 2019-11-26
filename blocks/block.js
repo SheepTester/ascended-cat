@@ -1,9 +1,9 @@
-import {Elem} from '../utils/elem.js'
+import { Elem } from '../utils/elem.js'
 
-import {Component, TextComponent} from './component.js'
-import {BlockType, ArgumentType} from './constants.js'
-import {Input, StringInput, NumberInput, BooleanInput} from './input.js'
-import {Stack} from './scripts.js'
+import { Component, TextComponent } from './component.js'
+import { BlockType, ArgumentType } from './constants.js'
+import { Input, StringInput, NumberInput, BooleanInput } from './input.js'
+import { Stack } from './scripts.js'
 
 class Block extends Component {
   constructor (blocks, initBlock, initParams = {}) {
@@ -13,7 +13,7 @@ class Block extends Component {
     this.blocks = blocks
     this.cloneOnDrag = false
     this.elem.classList.add('block-block')
-    this._path = Elem('path', {class: 'block-back'}, [], true)
+    this._path = Elem('path', { class: 'block-back' }, [], true)
     this.elem.appendChild(this._path)
     this._params = {}
     if (initBlock) {
@@ -33,7 +33,7 @@ class Block extends Component {
       this.blocks.off('block-added', this._onBlockAdded)
       this._onBlockAdded = null
     }
-    const {category, blockData, opcode} = this.blocks.getBlockData(blockOpcode)
+    const { category, blockData, opcode } = this.blocks.getBlockData(blockOpcode)
     this.blockOpcode = blockOpcode
     this.blockData = blockData || this.constructor.nonexistentBlock
     if (!blockData) {
@@ -59,7 +59,7 @@ class Block extends Component {
     this._params = {}
     let i = 0
     let exec
-    while (exec = paramRegex.exec(text)) {
+    while ((exec = paramRegex.exec(text))) {
       if (exec.index > i) {
         this.add(new TextComponent(text.slice(i, exec.index)))
       }
@@ -152,8 +152,8 @@ class Block extends Component {
     const textFirstPadding = this.blockData.blockType === BlockType.BOOLEAN
       ? booleanTextFirstPadding
       : this.blockData.blockType === BlockType.REPORTER
-      ? reporterTextFirstPadding
-      : stackHorizPadding
+        ? reporterTextFirstPadding
+        : stackHorizPadding
 
     let maxWidth = minWidth
     let cSlotMaxWidth = 0
@@ -234,15 +234,15 @@ class Block extends Component {
       }
       case BlockType.REPORTER: {
         const radius = y / 2
-        const path = `M${radius} ${y} a${radius} ${radius} 0 0 1 0 ${-y}`
-          + `H${maxWidth - radius} a${radius} ${radius} 0 0 1 0 ${y} z`
+        const path = `M${radius} ${y} a${radius} ${radius} 0 0 1 0 ${-y}` +
+          `H${maxWidth - radius} a${radius} ${radius} 0 0 1 0 ${y} z`
         this._path.setAttributeNS(null, 'd', path)
         break
       }
       case BlockType.BOOLEAN: {
         const side = y / 2
-        const path = `M0 ${side} L${side} 0 H${maxWidth - side} L${maxWidth} ${side}`
-          + `L${maxWidth - side} ${y} H${side} z`
+        const path = `M0 ${side} L${side} 0 H${maxWidth - side} L${maxWidth} ${side}` +
+          `L${maxWidth - side} ${y} H${side} z`
         this._path.setAttributeNS(null, 'd', path)
         break
       }
@@ -252,14 +252,14 @@ class Block extends Component {
       }
     }
 
-    this.measurements = {width: Math.max(maxWidth, branchWidth + cSlotMaxWidth), height: y}
+    this.measurements = { width: Math.max(maxWidth, branchWidth + cSlotMaxWidth), height: y }
   }
 
   _onDrag (initMouseX, initMouseY) {
     const workspace = this.getWorkspace()
-    const {x, y} = this.getWorkspaceOffset()
-    const {x: workspaceX, y: workspaceY} = workspace.rect
-    const {left, top} = workspace.transform
+    const { x, y } = this.getWorkspaceOffset()
+    const { x: workspaceX, y: workspaceY } = workspace.rect
+    const { left, top } = workspace.transform
     const script = this.blocks.createScript()
     if (this.cloneOnDrag) {
       script.add(this.clone())
@@ -272,7 +272,7 @@ class Block extends Component {
         const index = oldParent.components.indexOf(this)
         if (~index) {
           let component
-          while (component = oldParent.components[index]) {
+          while ((component = oldParent.components[index])) {
             oldParent.remove(component)
             script.add(component)
           }
@@ -358,19 +358,19 @@ Block.renderOptions = {
   notchWidth: 8,
   notchHeight: 3,
   get notchX () {
-    const {notchLeft, notchWallWidth, notchWidth} = this
+    const { notchLeft, notchWallWidth, notchWidth } = this
     return notchLeft + notchWallWidth + notchWidth / 2
   },
   get notchTotalWidth () {
-    const {notchLeft, notchWallWidth, notchWidth} = this
+    const { notchLeft, notchWallWidth, notchWidth } = this
     return notchLeft + notchWallWidth * 2 + notchWidth
   },
   get notchToLeft () {
-    const {notchWallWidth, notchWidth, notchHeight} = this
+    const { notchWallWidth, notchWidth, notchHeight } = this
     return `l${-notchWallWidth} ${notchHeight} h${-notchWidth} l${-notchWallWidth} ${-notchHeight}`
   },
   get notchToRight () {
-    const {notchWallWidth, notchWidth, notchHeight} = this
+    const { notchWallWidth, notchWidth, notchHeight } = this
     return `l${notchWallWidth} ${notchHeight} h${notchWidth} l${notchWallWidth} ${-notchHeight}`
   },
   branchWidth: 15,
@@ -385,4 +385,4 @@ Block.renderOptions = {
 
 Block.maxSnapDistance = 30
 
-export {Block}
+export { Block }

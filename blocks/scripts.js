@@ -1,5 +1,5 @@
-import {Component} from './component.js'
-import {Block} from './block.js'
+import { Component } from './component.js'
+import { Block } from './block.js'
 
 class Stack extends Component {
   constructor (initBlocks = []) {
@@ -19,7 +19,7 @@ class Stack extends Component {
         maxWidth = block.measurements.width
       }
     }
-    this.measurements = {width: maxWidth, height: y}
+    this.measurements = { width: maxWidth, height: y }
   }
 
   /**
@@ -27,14 +27,14 @@ class Stack extends Component {
    */
   getStackBlockConnections () {
     const blocks = this.components.filter(block => block instanceof Block)
-    const {branchWidth, notchX} = Block.renderOptions
+    const { branchWidth, notchX } = Block.renderOptions
     if (!blocks.length) {
-      return [[notchX, 0, {after: true, in: this}]]
+      return [[notchX, 0, { after: true, in: this }]]
     }
     const arr = []
     for (const block of blocks) {
       if (!block.blockData.hat) {
-        arr.push([notchX, block.position.y, {insertBefore: block, in: this}])
+        arr.push([notchX, block.position.y, { insertBefore: block, in: this }])
       }
       for (const component of block.components) {
         if (component instanceof Stack) {
@@ -48,7 +48,7 @@ class Stack extends Component {
       }
     }
     if (!blocks[blocks.length - 1].blockData.terminal) {
-      arr.push([notchX, this.measurements.height, {after: true, in: this}])
+      arr.push([notchX, this.measurements.height, { after: true, in: this }])
     }
     return arr
   }
@@ -126,4 +126,4 @@ class Script extends Stack {
   }
 }
 
-export {Stack, Script}
+export { Stack, Script }

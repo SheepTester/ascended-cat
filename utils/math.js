@@ -9,4 +9,4 @@ function square (n) {
   return n * n
 }
 
-export {pythagoreanCompare, square}
+export { pythagoreanCompare, square }

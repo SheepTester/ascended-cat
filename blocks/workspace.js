@@ -1,21 +1,21 @@
-import {Elem} from '../utils/elem.js'
-import {pythagoreanCompare} from '../utils/math.js'
-import {Newsletter} from '../utils/newsletter.js'
+import { Elem } from '../utils/elem.js'
+import { pythagoreanCompare } from '../utils/math.js'
+import { Newsletter } from '../utils/newsletter.js'
 
-import {Input} from './input.js'
-import {Block} from './block.js'
-import {Stack} from './scripts.js'
-import {Space} from './component.js'
-import {Scrollbar} from './scrollbar.js'
+import { Input } from './input.js'
+import { Block } from './block.js'
+import { Stack } from './scripts.js'
+import { Space } from './component.js'
+import { Scrollbar } from './scrollbar.js'
 
-const numberInputKeys = /^[0-9e.\-]$/i
+const numberInputKeys = /^[0-9e.-]$/i
 
 class Workspace extends Newsletter {
   constructor (blocks, wrapper) {
     super()
 
     this.wrapper = wrapper
-    this.scriptsElem = Elem('g', {class: 'block-scripts'}, [], true)
+    this.scriptsElem = Elem('g', { class: 'block-scripts' }, [], true)
     this.svg = Elem('svg', {
       class: 'block-workspace',
       onwheel: e => {
@@ -54,8 +54,8 @@ class Workspace extends Newsletter {
             result: 'colouredBlur'
           }, [], true),
           Elem('feMerge', {}, [
-            Elem('feMergeNode', {in: 'colouredBlur'}, [], true),
-            Elem('feMergeNode', {in: 'SourceGraphic'}, [], true)
+            Elem('feMergeNode', { in: 'colouredBlur' }, [], true),
+            Elem('feMergeNode', { in: 'SourceGraphic' }, [], true)
           ], true)
         ], true)
       ], true),
@@ -92,7 +92,7 @@ class Workspace extends Newsletter {
 
     this.blocks = blocks
     this.scripts = []
-    this._transform = {left: 0, top: 0, scale: 1}
+    this._transform = { left: 0, top: 0, scale: 1 }
     this._recallMoveEvents = true
 
     this._pointers = {}
@@ -122,7 +122,7 @@ class Workspace extends Newsletter {
           // NOTE: Scratch puts it on the right of the script, vertically
           // in the middle.
           const offset = Input.renderOptions.popOutOffset
-          const {x, y} = oldValue.getWorkspaceOffset()
+          const { x, y } = oldValue.getWorkspaceOffset()
           snapTo.insertBlock(null)
           const script = this.blocks.createScript()
           script.setPosition(x + offset, y + offset)
@@ -226,18 +226,18 @@ class Workspace extends Newsletter {
   }
 
   _updateTransformation () {
-    const {left, top, scale} = this._transform
+    const { left, top, scale } = this._transform
     this.scriptsElem.setAttributeNS(null, 'transform', `scale(${scale}) translate(${-left}, ${-top})`)
     this._input.style.transform = `scale(${scale}) translate(${-left}px, ${-top}px)`
     if (this._recallMoveEvents) {
       // Prevent the move event listeners from being recursively called
       this._recallMoveEvents = false
-      for (const {lastMoveEvent} of Object.values(this._pointers)) {
+      for (const { lastMoveEvent } of Object.values(this._pointers)) {
         this._onPointerMove(lastMoveEvent)
       }
       this._recallMoveEvents = true
     }
-    this.trigger('scroll', {left, top, scale})
+    this.trigger('scroll', { left, top, scale })
   }
 
   scrollTo (left, top) {
@@ -252,13 +252,13 @@ class Workspace extends Newsletter {
   }
 
   get transform () {
-    const {left, top, scale} = this._transform
-    return {left, top, scale}
+    const { left, top, scale } = this._transform
+    return { left, top, scale }
   }
 
   _onStartScroll (initX, initY) {
     if (this._scrolling) return
-    const {left: initLeft, top: initTop, scale: initScale} = this._transform
+    const { left: initLeft, top: initTop, scale: initScale } = this._transform
     this._scrolling = true
     return {
       move: (x, y) => {
@@ -339,8 +339,8 @@ class Workspace extends Newsletter {
   }
 
   updateRect () {
-    const {left, top, width, height} = this.svg.getBoundingClientRect()
-    this.rect = {x: left, y: top, width, height}
+    const { left, top, width, height } = this.svg.getBoundingClientRect()
+    this.rect = { x: left, y: top, width, height }
     this.trigger('rect-update', this.rect)
   }
 
@@ -390,10 +390,10 @@ class ScriptsWorkspace extends Workspace {
   }
 
   _recalculateScrollBounds () {
-    let minX = 0, minY = 0, maxX = 0, maxY = 0
+    let minX = 0; let minY = 0; let maxX = 0; let maxY = 0
     for (const script of this.scripts) {
-      const {x, y} = script.position
-      const {width, height} = script.measurements
+      const { x, y } = script.position
+      const { width, height } = script.measurements
       if (x < minX) minX = x
       if (y < minY) minY = y
       if (x + width > maxX) maxX = x + width
@@ -403,7 +403,7 @@ class ScriptsWorkspace extends Workspace {
     minY -= this.constructor.scrollPadding
     maxX += this.constructor.scrollPadding
     maxY += this.constructor.scrollPadding
-    this._scrollBounds = {minX, minY, maxX, maxY}
+    this._scrollBounds = { minX, minY, maxX, maxY }
     this.trigger('scroll-bounds', this._scrollBounds)
   }
 
@@ -484,4 +484,4 @@ class PaletteWorkspace extends Workspace {
   }
 }
 
-export {Workspace, ScriptsWorkspace, PaletteWorkspace}
+export { Workspace, ScriptsWorkspace, PaletteWorkspace }

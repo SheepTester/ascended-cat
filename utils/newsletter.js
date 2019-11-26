@@ -34,4 +34,4 @@ class Newsletter {
   }
 }
 
-export {Newsletter}
+export { Newsletter }

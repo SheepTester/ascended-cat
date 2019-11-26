@@ -1,3 +1,5 @@
+/* global Node */
+
 const svgNS = 'http://www.w3.org/2000/svg'
 
 /**
@@ -39,7 +41,7 @@ function Elem (tag = 'div', data = {}, children = [], svg = false) {
         if (className === null || className === undefined) continue
         elem.classList.add(className)
       }
-    } else if (elem[prop] === undefined || elem[prop] && elem[prop].baseVal !== undefined) {
+    } else if (elem[prop] === undefined || (elem[prop] && elem[prop].baseVal !== undefined)) {
       if (svg) {
         elem.setAttributeNS(null, prop, value)
       } else {
@@ -80,4 +82,4 @@ function Fragment (elems) {
   return fragment
 }
 
-export {Elem, Fragment}
+export { Elem, Fragment }

@@ -1,0 +1,27 @@
+{
+  "name": "ascended-cat",
+  "version": "1.0.0",
+  "description": "Block-based three.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard \"blocks/**/*.js\" \"utils/**/*.js\" | snazzy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SheepTester/ascended-cat.git"
+  },
+  "keywords": [
+    "blocks",
+    "three.js"
+  ],
+  "author": "SheepTester",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SheepTester/ascended-cat/issues"
+  },
+  "homepage": "https://github.com/SheepTester/ascended-cat#readme",
+  "devDependencies": {
+    "snazzy": "^8.0.0",
+    "standard": "^14.3.1"
+  }
+}

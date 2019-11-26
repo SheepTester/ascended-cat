@@ -1,11 +1,11 @@
-import {Elem} from '../utils/elem.js'
-import {Newsletter} from '../utils/newsletter.js'
+import { Elem } from '../utils/elem.js'
+import { Newsletter } from '../utils/newsletter.js'
 
 class GenericComponent extends Newsletter {
   constructor () {
     super()
     this.measurements = null
-    this._position = {x: 0, y: 0}
+    this._position = { x: 0, y: 0 }
   }
 
   /**
@@ -13,7 +13,7 @@ class GenericComponent extends Newsletter {
    * its own `measurements`.
    */
   reposition () {
-    this.measurements = {width: 0, height: 0}
+    this.measurements = { width: 0, height: 0 }
   }
 
   get position () {
@@ -21,7 +21,7 @@ class GenericComponent extends Newsletter {
   }
 
   setPosition (x, y) {
-    this._position = {x, y}
+    this._position = { x, y }
     this.elem.setAttributeNS(null, 'transform', `translate(${x}, ${y})`)
     this.trigger('position-change', x, y)
   }
@@ -34,12 +34,12 @@ class GenericComponent extends Newsletter {
    * Does not take into account scrolling.
    */
   getWorkspaceOffset () {
-    const {x, y} = this.position
+    const { x, y } = this.position
     if (this.parent) {
-      const {x: px, y: py} = this.parent.getWorkspaceOffset()
-      return {x: px + x, y: py + y}
+      const { x: px, y: py } = this.parent.getWorkspaceOffset()
+      return { x: px + x, y: py + y }
     } else {
-      return {x, y}
+      return { x, y }
     }
   }
 
@@ -55,7 +55,7 @@ class GenericComponent extends Newsletter {
 class TextComponent extends GenericComponent {
   constructor (initText) {
     super()
-    this.elem = Elem('text', {class: 'block-text-component'}, [], true)
+    this.elem = Elem('text', { class: 'block-text-component' }, [], true)
     if (initText) this.text = initText
   }
 
@@ -76,12 +76,12 @@ class TextComponent extends GenericComponent {
    * @returns {Promise.<Measurements>} - The new measurements.
    */
   resize (force = false, repositionParents = true) {
-    return new Promise(res => {
+    return new Promise(resolve => {
       window.requestAnimationFrame(() => {
         const rect = this.elem.getBBox()
         // `height` is zero so a Block centres it right in the middle, allowing
         // the `dominant-baseline` to deal with centring.
-        this.measurements = {width: rect.width, height: rect.height}
+        this.measurements = { width: rect.width, height: rect.height }
         if (repositionParents) {
           let parent = this.parent
           while (parent) {
@@ -89,7 +89,7 @@ class TextComponent extends GenericComponent {
             parent = parent.parent
           }
         }
-        res(this.measurements)
+        resolve(this.measurements)
       })
     })
   }
@@ -105,7 +105,7 @@ class TextComponent extends GenericComponent {
 class Component extends GenericComponent {
   constructor () {
     super()
-    this.elem = Elem('g', {class: 'block-component'}, [], true)
+    this.elem = Elem('g', { class: 'block-component' }, [], true)
     this.components = []
   }
 
@@ -192,8 +192,8 @@ class Space extends Component {
   }
 
   reposition () {
-    this.measurements = {width: 0, height: this.height}
+    this.measurements = { width: 0, height: this.height }
   }
 }
 
-export {TextComponent, Component, Space}
+export { TextComponent, Component, Space }

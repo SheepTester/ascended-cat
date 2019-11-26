@@ -13,4 +13,4 @@ const ArgumentType = {
   BRANCH: 'branch'
 }
 
-export {BlockType, ArgumentType}
+export { BlockType, ArgumentType }
