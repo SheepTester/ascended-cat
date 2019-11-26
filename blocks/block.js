@@ -253,6 +253,7 @@ class Block extends Component {
     }
 
     this.measurements = { width: Math.max(maxWidth, branchWidth + cSlotMaxWidth), height: y }
+    super.reposition()
   }
 
   _onDrag (initMouseX, initMouseY) {

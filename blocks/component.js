@@ -13,7 +13,10 @@ class GenericComponent extends Newsletter {
    * its own `measurements`.
    */
   reposition () {
-    this.measurements = { width: 0, height: 0 }
+    if (!this.measurements) {
+      this.measurements = { width: 0, height: 0 }
+    }
+    this.trigger('reposition', this.measurements)
   }
 
   get position () {
@@ -193,6 +196,7 @@ class Space extends Component {
 
   reposition () {
     this.measurements = { width: 0, height: this.height }
+    super.reposition()
   }
 }
 

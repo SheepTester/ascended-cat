@@ -52,6 +52,7 @@ class Input extends Component {
 
   reposition () {
     this.measurements = this._block ? this._block.measurements : this.drawInputBack()
+    super.reposition()
   }
 
   drawInputBack () {

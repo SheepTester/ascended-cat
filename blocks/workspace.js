@@ -120,7 +120,7 @@ class Workspace extends Newsletter {
         const oldValue = snapTo.getValue()
         if (oldValue instanceof Block) {
           // NOTE: Scratch puts it on the right of the script, vertically
-          // in the middle.
+          // in the middle. (That is not done here)
           const offset = Input.renderOptions.popOutOffset
           const { x, y } = oldValue.getWorkspaceOffset()
           snapTo.insertBlock(null)
@@ -130,11 +130,10 @@ class Workspace extends Newsletter {
           this.add(script)
         }
         snapTo.insertBlock(script.components[0])
-        snapTo.resize()
         // Destroy the rest of the blocks in case the reporter
         // had blocks connected to it.
         script.destroy()
-        return
+        return snapTo.resize()
       } else if (snapTo.insertBefore) {
         const index = snapTo.in.components.indexOf(snapTo.insertBefore)
         if (wrappingC) {
@@ -157,7 +156,7 @@ class Workspace extends Newsletter {
               snapTo.in.position.y - firstLoop.position.y
             )
           }
-          firstLoop.resize()
+          return firstLoop.resize()
         } else {
           // Prepend each component in the script from bottom to top
           // to the insert index of the target script.
@@ -184,13 +183,14 @@ class Workspace extends Newsletter {
           snapTo.in.add(component)
         }
       }
-      snapTo.in.resize()
+      return snapTo.in.resize()
     } else {
       this.add(script)
       script.setPosition(
         x - this.rect.x + this._transform.left,
         y - this.rect.y + this._transform.top
       )
+      return Promise.resolve()
     }
   }
 
@@ -384,10 +384,16 @@ Workspace.minDragDistance = 3
 class ScriptsWorkspace extends Workspace {
   constructor (blocks, wrapper) {
     super(blocks, wrapper)
+    this.updateScroll = this.updateScroll.bind(this)
 
     this._scrollBounds = null
     this._horizScrollbar = new Scrollbar(this, true)
     this._vertScrollbar = new Scrollbar(this, false)
+  }
+
+  acceptDrop (...args) {
+    return super.acceptDrop(...args)
+      .then(() => this.updateScroll())
   }
 
   /**
@@ -424,16 +430,13 @@ class ScriptsWorkspace extends Workspace {
     super.add(script)
     this._scrollBounds = null
     this.updateScroll()
-    const onPositionChange = () => {
-      this.updateScroll()
-    }
     const onWorkspaceRemove = () => {
-      script.off('position-change', onPositionChange)
-      script.off('workspace-remove', onWorkspaceRemove)
+      script.off('reposition', this.updateScroll)
+      script.off('workspace-remove', this.updateScroll)
       this.updateScroll()
     }
-    script.on('position-change', onPositionChange)
-    script.on('workspace-remove', onWorkspaceRemove)
+    script.on('reposition', this.updateScroll)
+    script.on('workspace-remove', this.updateScroll)
   }
 
   scrollTo (left, top) {
