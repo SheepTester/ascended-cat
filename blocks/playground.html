@@ -109,104 +109,101 @@
     <script type="module">
 import {Blocks} from './blocks.js'
 
-const blocks = new Blocks([
-  {
-    id: 'test',
-    name: 'Test',
-    blocks: [
-      {
-        opcode: 'test',
-        blockType: Blocks.BlockType.COMMAND,
-        text: 'wow wow long long hat hat',
-        hat: true
-      },
-      {
-        opcode: 'branch',
-        blockType: Blocks.BlockType.COMMAND,
-        text: 'branchu [WOW]: [B1] or [B2]',
-        terminal: true,
-        arguments: {
-          WOW: {
-            type: Blocks.ArgumentType.STRING,
-            default: 'Hmm!'
-          },
-          B1: {
-            type: Blocks.ArgumentType.BRANCH
-          },
-          B2: {
-            type: Blocks.ArgumentType.BRANCH
-          }
-        }
-      },
-      {
-        opcode: 'join',
-        blockType: Blocks.BlockType.REPORTER,
-        text: 'join [A] [B]',
-        arguments: {
-          A: {
-            type: Blocks.ArgumentType.STRING,
-            default: 'Hello '
-          },
-          B: {
-            type: Blocks.ArgumentType.STRING,
-            default: 'world!'
-          }
-        }
-      },
-      {
-        opcode: 'add',
-        blockType: Blocks.BlockType.REPORTER,
-        text: '[A] + [B]',
-        arguments: {
-          A: {
-            type: Blocks.ArgumentType.NUMBER
-          },
-          B: {
-            type: Blocks.ArgumentType.NUMBER
-          }
-        }
-      },
-      {
-        opcode: 'not',
-        blockType: Blocks.BlockType.BOOLEAN,
-        text: 'not [TEST]',
-        arguments: {
-          TEST: {
-            type: Blocks.ArgumentType.BOOLEAN
-          }
-        }
-      },
-      {
-        opcode: 'repeatUntil',
-        blockType: Blocks.BlockType.COMMAND,
-        text: 'repeat until [CONDITION][LOOP]',
-        arguments: {
-          CONDITION: {
-            type: Blocks.ArgumentType.BOOLEAN
-          },
-          LOOP: {
-            type: Blocks.ArgumentType.BRANCH
-          }
+const specA = {
+  id: 'test',
+  name: 'Test',
+  blocks: [
+    {
+      opcode: 'test',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'wow wow long long hat hat',
+      hat: true
+    },
+    {
+      opcode: 'branch',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'branchu [WOW]: [B1] or [B2]',
+      terminal: true,
+      arguments: {
+        WOW: {
+          type: Blocks.ArgumentType.STRING,
+          default: 'Hmm!'
+        },
+        B1: {
+          type: Blocks.ArgumentType.BRANCH
+        },
+        B2: {
+          type: Blocks.ArgumentType.BRANCH
         }
       }
-    ],
-    translationMap: {
-      xl: {
-        '__name__': '!sgo8iu',
-        'repeatUntil': 'hato [LOOP] et [CONDITION]',
-        'not': '[TEST]n\'t',
-        'add': '+ [A] [B]',
-        'join': '+ [B] [A]',
-        'join.A_default': 'Ooogoo',
-        'join.B_default': '\\',
-        'branch': 'dsfug idsfg [B2] [WOW] [B1]',
-        'test': '.'
+    },
+    {
+      opcode: 'join',
+      blockType: Blocks.BlockType.REPORTER,
+      text: 'join [A] [B]',
+      arguments: {
+        A: {
+          type: Blocks.ArgumentType.STRING,
+          default: 'Hello '
+        },
+        B: {
+          type: Blocks.ArgumentType.STRING,
+          default: 'world!'
+        }
+      }
+    },
+    {
+      opcode: 'add',
+      blockType: Blocks.BlockType.REPORTER,
+      text: '[A] + [B]',
+      arguments: {
+        A: {
+          type: Blocks.ArgumentType.NUMBER
+        },
+        B: {
+          type: Blocks.ArgumentType.NUMBER
+        }
+      }
+    },
+    {
+      opcode: 'not',
+      blockType: Blocks.BlockType.BOOLEAN,
+      text: 'not [TEST]',
+      arguments: {
+        TEST: {
+          type: Blocks.ArgumentType.BOOLEAN
+        }
+      }
+    },
+    {
+      opcode: 'repeatUntil',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'repeat until [CONDITION][LOOP]',
+      arguments: {
+        CONDITION: {
+          type: Blocks.ArgumentType.BOOLEAN
+        },
+        LOOP: {
+          type: Blocks.ArgumentType.BRANCH
+        }
       }
     }
+  ],
+  translationMap: {
+    xl: {
+      '__name__': '!sgo8iu',
+      'repeatUntil': 'hato [LOOP] et [CONDITION]',
+      'not': '[TEST]n\'t',
+      'add': '+ [A] [B]',
+      'join': '+ [B] [A]',
+      'join.A_default': 'Ooogoo',
+      'join.B_default': '\\',
+      'branch': 'dsfug idsfg [B2] [WOW] [B1]',
+      'test': '.'
+    }
   }
-])
-// Add categories
-blocks.addCategory({
+}
+const specB = {
   id: 'motion',
   name: 'Motion',
   blocks: [
@@ -294,9 +291,16 @@ blocks.addCategory({
       'glideTo': 'slid durant [TIME] sex a x: [X] y: [Y] z: [Z]'
     }
   }
-})
+}
 
-const palette = blocks.createPaletteWorkspace(document.getElementById('palette'))
+const blocks = new Blocks([specA])
+// Add categories
+blocks.addCategory(specB)
+
+const palette = blocks.createPaletteWorkspace(document.getElementById('palette'), [specA])
+palette.blockOrder.push(specB)
+palette.updateBlockOrder().filter()
+
 const scripts = blocks.createScriptsWorkspace(document.getElementById('scripts'))
 
 const stack = blocks.createScript([

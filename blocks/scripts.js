@@ -20,7 +20,7 @@ class Stack extends Component {
       }
     }
     this.measurements = { width: maxWidth, height: y }
-    super.reposition()
+    this.trigger('reposition', this.measurements)
   }
 
   /**

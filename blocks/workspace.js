@@ -298,7 +298,7 @@ class Workspace extends Newsletter {
     } else if (pythagoreanCompare(
       e.clientX - pointerEntry.startX,
       e.clientY - pointerEntry.startY,
-      this.constructor.minDragDistance
+      Workspace.minDragDistance
     ) < 0) {
       pointerEntry.dragging = true
       const dragElem = pointerEntry.elem.closest('[data-block-drag]')
@@ -401,7 +401,7 @@ class ScriptsWorkspace extends Workspace {
    * Get the bounding box of all the scripts in the workspace to determine the
    * minimum scrolling area.
    */
-  _recalculateScrollBounds () {
+  recalculateScrollBounds () {
     if (!this.rect) return
     let minX = 0
     let minY = 0
@@ -442,7 +442,7 @@ class ScriptsWorkspace extends Workspace {
 
   scrollTo (left, top) {
     if (!this._scrollBounds) {
-      this._recalculateScrollBounds()
+      this.recalculateScrollBounds()
     }
     if (!this._scrollBounds) {
       return
@@ -484,44 +484,4 @@ class ScriptsWorkspace extends Workspace {
 
 ScriptsWorkspace.scrollPadding = 10
 
-class PaletteWorkspace extends Workspace {
-  constructor (blocks, wrapper) {
-    super(blocks, wrapper)
-
-    const masterScript = new Stack()
-    for (const [categoryID, category] of Object.entries(blocks.categories)) {
-      for (const [opcode, blockData] of Object.entries(category)) {
-        if (blockData[0] === '-') {
-          masterScript.add(new Space(10))
-        } else {
-          const block = blocks.createBlock(`${categoryID}.${opcode}`)
-          block.cloneOnDrag = true
-          masterScript.add(block)
-          masterScript.add(new Space(10))
-        }
-      }
-    }
-    this.add(masterScript)
-    masterScript.setPosition(10, 10)
-    masterScript.resize()
-    this.list = masterScript
-  }
-
-  scrollTo (left, top) {
-    super.scrollTo(0, Math.max(Math.min(top, this.list.measurements.height), 0))
-  }
-
-  acceptDrop (script, x, y) {
-    script.destroy()
-  }
-
-  getStackBlockConnections () {
-    return []
-  }
-
-  getReporterConnections (block) {
-    return []
-  }
-}
-
-export { Workspace, ScriptsWorkspace, PaletteWorkspace }
+export { Workspace, ScriptsWorkspace }

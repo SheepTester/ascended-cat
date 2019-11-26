@@ -6,6 +6,20 @@ class GenericComponent extends Newsletter {
     super()
     this.measurements = null
     this._position = { x: 0, y: 0 }
+    this._visible = true
+  }
+
+  get visible () {
+    return this._visible
+  }
+
+  set visible (visible) {
+    if (visible) {
+      this.elem.classList.remove('block-hidden')
+    } else {
+      this.elem.classList.add('block-hidden')
+    }
+    this._visible = visible
   }
 
   /**
@@ -13,10 +27,7 @@ class GenericComponent extends Newsletter {
    * its own `measurements`.
    */
   reposition () {
-    if (!this.measurements) {
-      this.measurements = { width: 0, height: 0 }
-    }
-    this.trigger('reposition', this.measurements)
+    this.measurements = { width: 0, height: 0 }
   }
 
   get position () {
@@ -196,7 +207,7 @@ class Space extends Component {
 
   reposition () {
     this.measurements = { width: 0, height: this.height }
-    super.reposition()
+    this.trigger('reposition', this.measurements)
   }
 }
 

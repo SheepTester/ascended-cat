@@ -59,6 +59,9 @@
   box-sizing: border-box;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  /* For some reason I was able to select and drag text when dragging the
+   * scrollbars?? */
+  user-select: none;
 }
 .block-no-scroll {
   display: none;

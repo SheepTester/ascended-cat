@@ -35,7 +35,7 @@ class Block extends Component {
     }
     const { category, blockData, opcode } = this.blocks.getBlockData(blockOpcode)
     this.blockOpcode = blockOpcode
-    this.blockData = blockData || this.constructor.nonexistentBlock
+    this.blockData = blockData || Block.nonexistentBlock
     if (!blockData) {
       this._onBlockAdded = this.blocks.on('block-added', opcode => {
         if (blockOpcode === opcode) {
@@ -143,7 +143,7 @@ class Block extends Component {
       booleanTextFirstPadding,
       reporterTextFirstPadding,
       undefinedMinBlockWidth
-    } = this.constructor.renderOptions
+    } = Block.renderOptions
     const minWidth = !this.blockData.blockType ? undefinedMinBlockWidth
       : this.blockData.hat ? hatMinWidth : stackMinWidth
     const minHeight = stackMinHeight
@@ -253,7 +253,7 @@ class Block extends Component {
     }
 
     this.measurements = { width: Math.max(maxWidth, branchWidth + cSlotMaxWidth), height: y }
-    super.reposition()
+    this.trigger('reposition', this.measurements)
   }
 
   _onDrag (initMouseX, initMouseY) {

@@ -2,7 +2,8 @@ import { Elem } from '../utils/elem.js'
 import { square } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
 
-import { ScriptsWorkspace, PaletteWorkspace } from './workspace.js'
+import { ScriptsWorkspace } from './workspace.js'
+import { PaletteWorkspace } from './palette.js'
 import { BlockType, ArgumentType } from './constants.js'
 import { Stack, Script } from './scripts.js'
 import { Block } from './block.js'
@@ -117,19 +118,19 @@ class Blocks extends Newsletter {
   }
 
   onClick (elem, fn) {
-    const id = ++this.constructor._id
+    const id = ++Blocks._id
     this.clickListeners[id] = fn
     elem.dataset.blockClick = id
   }
 
   onDrag (elem, fn) {
-    const id = ++this.constructor._id
+    const id = ++Blocks._id
     this.dragListeners[id] = fn
     elem.dataset.blockDrag = id
   }
 
   onDrop (elem, listeners) {
-    const id = ++this.constructor._id
+    const id = ++Blocks._id
     this.dropListeners[id] = listeners
     elem.dataset.blockDrop = id
   }
@@ -346,8 +347,8 @@ class Blocks extends Newsletter {
     }
   }
 
-  createPaletteWorkspace (wrapper) {
-    const workspace = new PaletteWorkspace(this, wrapper)
+  createPaletteWorkspace (wrapper, initBlockOrder) {
+    const workspace = new PaletteWorkspace(this, wrapper, initBlockOrder)
     this._workspaces.push(workspace)
     return workspace
   }

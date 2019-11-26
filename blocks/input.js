@@ -52,7 +52,7 @@ class Input extends Component {
 
   reposition () {
     this.measurements = this._block ? this._block.measurements : this.drawInputBack()
-    super.reposition()
+    this.trigger('reposition', this.measurements)
   }
 
   drawInputBack () {
@@ -145,7 +145,7 @@ class Input extends Component {
     const arr = []
     if (this.canAcceptBlock(block)) {
       arr.push([
-        this.constructor.renderOptions.reporterConnectionLeft,
+        Input.renderOptions.reporterConnectionLeft,
         this.measurements.height / 2,
         this
       ])
