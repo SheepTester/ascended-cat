@@ -320,6 +320,10 @@ class Block extends Component {
   destroy () {
     super.destroy()
     this.blocks.off('language-change', this._updateLanguage)
+    if (this._onBlockAdded) {
+      this.blocks.off('block-added', this._onBlockAdded)
+      this._onBlockAdded = null
+    }
   }
 
   toJSON () {
