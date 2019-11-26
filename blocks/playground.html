@@ -320,6 +320,9 @@ window.requestAnimationFrame(() => {
   blocks.updateRects()
   stack.resize()
 })
+window.addEventListener('resize', e => {
+  blocks.updateRects()
+})
 
 document.getElementById('toggle-lang').addEventListener('click', e => {
   if (blocks.language === 'xl') {

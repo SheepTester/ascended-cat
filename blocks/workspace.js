@@ -96,9 +96,9 @@ class Workspace extends Newsletter {
     this._recallMoveEvents = true
 
     this._pointers = {}
-    this.svg.addEventListener('pointerdown', this._onPointerDown.bind(this))
-    this.svg.addEventListener('pointermove', this._onPointerMove.bind(this))
-    this.svg.addEventListener('pointerup', this._onPointerUp.bind(this))
+    wrapper.addEventListener('pointerdown', this._onPointerDown.bind(this))
+    wrapper.addEventListener('pointermove', this._onPointerMove.bind(this))
+    wrapper.addEventListener('pointerup', this._onPointerUp.bind(this))
 
     blocks.onDrag(this.svg, this._onStartScroll.bind(this))
     blocks.onDrop(this.svg, {
@@ -385,13 +385,23 @@ class ScriptsWorkspace extends Workspace {
   constructor (blocks, wrapper) {
     super(blocks, wrapper)
 
+    this._scrollBounds = null
     this._horizScrollbar = new Scrollbar(this, true)
     this._vertScrollbar = new Scrollbar(this, false)
   }
 
+  /**
+   * Get the bounding box of all the scripts in the workspace to determine the
+   * minimum scrolling area.
+   */
   _recalculateScrollBounds () {
-    let minX = 0; let minY = 0; let maxX = 0; let maxY = 0
+    if (!this.rect) return
+    let minX = 0
+    let minY = 0
+    let maxX = 0
+    let maxY = 0
     for (const script of this.scripts) {
+      if (!script.measurements) continue
       const { x, y } = script.position
       const { width, height } = script.measurements
       if (x < minX) minX = x
@@ -399,10 +409,13 @@ class ScriptsWorkspace extends Workspace {
       if (x + width > maxX) maxX = x + width
       if (y + height > maxY) maxY = y + height
     }
-    minX -= this.constructor.scrollPadding
-    minY -= this.constructor.scrollPadding
-    maxX += this.constructor.scrollPadding
-    maxY += this.constructor.scrollPadding
+    const padding = ScriptsWorkspace.scrollPadding
+    minX -= padding
+    minY -= padding
+    // If the maxX + padding will make the scroll width shorter than the
+    // viewable width, then use the viewable width instead as the scroll width.
+    maxX = Math.max(maxX + padding, minX + this.rect.width)
+    maxY = Math.max(maxY + padding, minY + this.rect.height)
     this._scrollBounds = { minX, minY, maxX, maxY }
     this.trigger('scroll-bounds', this._scrollBounds)
   }
@@ -410,13 +423,14 @@ class ScriptsWorkspace extends Workspace {
   add (script) {
     super.add(script)
     this._scrollBounds = null
+    this.updateScroll()
     const onPositionChange = () => {
-      this._scrollBounds = null
+      this.updateScroll()
     }
     const onWorkspaceRemove = () => {
-      this._recalculateScrollBounds()
       script.off('position-change', onPositionChange)
       script.off('workspace-remove', onWorkspaceRemove)
+      this.updateScroll()
     }
     script.on('position-change', onPositionChange)
     script.on('workspace-remove', onWorkspaceRemove)
@@ -426,19 +440,41 @@ class ScriptsWorkspace extends Workspace {
     if (!this._scrollBounds) {
       this._recalculateScrollBounds()
     }
-    const maxLeft = Math.max(this._scrollBounds.maxX - this.rect.width, 0)
-    if (left < this._scrollBounds.minX) {
-      left = this._scrollBounds.minX
-    } else if (left > maxLeft) {
-      left = maxLeft
+    if (!this._scrollBounds) {
+      return
     }
-    const maxTop = Math.max(this._scrollBounds.maxY - this.rect.height, 0)
-    if (top < this._scrollBounds.minY) {
-      top = this._scrollBounds.minY
-    } else if (top > maxTop) {
-      top = maxTop
+    const { minX, minY, maxX, maxY } = this._scrollBounds
+    if (left < minX) {
+      left = minX
+    } else if (left > maxX - this.rect.width) {
+      left = maxX - this.rect.width
+    }
+    if (top < minY) {
+      top = minY
+    } else if (top > maxY - this.rect.height) {
+      top = maxY - this.rect.height
     }
     super.scrollTo(left, top)
+  }
+
+  updateScroll () {
+    if (!this._willUpdateScroll) {
+      this._willUpdateScroll = Promise.resolve()
+        .then(() => {
+          this._willUpdateScroll = null
+          this._scrollBounds = null
+          const { left, top } = this.transform
+          this.scrollTo(left, top)
+        })
+    }
+  }
+
+  updateRect () {
+    super.updateRect()
+    Promise.resolve()
+      .then(() => {
+        this.updateScroll()
+      })
   }
 }
 

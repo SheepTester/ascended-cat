@@ -2,6 +2,7 @@
   display: none;
 }
 
+/* blocks */
 .block-dragged {
   display: none;
   position: fixed;
@@ -51,23 +52,38 @@
 }
 
 /* scrollbar */
-.block-scrollbar {
+.block-scrollbar-wrapper {
+  position: absolute;
   cursor: pointer;
-  fill: rgba(255, 255, 255, 0.2);
-  rx: 2.5px;
-  ry: 2.5px;
+  padding: 10px;
+  box-sizing: border-box;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.block-no-scroll {
+  display: none;
+}
+.block-scrollbar {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  width: 100%;
+  height: 100%;
+}
+.block-scrollbar-wrapper:hover .block-scrollbar,
+.block-scrollbar-wrapper.dragging .block-scrollbar {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 .block-scrollbar-vertical {
-  width: 5px;
-  x: calc(var(--window) - 10px);
-  y: calc(var(--offset) + 5px);
-  height: calc(var(--range) - 10px);
+  width: 25px;
+  right: 0;
+  top: var(--offset);
+  height: var(--range);
 }
 .block-scrollbar-horizontal {
-  height: 5px;
-  y: calc(var(--window) - 10px);
-  x: calc(var(--offset) + 5px);
-  width: calc(var(--range) - 10px);
+  height: 25px;
+  bottom: 0;
+  left: var(--offset);
+  width: var(--range);
 }
 
 /* block */
