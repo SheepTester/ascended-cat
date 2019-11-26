@@ -1,10 +1,6 @@
 # ascended-cat
 Scratch for three.js
 
-### Issues
-
-- Drag scroll bars
-
 ### TODO
 
 - A proper palette (with scrollbar)

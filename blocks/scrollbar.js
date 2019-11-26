@@ -40,6 +40,7 @@ class Scrollbar {
       const scrollWidth = maxX - minX
       offset = (left - minX) / scrollWidth
       range = width / scrollWidth
+      this._cssPxToScroll = (scrollWidth - width) / ((1 - range) * width)
     } else {
       const { minY, maxY } = this._scrollBounds
       const { height } = this.workspace.rect
@@ -47,21 +48,33 @@ class Scrollbar {
       const scrollHeight = maxY - minY
       offset = (top - minY) / scrollHeight
       range = height / scrollHeight
+      this._cssPxToScroll = (scrollHeight - height) / ((1 - range) * height)
     }
-    this.elem.style.setProperty('--offset', offset * 100 + '%')
-    this.elem.style.setProperty('--range', range * 100 + '%')
     if (range === 1) {
       this.elem.classList.add('block-no-scroll')
     } else {
+      this.elem.style.setProperty('--offset', offset * 100 + '%')
+      this.elem.style.setProperty('--range', range * 100 + '%')
       this.elem.classList.remove('block-no-scroll')
     }
   }
 
   _onDrag (initMouseX, initMouseY) {
     this.elem.classList.add('dragging')
+    const cssPxToScroll = this._cssPxToScroll
+    const initScroll = this.horizontal
+      ? this.workspace.transform.left
+      : this.workspace.transform.top
+    const initPos = this.horizontal ? initMouseX : initMouseY
     return {
       move: (x, y) => {
-        //
+        const pos = this.horizontal ? x : y
+        const scroll = (pos - initPos) * cssPxToScroll + initScroll
+        if (this.horizontal) {
+          this.workspace.scrollTo(scroll, this.workspace.transform.top)
+        } else {
+          this.workspace.scrollTo(this.workspace.transform.left, scroll)
+        }
       },
       end: () => {
         this.elem.classList.remove('dragging')

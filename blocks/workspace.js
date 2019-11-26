@@ -280,7 +280,8 @@ class Workspace extends Newsletter {
       elem: e.target,
       startX: e.clientX,
       startY: e.clientY,
-      dragging: false
+      dragging: false,
+      lastMoveEvent: e
     }
   }
 
