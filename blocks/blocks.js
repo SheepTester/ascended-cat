@@ -113,7 +113,7 @@ class Blocks extends Newsletter {
       this.translations[this._language][id]) {
       return this.translations[this._language][id]
     }
-    return this.translations.default[id]
+    return this.translations.default[id] || '???'
   }
 
   onClick (elem, fn) {

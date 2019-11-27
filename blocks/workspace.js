@@ -99,8 +99,8 @@ class Workspace extends Newsletter {
     wrapper.addEventListener('pointermove', this._onPointerMove.bind(this))
     wrapper.addEventListener('pointerup', this._onPointerUp.bind(this))
 
-    blocks.onDrag(this.svg, this._onStartScroll.bind(this))
-    blocks.onDrop(this.svg, {
+    blocks.onDrag(this.wrapper, this._onStartScroll.bind(this))
+    blocks.onDrop(this.wrapper, {
       acceptDrop: this.acceptDrop.bind(this),
       getStackBlockConnections: this.getStackBlockConnections.bind(this),
       getReporterConnections: this.getReporterConnections.bind(this),
@@ -307,7 +307,7 @@ class Workspace extends Newsletter {
         if (dragListeners) {
           pointerEntry.dragMove = dragListeners.move
           pointerEntry.dragEnd = dragListeners.end
-          this.svg.setPointerCapture(e.pointerId)
+          this.wrapper.setPointerCapture(e.pointerId)
         }
       }
     }
@@ -339,7 +339,7 @@ class Workspace extends Newsletter {
   }
 
   updateRect () {
-    const { left, top, width, height } = this.svg.getBoundingClientRect()
+    const { left, top, width, height } = this.wrapper.getBoundingClientRect()
     this.rect = { x: left, y: top, width, height }
     this.trigger('rect-update', this.rect)
   }

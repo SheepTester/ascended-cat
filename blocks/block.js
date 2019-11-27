@@ -19,7 +19,7 @@ class Block extends Component {
     if (initBlock) {
       this.setBlock(initBlock)
       for (const [paramID, value] of Object.entries(initParams)) {
-        this._params[paramID] = this.createParam(this.blockData.args[paramID], value)
+        this._params[paramID] = this.createParam(this.blockData.args[paramID] || {}, value)
       }
       this.updateLabel()
     }
@@ -346,7 +346,8 @@ class Block extends Component {
 Block.nonexistentBlock = {
   opcode: 'nonexistent',
   blockType: null,
-  text: '???'
+  text: '???',
+  args: {}
 }
 
 Block.renderOptions = {

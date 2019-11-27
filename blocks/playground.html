@@ -20,10 +20,13 @@
         font-size: 0;
         overflow: hidden;
         display: flex;
-        background-color: #222;
+        background-color: black;
         color: white;
       }
 
+      #controls button {
+        cursor: pointer;
+      }
       #palette {
         width: 200px;
         flex: none;
@@ -33,6 +36,7 @@
       #scripts {
         flex: auto;
         position: relative;
+        background-color: #222;
       }
 
       .block-back {
@@ -46,6 +50,12 @@
       }
       [data-category="motion"] {
         --colour: #6A92BC;
+      }
+      [data-category="control"] {
+        --colour: #bdb16a;
+      }
+      [data-category="operators"] {
+        --colour: #6ABC88;
       }
 
       .block-text-component,
@@ -102,19 +112,16 @@
         stroke: rgba(255, 255, 255, 0.3);
         stroke-width: 1.5;
       }
-
-      #toggle-lang {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        cursor: pointer;
-      }
     </style>
   </head>
   <body>
+    <div id="controls">
+      <button id="toggle-lang">Toggle language</button><br>
+      <button id="sprinkles">Sprinkles!</button><br>
+      <button id="spaghetti">Spaghetti!</button>
+    </div>
     <div id="palette"></div>
     <div id="scripts"></div>
-    <button id="toggle-lang">Toggle language</button>
     <script type="module">
 import {Blocks} from './blocks.js'
 
@@ -297,17 +304,90 @@ const specB = {
       '__name__': 'Moc',
       'moveSteps': 'mov [STEPS] pases',
       'goTo': 'ir a x: [X] y: [Y] z: [Z]',
-      'glideTo': 'slid durant [TIME] sex a x: [X] y: [Y] z: [Z]'
+      'glideTo': 'slid durant [TIME] s a x: [X] y: [Y] z: [Z]'
     }
   }
+}
+const specC = {
+  id: 'control',
+  name: 'Control',
+  blocks: [
+    {
+      opcode: 'if',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'if [CONDITION] then[CHOICE_A]',
+      arguments: {
+        CONDITION: {
+          type: Blocks.ArgumentType.BOOLEAN
+        },
+        CHOICE_A: {
+          type: Blocks.ArgumentType.BRANCH
+        }
+      }
+    },
+    {
+      opcode: 'ifElse',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'if [CONDITION] then[CHOICE_A]else[CHOICE_B]',
+      arguments: {
+        CONDITION: {
+          type: Blocks.ArgumentType.BOOLEAN
+        },
+        CHOICE_A: {
+          type: Blocks.ArgumentType.BRANCH
+        },
+        CHOICE_B: {
+          type: Blocks.ArgumentType.BRANCH
+        }
+      }
+    }
+  ]
+}
+const specD = {
+  id: 'operators',
+  name: 'Operators',
+  blocks: [
+    {
+      opcode: 'equals',
+      blockType: Blocks.BlockType.BOOLEAN,
+      text: '[A] = [B]',
+      arguments: {
+        A: {
+          type: Blocks.ArgumentType.STRING,
+          default: ''
+        },
+        B: {
+          type: Blocks.ArgumentType.STRING,
+          default: ''
+        }
+      }
+    },
+    {
+      opcode: 'strictlyEquals',
+      blockType: Blocks.BlockType.BOOLEAN,
+      text: 'is [A] exactly [B]?',
+      arguments: {
+        A: {
+          type: Blocks.ArgumentType.STRING,
+          default: 'apple'
+        },
+        B: {
+          type: Blocks.ArgumentType.STRING,
+          default: 'APPLE'
+        }
+      }
+    }
+  ]
 }
 
 const blocks = new Blocks([specA])
 // Add categories
 blocks.addCategory(specB)
+blocks.addCategory(specC)
+blocks.addCategory(specD)
 
-const palette = blocks.createPaletteWorkspace(document.getElementById('palette'), [specA])
-palette.blockOrder.push(specB)
+const palette = blocks.createPaletteWorkspace(document.getElementById('palette'), [specB])
+palette.blockOrder.push(specC, specD)
 palette.updateBlockOrder().filter()
 
 const scripts = blocks.createScriptsWorkspace(document.getElementById('scripts'))
@@ -344,6 +424,72 @@ document.getElementById('toggle-lang').addEventListener('click', e => {
     blocks.setLanguage('xl')
   }
   palette.updateBlockOrder().filter()
+})
+
+// Based on scratch-blocks:
+// https://sheeptester.github.io/scratch-blocks/playgrounds/tests/vertical_playground.html
+document.getElementById('sprinkles').addEventListener('click', e => {
+  const count = 100
+  const allOpcodes = Object.entries(blocks.categories)
+    .map(([id, blocks]) => Object.keys(blocks).map(opcode => `${id}.${opcode}`))
+    .flat()
+  console.time('Sprinkles: Adding to DOM (no resizing)')
+  for (let i = 0; i < count; i++) {
+    const script = blocks.createScript([
+      blocks.createBlock(allOpcodes[Math.random() * allOpcodes.length | 0])
+    ])
+    script.setPosition(
+      Math.round(Math.random() * 450 + 40),
+      Math.round(Math.random() * 600 + 40)
+    )
+    scripts.add(script)
+    script.resize()
+  }
+  console.timeEnd('Sprinkles: Adding to DOM (no resizing)')
+})
+document.getElementById('spaghetti').addEventListener('click', e => {
+  const depth = 3
+  const equalsJSON = JSON.stringify({
+    opcode: 'operators.equals',
+    params: { A: 'foo', B: 'REPLACE_EQ' }
+  })
+  const ifElseJSON = JSON.stringify({
+    opcode: 'control.ifElse',
+    params: { CONDITION: 'REPLACE_COND', CHOICE_A: 'REPLACE_!', CHOICE_B: 'REPLACE_!' }
+  })
+  let json = `[${ifElseJSON},"NEXT"]`
+  // Nest if-elses
+  for (let i = 0; i < depth * 2; i++) {
+    json = json.replace(/"REPLACE_!"/g, `[${ifElseJSON},"NEXT"]`)
+  }
+  // Add more blocks to the end of each
+  for (let i = 0; i < depth; i++) {
+    json = json.replace(/"NEXT"/g, `${ifElseJSON},"NEXT"`)
+  }
+  // Nest equals
+  let equals = equalsJSON
+  for (let i = 0; i < depth; i++) {
+    equals = equals.replace(/"REPLACE_EQ"/g, equalsJSON)
+  }
+  // Insert equals
+  json = json.replace(/"REPLACE_COND"/g, equals)
+    // Remove leftover placeholders
+    .replace(/"REPLACE_!"/g, '[]')
+    .replace(/,?"NEXT"/g, '')
+    .replace(/"REPLACE_EQ"/g, '""')
+  console.time('Spaghetti: Adding to DOM (no resizing)')
+  const script = blocks.scriptFromJSON({
+    x: 0,
+    y: 0,
+    blocks: JSON.parse(json)
+  })
+  scripts.add(script)
+  console.timeEnd('Spaghetti: Adding to DOM (no resizing)')
+  console.time('Spaghetti: Resizing')
+  script.resize()
+    .then(() => {
+      console.timeEnd('Spaghetti: Resizing')
+    })
 })
 
 window.scripts = scripts
