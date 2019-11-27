@@ -126,6 +126,7 @@ class Block extends Component {
 
   reposition () {
     const cInserts = []
+    const dir = this.blocks.dir === 'rtl' ? -1 : 1
     const {
       stackMinWidth,
       stackMinHeight,
@@ -137,13 +138,17 @@ class Block extends Component {
       notchToRight,
       branchWidth,
       branchMinHeight,
-      hat,
+      hatLeft,
+      hatRight,
       hatTopPadding,
       hatMinWidth,
       booleanTextFirstPadding,
       reporterTextFirstPadding,
       undefinedMinBlockWidth
     } = Block.renderOptions
+    const hat = this.blocks.dir === 'rtl' ? hatRight : hatLeft
+    const notchForth = this.blocks.dir === 'rtl' ? notchToLeft : notchToRight
+    const notchBack = this.blocks.dir === 'rtl' ? notchToRight : notchToLeft
     const minWidth = !this.blockData.blockType ? undefinedMinBlockWidth
       : this.blockData.hat ? hatMinWidth : stackMinWidth
     const minHeight = stackMinHeight
@@ -185,7 +190,7 @@ class Block extends Component {
         x = horizPadding
         firstInRow = i + 1
 
-        component.setPosition(branchWidth, y)
+        component.setPosition(branchWidth * dir, y)
         const branchHeight = Math.max(branchMinHeight, component.measurements.height)
         cInserts.push([y, y + branchHeight])
         y += branchHeight
@@ -196,7 +201,11 @@ class Block extends Component {
         if (i === firstInRow && component instanceof TextComponent) {
           x = textFirstPadding
         }
-        component.setPosition(x, 0)
+        if (component instanceof TextComponent) {
+          component.setPosition((x + component.measurements.width / 2) * dir, 0)
+        } else {
+          component.setPosition(x * dir, 0)
+        }
         x += component.measurements.width
         const height = Math.max(minHeight, component.measurements.height) + vertPadding * 2
         if (height > maxHeight) {
@@ -223,31 +232,38 @@ class Block extends Component {
 
     switch (this.blockData.blockType) {
       case BlockType.COMMAND: {
-        let path = `${this.blockData.hat ? `M0 ${hatTopPadding} ${hat}` : `M0 0 h${notchLeft} ${notchToRight}`} H${maxWidth}`
+        let path = `${this.blockData.hat ? `M0 ${hatTopPadding} ${hat}`
+          : `M0 0 h${notchLeft * dir} ${notchForth}`} H${maxWidth * dir}`
         for (const [start, end] of cInserts) {
-          path += `V${start} H${branchWidth + notchTotalWidth} ${notchToLeft} h${-notchLeft}`
-          path += `V${end} h${notchLeft} ${notchToRight} H${maxWidth}`
+          path += `V${start} H${(branchWidth + notchTotalWidth) * dir}` +
+            `${notchBack} h${-notchLeft * dir}`
+          path += `V${end} h${notchLeft * dir} ${notchForth} H${maxWidth * dir}`
         }
-        path += `V${y} ${this.blockData.terminal ? '' : `H${notchTotalWidth} ${notchToLeft}`} H0 z`
+        path += `V${y} ${this.blockData.terminal ? ''
+          : `H${notchTotalWidth * dir} ${notchBack}`} H0 z`
         this._path.setAttributeNS(null, 'd', path)
         break
       }
       case BlockType.REPORTER: {
         const radius = y / 2
-        const path = `M${radius} ${y} a${radius} ${radius} 0 0 1 0 ${-y}` +
-          `H${maxWidth - radius} a${radius} ${radius} 0 0 1 0 ${y} z`
+        const curveHeader = this.blocks.dir === 'rtl'
+          ? `a${radius} ${radius} 0 0 0`
+          : `a${radius} ${radius} 0 0 1`
+        const path = `M${radius * dir} ${y} ${curveHeader} 0 ${-y}` +
+          `H${(maxWidth - radius) * dir} ${curveHeader} 0 ${y} z`
         this._path.setAttributeNS(null, 'd', path)
         break
       }
       case BlockType.BOOLEAN: {
         const side = y / 2
-        const path = `M0 ${side} L${side} 0 H${maxWidth - side} L${maxWidth} ${side}` +
-          `L${maxWidth - side} ${y} H${side} z`
+        const path = `M0 ${side} L${side * dir} 0 H${(maxWidth - side) * dir}` +
+          `L${maxWidth * dir} ${side} L${(maxWidth - side) * dir} ${y}` +
+          ` H${side * dir} z`
         this._path.setAttributeNS(null, 'd', path)
         break
       }
       default: {
-        const path = `M0 0 H${maxWidth} V${y} H0 z`
+        const path = `M0 0 H${maxWidth * dir} V${y} H0 z`
         this._path.setAttributeNS(null, 'd', path)
       }
     }
@@ -302,7 +318,7 @@ class Block extends Component {
 
   getReporterAnchorPoint () {
     return [
-      Input.renderOptions.reporterConnectionLeft,
+      Input.renderOptions.reporterConnectionLeft * (this.blocks.dir === 'rtl' ? -1 : 1),
       this.measurements.height / 2
     ]
   }
@@ -377,7 +393,8 @@ Block.renderOptions = {
   },
   branchWidth: 15,
   branchMinHeight: 9,
-  hat: 'c20 -15 60 -15 80 0',
+  hatLeft: 'c20 -15 60 -15 80 0',
+  hatRight: 'c-20 -15 -60 -15 -80 0',
   hatTopPadding: 15,
   hatMinWidth: 80,
   booleanTextFirstPadding: 10,

@@ -117,6 +117,7 @@
   <body>
     <div id="controls">
       <button id="toggle-lang">Toggle language</button><br>
+      <button id="toggle-dir">Toggle dir</button><br>
       <button id="sprinkles">Sprinkles!</button><br>
       <button id="spaghetti">Spaghetti!</button>
     </div>
@@ -409,6 +410,9 @@ const stack = blocks.createScript([
 ])
 stack.setPosition(10, 30)
 scripts.add(stack)
+// Doing these calculations will likely require a repaint, so instead of
+// synchronously causing one, we should just asynchronously wait until the
+// browser does it automatically (the next frame).
 window.requestAnimationFrame(() => {
   blocks.updateRects()
   stack.resize()
@@ -424,6 +428,18 @@ document.getElementById('toggle-lang').addEventListener('click', e => {
     blocks.setLanguage('xl')
   }
   palette.updateBlockOrder().filter()
+  blocks.resizeAll()
+})
+document.getElementById('toggle-dir').addEventListener('click', e => {
+  if (document.documentElement.dir === 'rtl') {
+    document.documentElement.dir = 'ltr'
+    blocks.dir = 'ltr'
+  } else {
+    document.documentElement.dir = 'rtl'
+    blocks.dir = 'rtl'
+  }
+  blocks.updateRects()
+  blocks.resizeAll()
 })
 
 // Based on scratch-blocks:

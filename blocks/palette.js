@@ -7,8 +7,9 @@ import { Block } from './block.js'
 import { TextComponent, Component, Space } from './component.js'
 
 class CategoryHeader extends Component {
-  constructor (categoryID = NullCategory, label = '') {
+  constructor (blocks, categoryID = NullCategory, label = '') {
     super()
+    this.blocks = blocks
     this.categoryID = categoryID
 
     this.elem.classList.add('block-category-header')
@@ -22,10 +23,11 @@ class CategoryHeader extends Component {
   }
 
   reposition () {
+    const dir = this.blocks.dir === 'rtl' ? -1 : 1
     const { width, height } = this.label.measurements
     const { paddingBefore, paddingAfter, totalLinePadding } = CategoryHeader.renderOptions
     const centre = paddingBefore + height / 2
-    this.label.setPosition(totalLinePadding, centre)
+    this.label.setPosition((totalLinePadding + width / 2) * dir, centre)
     this.line.setAttributeNS(null, 'transform', `translate(0, ${centre})`)
     this.measurements = {
       width: width + totalLinePadding * 2,
@@ -36,9 +38,11 @@ class CategoryHeader extends Component {
   }
 
   setLineLength (maxWidth) {
+    const dir = this.blocks.dir === 'rtl' ? -1 : 1
     const { lineMinLength, linePadding, totalLinePadding } = CategoryHeader.renderOptions
-    const path = `M0 0 H${lineMinLength} M${totalLinePadding + this._textWidth +
-      linePadding} 0 H${maxWidth}`
+    const path = `M0 0 H${lineMinLength * dir} M${
+      (totalLinePadding + this._textWidth + linePadding) * dir
+    } 0 H${maxWidth * dir}`
     this.line.setAttributeNS(null, 'd', path)
   }
 }
@@ -112,7 +116,7 @@ class PaletteWorkspace extends ScriptsWorkspace {
     super(blocks, wrapper)
 
     this._list = new PaletteStack()
-    this._list.setPosition(PaletteStack.padding, PaletteStack.vertPadding)
+    this.flip(this.blocks.dir)
     this.add(this._list)
     this._blocks = {}
 
@@ -130,7 +134,7 @@ class PaletteWorkspace extends ScriptsWorkspace {
     const filters = {}
     list.clear()
     for (const { id, blocks: items = [] } of blockOrder) {
-      list.add(new CategoryHeader(id, blocks.getTranslation(id) || id))
+      list.add(new CategoryHeader(blocks, id, blocks.getTranslation(id) || id))
       for (const item of items) {
         if (!item) continue
         if (item[0] === '-') {
@@ -180,10 +184,18 @@ class PaletteWorkspace extends ScriptsWorkspace {
     if (!this.rect || !this._list.measurements) return
     const padding = PaletteStack.padding * 2 + PaletteStack.extraRightPadding
     const categoryOffsets = this._list.categoryOffsets
+    let minX, maxX
+    if (this.blocks.dir === 'rtl') {
+      maxX = 0
+      minX = Math.min(-(this._list.measurements.width + padding), -this.rect.width)
+    } else {
+      minX = 0
+      maxX = Math.max(this._list.measurements.width + padding, this.rect.width)
+    }
     this._scrollBounds = {
-      minX: 0,
+      minX,
       minY: 0,
-      maxX: Math.max(this._list.measurements.width + padding, this.rect.width),
+      maxX,
       maxY: Math.max(
         this._list.measurements.height + padding,
         // Add extra scrolling space to the bottom of the last category so
@@ -208,6 +220,19 @@ class PaletteWorkspace extends ScriptsWorkspace {
 
   getReporterConnections (block) {
     return []
+  }
+
+  updateRect () {
+    super.updateRect()
+  }
+
+  flip (newDir) {
+    const { padding, vertPadding, extraRightPadding } = PaletteStack
+    if (newDir === 'rtl') {
+      this._list.setPosition(-(padding + extraRightPadding), vertPadding)
+    } else {
+      this._list.setPosition(padding, vertPadding)
+    }
   }
 }
 

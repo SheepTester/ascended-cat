@@ -26,22 +26,23 @@ class Stack extends Component {
   /**
    * Stack block connections are just the rough locations of each notch.
    */
-  getStackBlockConnections () {
+  getStackBlockConnections (rtl) {
+    const dir = rtl ? -1 : 1
     const blocks = this.components.filter(block => block instanceof Block)
     const { branchWidth, notchX } = Block.renderOptions
     if (!blocks.length) {
-      return [[notchX, 0, { after: true, in: this }]]
+      return [[notchX * dir, 0, { after: true, in: this }]]
     }
     const arr = []
     for (const block of blocks) {
       if (!block.blockData.hat) {
-        arr.push([notchX, block.position.y, { insertBefore: block, in: this }])
+        arr.push([notchX * dir, block.position.y, { insertBefore: block, in: this }])
       }
       for (const component of block.components) {
         if (component instanceof Stack) {
-          arr.push(...component.getStackBlockConnections()
+          arr.push(...component.getStackBlockConnections(rtl)
             .map(([x, y, data]) => [
-              branchWidth + x,
+              x + branchWidth * dir,
               block.position.y + component.position.y + y,
               data
             ]))
@@ -49,7 +50,7 @@ class Stack extends Component {
       }
     }
     if (!blocks[blocks.length - 1].blockData.terminal) {
-      arr.push([notchX, this.measurements.height, { after: true, in: this }])
+      arr.push([notchX * dir, this.measurements.height, { after: true, in: this }])
     }
     return arr
   }
@@ -105,8 +106,8 @@ class Script extends Stack {
     this.workspace = null
   }
 
-  getStackBlockConnections () {
-    const arr = super.getStackBlockConnections()
+  getStackBlockConnections (rtl) {
+    const arr = super.getStackBlockConnections(rtl)
     // In 2.0, I believe you attach on the bottom for scripts, but insert
     // with the top in C blocks. Also with C blocks you can both attach
     // from the bottom or wrap around by connecting to the top. It's rather

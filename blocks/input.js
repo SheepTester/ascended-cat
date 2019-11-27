@@ -183,14 +183,15 @@ class StringInput extends Input {
   }
 
   drawInputBack () {
+    const dir = this.blocks.dir === 'rtl' ? -1 : 1
     const {
       stringHorizPadding: horizPadding,
       stringVertPadding: vertPadding,
       stringHeight: inputHeight
     } = super.constructor.renderOptions
     const { width } = this.text.measurements
-    this.text.setPosition(horizPadding, vertPadding + inputHeight / 2)
-    const path = `M0 0 H${width + horizPadding * 2} V${inputHeight + vertPadding * 2} H0 z`
+    this.text.setPosition((horizPadding + width / 2) * dir, vertPadding + inputHeight / 2)
+    const path = `M0 0 H${(width + horizPadding * 2) * dir} V${inputHeight + vertPadding * 2} H0 z`
     this.path.setAttributeNS(null, 'd', path)
     return { width: width + horizPadding * 2, height: inputHeight + vertPadding * 2 }
   }
@@ -222,6 +223,7 @@ class NumberInput extends Input {
   }
 
   drawInputBack () {
+    const dir = this.blocks.dir === 'rtl' ? -1 : 1
     const {
       numberHorizPadding: horizPadding,
       numberVertPadding: vertPadding,
@@ -230,9 +232,12 @@ class NumberInput extends Input {
     } = super.constructor.renderOptions
     const width = Math.max(this.text.measurements.width, minWidth)
     const radius = vertPadding + inputHeight / 2
-    this.text.setPosition(horizPadding, radius)
-    const path = `M${radius} ${radius * 2} a${radius} ${radius} 0 0 1 0 ${-radius * 2}` +
-      `H${width + horizPadding * 2 - radius} a${radius} ${radius} 0 0 1 0 ${radius * 2} z`
+    this.text.setPosition((horizPadding + width / 2) * dir, radius)
+    const curveHeader = this.blocks.dir === 'rtl'
+      ? `a${radius} ${radius} 0 0 0`
+      : `a${radius} ${radius} 0 0 1`
+    const path = `M${radius * dir} ${radius * 2} ${curveHeader} 0 ${-radius * 2}` +
+      `H${(width + horizPadding * 2 - radius) * dir} ${curveHeader} 0 ${radius * 2} z`
     this.path.setAttributeNS(null, 'd', path)
     return { width: width + horizPadding * 2, height: radius * 2 }
   }
@@ -259,13 +264,14 @@ class BooleanInput extends Input {
   }
 
   drawInputBack () {
+    const dir = this.blocks.dir === 'rtl' ? -1 : 1
     const {
       booleanHeight: height,
       booleanWidth: width,
       booleanSide: side
     } = super.constructor.renderOptions
-    const path = `M0 ${height / 2} L${side} 0 H${width - side} L${width} ${height / 2}` +
-      `L${width - side} ${height} H${side} z`
+    const path = `M0 ${height / 2} L${side * dir} 0 H${(width - side) * dir} L${width * dir} ${height / 2}` +
+      `L${(width - side) * dir} ${height} H${side * dir} z`
     this.path.setAttributeNS(null, 'd', path)
     return { width, height }
   }

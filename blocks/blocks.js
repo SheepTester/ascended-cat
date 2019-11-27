@@ -15,6 +15,7 @@ class Blocks extends Newsletter {
     super()
 
     this._language = null
+    this._dir = 'ltr'
     this.translations = { default: {} }
     this.categories = {}
     for (const category of initCategories) {
@@ -95,7 +96,6 @@ class Blocks extends Newsletter {
   setLanguage (language) {
     this._language = language
     this.trigger('language-change', language)
-    return Promise.all(this._workspaces.map(workspace => workspace.resizeAll(true)))
   }
 
   getBlockData (blockOpcode) {
@@ -114,6 +114,23 @@ class Blocks extends Newsletter {
       return this.translations[this._language][id]
     }
     return this.translations.default[id] || '???'
+  }
+
+  get dir () {
+    return this._dir
+  }
+
+  set dir (dir) {
+    if (dir !== 'ltr' && dir !== 'rtl') {
+      throw new Error('wucky: Alternative directions are too sophisticated.')
+    }
+    if (dir !== this._dir) {
+      // Flip all scripts horizontally
+      for (const workspace of this._workspaces) {
+        workspace.flip(dir)
+      }
+    }
+    this._dir = dir
   }
 
   onClick (elem, fn) {
@@ -150,20 +167,23 @@ class Blocks extends Newsletter {
     const { notchLeft, notchTotalWidth, notchToLeft, notchToRight } = Block.renderOptions
     let normalInsertPath
     onReady.then(() => {
+      const dir = this._dir === 'rtl' ? -1 : 1
       const { notchX, branchWidth } = Block.renderOptions
       if (type === BlockType.COMMAND) {
         const firstLoop = script.components[0].components
           .find(component => component instanceof Stack)
         snapPoints = {
-          top: script.components[0].blockData.hat ? null : [notchX, 0],
+          top: script.components[0].blockData.hat ? null : [notchX * dir, 0],
           bottom: script.components[script.components.length - 1].blockData.terminal
-            ? null : [notchX, script.measurements.height],
+            ? null : [notchX * dir, script.measurements.height],
           inner: firstLoop && !firstLoop.components.length
-            ? [firstLoop.position.x + branchWidth, firstLoop.position.y]
+            ? [firstLoop.position.x + branchWidth * dir, firstLoop.position.y]
             : null,
           firstLoop
         }
-        normalInsertPath = `M0 0 h${notchLeft} ${notchToRight} H${script.measurements.width}`
+        normalInsertPath = this._dir === 'rtl'
+          ? `M0 0 h${-notchLeft} ${notchToLeft} H${-script.measurements.width}`
+          : `M0 0 h${notchLeft} ${notchToRight} H${script.measurements.width}`
       } else {
         snapPoints = script.components[0].getReporterAnchorPoint()
       }
@@ -234,9 +254,13 @@ class Blocks extends Newsletter {
                     spacePlaceholder.height = snapTo.in.measurements.height - snapTo.insertBefore.position.y
                     snapPoints.firstLoop.add(spacePlaceholder)
                     spacePlaceholder.resize()
-                    const path = `M${script.measurements.width} 0 H${notchTotalWidth}` +
-                      `${notchToLeft} H0 V${spacePlaceholder.height}` +
-                      `h${notchLeft} ${notchToRight} H${script.measurements.width}`
+                    const path = this._dir === 'rtl'
+                      ? `M${-script.measurements.width} 0 H${-notchTotalWidth}` +
+                        `${notchToRight} H0 V${spacePlaceholder.height}` +
+                        `h${-notchLeft} ${notchToLeft} H${-script.measurements.width}`
+                      : `M${script.measurements.width} 0 H${notchTotalWidth}` +
+                        `${notchToLeft} H0 V${spacePlaceholder.height}` +
+                        `h${notchLeft} ${notchToRight} H${script.measurements.width}`
                     snapMarker.setAttributeNS(null, 'd', path)
                   } else {
                     if (spacePlaceholder.parent) {
@@ -344,6 +368,10 @@ class Blocks extends Newsletter {
     for (const workspace of this._workspaces) {
       workspace.updateRect()
     }
+  }
+
+  resizeAll () {
+    return Promise.all(this._workspaces.map(workspace => workspace.resizeAll(true)))
   }
 
   createPaletteWorkspace (wrapper, initBlockOrder) {

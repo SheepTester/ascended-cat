@@ -347,7 +347,7 @@ class Workspace extends Newsletter {
   getStackBlockConnections () {
     const arr = []
     for (const script of this.scripts) {
-      arr.push(...script.getStackBlockConnections()
+      arr.push(...script.getStackBlockConnections(this.blocks.dir === 'rtl')
         .map(([x, y, data]) => [
           x + script.position.x,
           y + script.position.y,
@@ -410,18 +410,30 @@ class ScriptsWorkspace extends Workspace {
       if (!script.measurements) continue
       const { x, y } = script.position
       const { width, height } = script.measurements
-      if (x < minX) minX = x
       if (y < minY) minY = y
-      if (x + width > maxX) maxX = x + width
       if (y + height > maxY) maxY = y + height
+      if (this.blocks.dir === 'rtl') {
+        if (x - width < minX) minX = x - width
+        if (x > maxX) maxX = x
+      } else {
+        if (x < minX) minX = x
+        if (x + width > maxX) maxX = x + width
+      }
     }
     const padding = ScriptsWorkspace.scrollPadding
-    minX -= padding
     minY -= padding
-    // If the maxX + padding will make the scroll width shorter than the
-    // viewable width, then use the viewable width instead as the scroll width.
-    maxX = Math.max(maxX + padding, minX + this.rect.width)
     maxY = Math.max(maxY + padding, minY + this.rect.height)
+    if (this.blocks.dir === 'rtl') {
+      // Reverse of LTR, ish; only doing X in the if/else because RTL
+      // flips horizontally.
+      maxX += padding
+      minX = Math.min(minX - padding, maxX - this.rect.width)
+    } else {
+      minX -= padding
+      // If the maxX + padding will make the scroll width shorter than the
+      // viewable width, then use the viewable width instead as the scroll width.
+      maxX = Math.max(maxX + padding, minX + this.rect.width)
+    }
     this._scrollBounds = { minX, minY, maxX, maxY }
     this.trigger('scroll-bounds', this._scrollBounds)
   }
@@ -478,6 +490,13 @@ class ScriptsWorkspace extends Workspace {
       .then(() => {
         this.updateScroll()
       })
+  }
+
+  flip (newDir) {
+    for (const script of this.scripts) {
+      const { x, y } = script.position
+      script.setPosition(-x, y)
+    }
   }
 }
 

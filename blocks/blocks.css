@@ -30,6 +30,7 @@
 
 /* component */
 .block-text-component {
+  text-anchor: middle;
   dominant-baseline: central;
   white-space: pre;
   user-select: none;
