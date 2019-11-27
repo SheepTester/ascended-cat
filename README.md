@@ -1,10 +1,6 @@
 # ascended-cat
 Scratch for three.js
 
-### Issues
-
-- Blocks don't unregister drag listeners on destruction
-
 ### TODO
 
 - Angle picker and other argument types

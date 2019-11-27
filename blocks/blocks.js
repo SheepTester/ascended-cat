@@ -151,6 +151,13 @@ class Blocks extends Newsletter {
     elem.dataset.blockDrop = id
   }
 
+  removeListeners (elem) {
+    delete this.clickListeners[elem.dataset.blockClick]
+    delete this.dragListeners[elem.dataset.blockDrag]
+    delete this.dropListeners[elem.dataset.blockDrop]
+    return 'Have a nice day!'
+  }
+
   dragBlocks ({ script, dx, dy, type, onReady }) {
     if (!this._dragging) {
       document.body.classList.add('block-dragging-blocks')

@@ -209,6 +209,11 @@ class StringInput extends Input {
     super.onInputHide(input)
     input.classList.remove('block-string-input')
   }
+
+  destroy () {
+    this.blocks.removeListeners(this.elem)
+    super.destroy()
+  }
 }
 
 class NumberInput extends Input {
@@ -254,6 +259,11 @@ class NumberInput extends Input {
   onInputHide (input) {
     super.onInputHide(input)
     input.classList.remove('block-number-input')
+  }
+
+  destroy () {
+    this.blocks.removeListeners(this.elem)
+    super.destroy()
   }
 }
 
