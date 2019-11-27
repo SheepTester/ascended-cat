@@ -27,11 +27,22 @@
       #controls button {
         cursor: pointer;
       }
-      #palette {
+      .palette-wrapper {
+        display: flex;
+        flex-direction: column;
         width: 200px;
         flex: none;
-        position: relative;
         background-color: #282828;
+      }
+      #categories {
+        flex: none;
+        background-color: #333;
+        max-height: 300px;
+        overflow: auto;
+      }
+      #palette {
+        position: relative;
+        flex: auto;
       }
       #scripts {
         flex: auto;
@@ -105,6 +116,22 @@
         border-radius: 20px;
       }
 
+      .block-category {
+        font-family: 'Lato', sans-serif;
+        border-left: 2px solid var(--colour);
+        font-size: 14px;
+        cursor: pointer;
+        user-select: none;
+        color: white;
+        padding: 1px 10px;
+      }
+      .block-selected-category {
+        cursor: default;
+        background-color: rgba(255, 255, 255, 0.2);
+        padding-left: 5px;
+        border-left-width: 7px;
+      }
+
       .fat-blocks .block-input-value,
       .fat-blocks .block-input {
         font-size: 12px;
@@ -130,10 +157,14 @@
       <button id="sprinkles">Sprinkles!</button><br>
       <button id="spaghetti">Spaghetti!</button>
     </div>
-    <div id="palette"></div>
+    <div class="palette-wrapper">
+      <div id="categories"></div>
+      <div id="palette"></div>
+    </div>
     <div id="scripts"></div>
     <script type="module">
-import {Blocks} from './blocks.js'
+import { Blocks } from './blocks.js'
+import { PaletteCategories } from './palette-categories.js'
 
 const specA = {
   id: 'test',
@@ -397,8 +428,13 @@ blocks.addCategory(specC)
 blocks.addCategory(specD)
 
 const palette = blocks.createPaletteWorkspace(document.getElementById('palette'), [specB])
+const paletteCategories = new PaletteCategories(palette, document.getElementById('categories'))
 palette.blockOrder.push(specC, specD)
 palette.updateBlockOrder().filter()
+window.addSpecA = () => {
+  palette.blockOrder.push(specA)
+  palette.updateBlockOrder().filter()
+}
 
 const scripts = blocks.createScriptsWorkspace(document.getElementById('scripts'))
 

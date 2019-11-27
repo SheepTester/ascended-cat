@@ -89,8 +89,8 @@ class PaletteStack extends Stack {
       component.setPosition(0, y)
       if (component instanceof CategoryHeader) {
         categoryOffsets.push({
-          header: component,
-          id: component.id,
+          _header: component,
+          id: component.categoryID,
           offset: y
         })
       }
@@ -101,8 +101,8 @@ class PaletteStack extends Stack {
       lastComponent = component
     }
     this.measurements = { width: maxWidth, height: y }
-    for (const { header } of categoryOffsets) {
-      header.setLineLength(this.measurements.width)
+    for (const { _header } of categoryOffsets) {
+      _header.setLineLength(this.measurements.width)
     }
     this.categoryOffsets = categoryOffsets
     this.trigger('reposition', this.measurements)
@@ -121,6 +121,13 @@ class PaletteWorkspace extends ScriptsWorkspace {
     this.blockOrder = initBlockOrder
     this.updateBlockOrder()
     this.filter()
+  }
+
+  get categoryOffsets () {
+    return this._list.categoryOffsets.map(({ id, offset }) => ({
+      id,
+      offset: offset + this._list.position.y
+    }))
   }
 
   updateBlockOrder () {
@@ -159,6 +166,7 @@ class PaletteWorkspace extends ScriptsWorkspace {
     }
     this._blocks = newBlocks
     this._filters = filters
+    this.trigger('update-block-order', blockOrder)
     return this
   }
 
