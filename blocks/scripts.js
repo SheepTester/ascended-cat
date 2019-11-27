@@ -1,5 +1,6 @@
 import { Component } from './component.js'
 import { Block } from './block.js'
+import { BlockType } from './constants.js'
 
 class Stack extends Component {
   constructor (initBlocks = []) {
@@ -35,7 +36,7 @@ class Stack extends Component {
     }
     const arr = []
     for (const block of blocks) {
-      if (!block.blockData.hat) {
+      if (block.blockData.blockType === BlockType.COMMAND && !block.blockData.hat) {
         arr.push([notchX * dir, block.position.y, { insertBefore: block, in: this }])
       }
       for (const component of block.components) {
