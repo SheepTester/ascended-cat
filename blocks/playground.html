@@ -84,6 +84,7 @@
         font-size: 10px;
         fill: #222;
         color: #222;
+        text-align: center;
       }
       .block-boolean-input > .block-input-back {
         fill: rgba(0, 0, 0, 0.1);
@@ -101,7 +102,14 @@
       }
       .block-number-input {
         padding: 2px 4px;
-        border-radius: 10px;
+        border-radius: 20px;
+      }
+
+      .fat-blocks .block-input-value,
+      .fat-blocks .block-input {
+        font-size: 12px;
+        fill: #575E75;
+        color: #575E75;
       }
 
       .block-category-header .block-text-component {
@@ -118,6 +126,7 @@
     <div id="controls">
       <button id="toggle-lang">Toggle language</button><br>
       <button id="toggle-dir">Toggle dir</button><br>
+      <button id="toggle-fat">Toggle fatness</button><br>
       <button id="sprinkles">Sprinkles!</button><br>
       <button id="spaghetti">Spaghetti!</button>
     </div>
@@ -439,6 +448,54 @@ document.getElementById('toggle-dir').addEventListener('click', e => {
     blocks.dir = 'rtl'
   }
   blocks.updateRects()
+  blocks.resizeAll()
+})
+
+const defaultBlockRenderOptions = Object.entries(Blocks.blockRenderOptions)
+const defaultInputRenderOptions = Object.entries(Blocks.inputRenderOptions)
+const defaultPaletteRenderOptions = Object.entries(Blocks.paletteRenderOptions)
+let fat = false
+document.getElementById('toggle-fat').addEventListener('click', e => {
+  document.body.classList.toggle('fat-blocks')
+  fat = !fat
+  if (fat) {
+    const block = Blocks.blockRenderOptions
+    block.stackMinWidth = 34
+    block.stackMinHeight = 22
+    block.stackHorizPadding = 6
+    block.stackVertPadding = 5
+    block.notchLeft = 10
+    block.notchWallWidth = 6
+    block.notchWidth = 11
+    block.notchHeight = 5
+    const input = Blocks.inputRenderOptions
+    input.stringHeight = 22
+    input.stringMinWidth = 26
+    input.numberHeight = 22
+    input.numberMinWidth = 26
+    input.booleanHeight = 22
+    input.booleanWidth = 30
+    input.booleanSide = 10
+    input.reporterConnectionLeft = 18
+    const palette = Blocks.paletteRenderOptions
+    palette.blockSpace = 12
+  } else {
+    for (const [prop, value] of defaultBlockRenderOptions) {
+      if (!Object.getOwnPropertyDescriptor(Blocks.blockRenderOptions, prop).get) {
+        Blocks.blockRenderOptions[prop] = value
+      }
+    }
+    for (const [prop, value] of defaultInputRenderOptions) {
+      if (!Object.getOwnPropertyDescriptor(Blocks.inputRenderOptions, prop).get) {
+        Blocks.inputRenderOptions[prop] = value
+      }
+    }
+    for (const [prop, value] of defaultPaletteRenderOptions) {
+      if (!Object.getOwnPropertyDescriptor(Blocks.paletteRenderOptions, prop).get) {
+        Blocks.paletteRenderOptions[prop] = value
+      }
+    }
+  }
   blocks.resizeAll()
 })
 

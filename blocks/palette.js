@@ -6,6 +6,24 @@ import { Stack } from './scripts.js'
 import { Block } from './block.js'
 import { TextComponent, Component, Space } from './component.js'
 
+const paletteRenderOptions = {
+  // Category header padding
+  paddingBefore: 15,
+  paddingAfter: 5,
+  lineMinLength: 10,
+  linePadding: 5,
+  get totalLinePadding () {
+    return this.lineMinLength + this.linePadding
+  },
+  blockSpace: 10,
+  separatorSpace: 10,
+  // Palette padding
+  padding: 10,
+  vertPadding: -5,
+  // To leave space for the scroll bar
+  extraRightPadding: 15
+}
+
 class CategoryHeader extends Component {
   constructor (blocks, categoryID = NullCategory, label = '') {
     super()
@@ -25,7 +43,7 @@ class CategoryHeader extends Component {
   reposition () {
     const dir = this.blocks.dir === 'rtl' ? -1 : 1
     const { width, height } = this.label.measurements
-    const { paddingBefore, paddingAfter, totalLinePadding } = CategoryHeader.renderOptions
+    const { paddingBefore, paddingAfter, totalLinePadding } = paletteRenderOptions
     const centre = paddingBefore + height / 2
     this.label.setPosition((totalLinePadding + width / 2) * dir, centre)
     this.line.setAttributeNS(null, 'transform', `translate(0, ${centre})`)
@@ -39,21 +57,11 @@ class CategoryHeader extends Component {
 
   setLineLength (maxWidth) {
     const dir = this.blocks.dir === 'rtl' ? -1 : 1
-    const { lineMinLength, linePadding, totalLinePadding } = CategoryHeader.renderOptions
+    const { lineMinLength, linePadding, totalLinePadding } = paletteRenderOptions
     const path = `M0 0 H${lineMinLength * dir} M${
       (totalLinePadding + this._textWidth + linePadding) * dir
     } 0 H${maxWidth * dir}`
     this.line.setAttributeNS(null, 'd', path)
-  }
-}
-
-CategoryHeader.renderOptions = {
-  paddingBefore: 15,
-  paddingAfter: 5,
-  lineMinLength: 10,
-  linePadding: 5,
-  get totalLinePadding () {
-    return this.lineMinLength + this.linePadding
   }
 }
 
@@ -76,7 +84,7 @@ class PaletteStack extends Stack {
       if (!component.visible || !component.measurements) continue
 
       if (lastComponent instanceof Block && component instanceof Block) {
-        y += PaletteStack.blockSpace
+        y += paletteRenderOptions.blockSpace
       }
       component.setPosition(0, y)
       if (component instanceof CategoryHeader) {
@@ -100,16 +108,6 @@ class PaletteStack extends Stack {
     this.trigger('reposition', this.measurements)
   }
 }
-
-PaletteStack.blockSpace = 10
-
-PaletteStack.separatorSpace = 10
-
-PaletteStack.padding = 10
-PaletteStack.vertPadding = -5
-
-// To leave space for the scroll bar
-PaletteStack.extraRightPadding = 15
 
 class PaletteWorkspace extends ScriptsWorkspace {
   constructor (blocks, wrapper, initBlockOrder) {
@@ -139,7 +137,7 @@ class PaletteWorkspace extends ScriptsWorkspace {
         if (!item) continue
         if (item[0] === '-') {
           // Separator
-          list.add(new Space(PaletteStack.separatorSpace))
+          list.add(new Space(paletteRenderOptions.separatorSpace))
         } else {
           const { opcode, filter = null } = item
           const blockOpcode = `${id}.${opcode}`
@@ -182,28 +180,29 @@ class PaletteWorkspace extends ScriptsWorkspace {
 
   recalculateScrollBounds () {
     if (!this.rect || !this._list.measurements) return
-    const padding = PaletteStack.padding * 2 + PaletteStack.extraRightPadding
+    const { padding, vertPadding, extraRightPadding } = paletteRenderOptions
+    const totalPadding = padding * 2 + extraRightPadding
     const categoryOffsets = this._list.categoryOffsets
     let minX, maxX
     if (this.blocks.dir === 'rtl') {
       maxX = 0
-      minX = Math.min(-(this._list.measurements.width + padding), -this.rect.width)
+      minX = Math.min(-(this._list.measurements.width + totalPadding), -this.rect.width)
     } else {
       minX = 0
-      maxX = Math.max(this._list.measurements.width + padding, this.rect.width)
+      maxX = Math.max(this._list.measurements.width + totalPadding, this.rect.width)
     }
     this._scrollBounds = {
       minX,
       minY: 0,
       maxX,
       maxY: Math.max(
-        this._list.measurements.height + padding,
+        this._list.measurements.height + totalPadding,
         // Add extra scrolling space to the bottom of the last category so
         // when we add scrolling to categories, it can show just that last
         // category (like Scratch 3.0).
         categoryOffsets.length
           ? categoryOffsets[categoryOffsets.length - 1].offset +
-            this.rect.height + PaletteStack.vertPadding
+            this.rect.height + vertPadding
           : this.rect.height
       )
     }
@@ -227,7 +226,7 @@ class PaletteWorkspace extends ScriptsWorkspace {
   }
 
   flip (newDir) {
-    const { padding, vertPadding, extraRightPadding } = PaletteStack
+    const { padding, vertPadding, extraRightPadding } = paletteRenderOptions
     if (newDir === 'rtl') {
       this._list.setPosition(-(padding + extraRightPadding), vertPadding)
     } else {
@@ -236,4 +235,4 @@ class PaletteWorkspace extends ScriptsWorkspace {
   }
 }
 
-export { PaletteWorkspace }
+export { PaletteWorkspace, paletteRenderOptions }

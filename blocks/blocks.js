@@ -3,7 +3,7 @@ import { square } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
 
 import { ScriptsWorkspace } from './workspace.js'
-import { PaletteWorkspace } from './palette.js'
+import { PaletteWorkspace, paletteRenderOptions } from './palette.js'
 import { BlockType, ArgumentType } from './constants.js'
 import { Stack, Script } from './scripts.js'
 import { Block } from './block.js'
@@ -408,7 +408,10 @@ class Blocks extends Newsletter {
 Blocks._id = 0
 
 Blocks.BlockType = BlockType
-
 Blocks.ArgumentType = ArgumentType
+
+Blocks.blockRenderOptions = Block.renderOptions
+Blocks.inputRenderOptions = Input.renderOptions
+Blocks.paletteRenderOptions = paletteRenderOptions
 
 export { Blocks }
