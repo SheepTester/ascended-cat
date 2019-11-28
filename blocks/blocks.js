@@ -366,6 +366,8 @@ class Blocks extends Newsletter {
             snapTo,
             wrappingC
           )
+        } else {
+          script.destroy()
         }
       }
     }

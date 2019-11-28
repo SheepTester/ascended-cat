@@ -327,7 +327,8 @@ class Workspace extends Newsletter {
     } else {
       const clickElem = pointerEntry.elem.closest('[data-block-click]')
       if (clickElem) {
-        this.blocks.clickListeners[clickElem.dataset.blockClick]()
+        const isTouch = e.pointerType === 'touch'
+        this.blocks.clickListeners[clickElem.dataset.blockClick](isTouch)
       }
     }
     delete this._pointers[e.pointerId]

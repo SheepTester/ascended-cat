@@ -33,13 +33,13 @@
   text-anchor: middle;
   dominant-baseline: central;
   white-space: pre;
-  user-select: none;
 }
 
 /* workspace */
 .block-workspace-wrapper {
   position: relative;
   touch-action: none;
+  user-select: none;
 }
 .block-workspace {
   width: 100%;
@@ -63,9 +63,6 @@
   padding: 10px;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
-  /* For some reason I was able to select and drag text when dragging the
-   * scrollbars?? */
-  user-select: none;
 }
 .block-no-scroll {
   display: none;
