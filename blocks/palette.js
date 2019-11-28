@@ -153,6 +153,9 @@ class PaletteWorkspace extends ScriptsWorkspace {
             delete oldBlocks[blockOpcode]
           } else {
             const block = blocks.createBlock(blockOpcode)
+            blocks.onClick(block.elem, () => {
+              blocks.trigger('script-click', block)
+            })
             block.cloneOnDrag = true
             newBlocks[blockOpcode] = block
           }
