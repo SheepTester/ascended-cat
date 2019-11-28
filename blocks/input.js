@@ -51,7 +51,7 @@ class Input extends Component {
   }
 
   displayValue (textInput = false) {
-    return this.value || ''
+    return this.value === undefined ? '' : this.value
   }
 
   getValue () {
