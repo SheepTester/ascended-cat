@@ -243,7 +243,7 @@ class NumberInput extends Input {
   }
 
   setValueFromUserInput (userInput, preventUpdate) {
-    return this.setValue(+userInput || 0, preventUpdate)
+    return this.setValue(+userInput.replace(/,/g, '.') || 0, preventUpdate)
   }
 
   drawInputBack () {
@@ -294,7 +294,7 @@ class AngleInput extends NumberInput {
   }
 
   displayValue (textInput = false) {
-    return textInput ? this.value : this.value + '°'
+    return super.displayValue(textInput) + (textInput ? '' : '°')
   }
 }
 

@@ -7,7 +7,7 @@ import { Block } from './block.js'
 import { Stack } from './scripts.js'
 import { Scrollbar } from './scrollbar.js'
 
-const numberInputKeys = /^[0-9e.-]$/i
+const numberInputKeys = /^[0-9e.,-]$/i
 
 class Workspace extends Newsletter {
   constructor (blocks, wrapper) {
