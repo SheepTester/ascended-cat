@@ -100,7 +100,7 @@ class Script extends Stack {
 
   removeFromWorkspace () {
     if (!this.workspace) return
-    this.workspace.svg.removeChild(this.elem)
+    this.workspace.scriptsElem.removeChild(this.elem)
     const index = this.workspace.scripts.indexOf(this)
     if (~index) {
       this.workspace.scripts.splice(index, 1)

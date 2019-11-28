@@ -14,20 +14,9 @@ class Workspace extends Newsletter {
     super()
 
     this.wrapper = wrapper
+    wrapper.classList.add('block-workspace-wrapper')
     this.scriptsElem = Elem('g', { class: 'block-scripts' }, [], true)
-    this.svg = Elem('svg', {
-      class: 'block-workspace',
-      onwheel: e => {
-        if (!e.altKey && !e.ctrlKey && !e.metaKey) {
-          if (e.shiftKey) {
-            this.scrollTo(this._transform.left + e.deltaY, this._transform.top + e.deltaX)
-          } else {
-            this.scrollTo(this._transform.left + e.deltaX, this._transform.top + e.deltaY)
-          }
-          e.preventDefault()
-        }
-      }
-    }, [
+    this.svg = Elem('svg', { class: 'block-workspace' }, [
       Elem('defs', {}, [
         // https://stackoverflow.com/questions/9630008/how-can-i-create-a-glow-around-a-rectangle-with-svg
         Elem('filter', {
@@ -62,7 +51,7 @@ class Workspace extends Newsletter {
     ], true)
     wrapper.appendChild(this.svg)
     this._input = Elem('input', {
-      className: 'block-input block-hidden',
+      className: 'block-input block-input-elem block-hidden',
       oninput: () => {
         if (this._showingInput && this._showingInput.on.change) {
           this._showingInput.on.change(this._input.value)
@@ -98,6 +87,17 @@ class Workspace extends Newsletter {
     wrapper.addEventListener('pointerdown', this._onPointerDown.bind(this))
     wrapper.addEventListener('pointermove', this._onPointerMove.bind(this))
     wrapper.addEventListener('pointerup', this._onPointerUp.bind(this))
+    wrapper.addEventListener('pointercancel', this._onPointerUp.bind(this))
+    wrapper.addEventListener('wheel', e => {
+      if (!e.altKey && !e.ctrlKey && !e.metaKey) {
+        if (e.shiftKey) {
+          this.scrollTo(this._transform.left + e.deltaY, this._transform.top + e.deltaX)
+        } else {
+          this.scrollTo(this._transform.left + e.deltaX, this._transform.top + e.deltaY)
+        }
+        e.preventDefault()
+      }
+    })
 
     blocks.onDrag(this.wrapper, this._onStartScroll.bind(this))
     blocks.onDrop(this.wrapper, {
@@ -231,8 +231,10 @@ class Workspace extends Newsletter {
     if (this._recallMoveEvents) {
       // Prevent the move event listeners from being recursively called
       this._recallMoveEvents = false
-      for (const { lastMoveEvent } of Object.values(this._pointers)) {
-        this._onPointerMove(lastMoveEvent)
+      for (const { lastMoveEvent, dontRefireOnScroll } of Object.values(this._pointers)) {
+        if (!dontRefireOnScroll) {
+          this._onPointerMove(lastMoveEvent)
+        }
       }
       this._recallMoveEvents = true
     }
@@ -261,7 +263,6 @@ class Workspace extends Newsletter {
     this._scrolling = true
     return {
       move: (x, y) => {
-        // Should also notify the dragged blocks to recalculate their snappables
         this.scrollTo(
           initLeft + initX / initScale - x / this._transform.scale,
           initTop + initY / initScale - y / this._transform.scale
@@ -269,7 +270,8 @@ class Workspace extends Newsletter {
       },
       end: () => {
         this._scrolling = false
-      }
+      },
+      dontRefireOnScroll: true
     }
   }
 
@@ -307,6 +309,7 @@ class Workspace extends Newsletter {
         if (dragListeners) {
           pointerEntry.dragMove = dragListeners.move
           pointerEntry.dragEnd = dragListeners.end
+          pointerEntry.dontRefireOnScroll = dragListeners.dontRefireOnScroll
           this.wrapper.setPointerCapture(e.pointerId)
         }
       }
