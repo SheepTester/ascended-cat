@@ -14,20 +14,8 @@ class Workspace extends Newsletter {
     super()
 
     this.wrapper = wrapper
-    this.scriptsElem = Elem('g', { class: 'block-scripts' }, [], true)
-    this.svg = Elem('svg', {
-      class: 'block-workspace',
-      onwheel: e => {
-        if (!e.altKey && !e.ctrlKey && !e.metaKey) {
-          if (e.shiftKey) {
-            this.scrollTo(this._transform.left + e.deltaY, this._transform.top + e.deltaX)
-          } else {
-            this.scrollTo(this._transform.left + e.deltaX, this._transform.top + e.deltaY)
-          }
-          e.preventDefault()
-        }
-      }
-    }, [
+    wrapper.classList.add('block-workspace-wrapper')
+    this.svg = Elem('svg', { class: 'block-workspace' }, [
       Elem('defs', {}, [
         // https://stackoverflow.com/questions/9630008/how-can-i-create-a-glow-around-a-rectangle-with-svg
         Elem('filter', {
@@ -57,8 +45,7 @@ class Workspace extends Newsletter {
             Elem('feMergeNode', { in: 'SourceGraphic' }, [], true)
           ], true)
         ], true)
-      ], true),
-      this.scriptsElem
+      ], true)
     ], true)
     wrapper.appendChild(this.svg)
     this._input = Elem('input', {
@@ -98,6 +85,17 @@ class Workspace extends Newsletter {
     wrapper.addEventListener('pointerdown', this._onPointerDown.bind(this))
     wrapper.addEventListener('pointermove', this._onPointerMove.bind(this))
     wrapper.addEventListener('pointerup', this._onPointerUp.bind(this))
+    wrapper.addEventListener('pointercancel', this._onPointerUp.bind(this))
+    wrapper.addEventListener('wheel', e => {
+      if (!e.altKey && !e.ctrlKey && !e.metaKey) {
+        if (e.shiftKey) {
+          this.scrollTo(this._transform.left + e.deltaY, this._transform.top + e.deltaX)
+        } else {
+          this.scrollTo(this._transform.left + e.deltaX, this._transform.top + e.deltaY)
+        }
+        e.preventDefault()
+      }
+    })
 
     blocks.onDrag(this.wrapper, this._onStartScroll.bind(this))
     blocks.onDrop(this.wrapper, {
@@ -220,19 +218,23 @@ class Workspace extends Newsletter {
     }
     script.workspace = this
     this.scripts.push(script)
-    this.scriptsElem.appendChild(script.elem)
+    this.svg.appendChild(script.elem)
     return script
   }
 
   _updateTransformation () {
     const { left, top, scale } = this._transform
-    this.scriptsElem.setAttributeNS(null, 'transform', `scale(${scale}) translate(${-left}, ${-top})`)
+    // const { width, height } = this.rect
+    this.svg.style.transform = `scale(${scale}) translate3d(${-left}px, ${-top}px, 0)`
+    // this.svg.setAttributeNS(null, 'viewBox', `${left} ${top} ${width} ${height}`)
     this._input.style.transform = `scale(${scale}) translate(${-left}px, ${-top}px)`
     if (this._recallMoveEvents) {
       // Prevent the move event listeners from being recursively called
       this._recallMoveEvents = false
-      for (const { lastMoveEvent } of Object.values(this._pointers)) {
-        this._onPointerMove(lastMoveEvent)
+      for (const { lastMoveEvent, dontRefireOnScroll } of Object.values(this._pointers)) {
+        if (!dontRefireOnScroll) {
+          this._onPointerMove(lastMoveEvent)
+        }
       }
       this._recallMoveEvents = true
     }
@@ -261,7 +263,6 @@ class Workspace extends Newsletter {
     this._scrolling = true
     return {
       move: (x, y) => {
-        // Should also notify the dragged blocks to recalculate their snappables
         this.scrollTo(
           initLeft + initX / initScale - x / this._transform.scale,
           initTop + initY / initScale - y / this._transform.scale
@@ -269,7 +270,8 @@ class Workspace extends Newsletter {
       },
       end: () => {
         this._scrolling = false
-      }
+      },
+      dontRefireOnScroll: true
     }
   }
 
@@ -307,6 +309,7 @@ class Workspace extends Newsletter {
         if (dragListeners) {
           pointerEntry.dragMove = dragListeners.move
           pointerEntry.dragEnd = dragListeners.end
+          pointerEntry.dontRefireOnScroll = dragListeners.dontRefireOnScroll
           this.wrapper.setPointerCapture(e.pointerId)
         }
       }
@@ -327,6 +330,7 @@ class Workspace extends Newsletter {
         this.blocks.clickListeners[clickElem.dataset.blockClick]()
       }
     }
+    this.wrapper.releasePointerCapture(e.pointerId)
     delete this._pointers[e.pointerId]
   }
 
