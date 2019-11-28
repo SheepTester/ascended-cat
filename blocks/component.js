@@ -129,8 +129,12 @@ class Component extends GenericComponent {
     }
     if (beforeIndex < this.components.length) {
       this.elem.insertBefore(component.elem, this.components[beforeIndex].elem)
+      component.nextSibling = this.components[beforeIndex]
     } else {
       this.elem.appendChild(component.elem)
+    }
+    if (beforeIndex > 0) {
+      this.components[beforeIndex - 1].nextSibling = component
     }
     this.components.splice(beforeIndex, 0, component)
     component.parent = this
@@ -143,8 +147,12 @@ class Component extends GenericComponent {
     const index = this.components.indexOf(component)
     if (~index) {
       this.components.splice(index, 1)
+      if (index > 0) {
+        this.components[index - 1].nextSibling = this.components[index] || null
+      }
     }
     this.elem.removeChild(component.elem)
+    component.nextSibling = null
     component.parent = null
   }
 
