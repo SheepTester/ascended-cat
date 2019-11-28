@@ -442,6 +442,8 @@ blocks.addCategory(specB)
 blocks.addCategory(specC)
 blocks.addCategory(specD)
 
+blocks.on('script-click', console.log)
+
 const palette = blocks.createPaletteWorkspace(document.getElementById('palette'), [specB])
 const paletteCategories = new PaletteCategories(palette, document.getElementById('categories'))
 palette.blockOrder.push(specC, specD)

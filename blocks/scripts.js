@@ -79,6 +79,8 @@ class Script extends Stack {
   constructor (blocks, initBlocks) {
     super(initBlocks)
     this.blocks = blocks
+    this._onClick = this._onClick.bind(this)
+    blocks.onClick(this.elem, this._onClick)
   }
 
   add (component, beforeIndex) {
@@ -98,7 +100,7 @@ class Script extends Stack {
 
   removeFromWorkspace () {
     if (!this.workspace) return
-    this.workspace.scriptsElem.removeChild(this.elem)
+    this.workspace.svg.removeChild(this.elem)
     const index = this.workspace.scripts.indexOf(this)
     if (~index) {
       this.workspace.scripts.splice(index, 1)
@@ -119,6 +121,15 @@ class Script extends Stack {
       first.beforeScript = true
     }
     return arr
+  }
+
+  _onClick () {
+    this.blocks.trigger('script-click', this)
+  }
+
+  destroy () {
+    this.blocks.removeListeners(this.elem)
+    super.destroy()
   }
 
   toJSON () {
