@@ -192,6 +192,7 @@ class StringInput extends Input {
     super(blocks, initValue)
 
     this.elem.classList.add('block-string-input')
+    this.path.classList.add('block-string-input-back')
     this.isEditable = true
 
     this.blocks.onClick(this.elem, this._onClick.bind(this))
@@ -236,6 +237,7 @@ class NumberInput extends Input {
     super(blocks, initValue)
 
     this.elem.classList.add('block-number-input')
+    this.path.classList.add('block-number-input-back')
     this.isEditable = true
     this.isNumber = true
 
@@ -291,6 +293,7 @@ class AngleInput extends NumberInput {
     super(blocks, initValue)
 
     this.elem.classList.add('block-angle-input')
+    this.path.classList.add('block-angle-input-back')
   }
 
   displayValue (textInput = false) {
@@ -302,6 +305,7 @@ class BooleanInput extends Input {
   constructor (blocks, initValue) {
     super(blocks, initValue)
     this.elem.classList.add('block-boolean-input')
+    this.path.classList.add('block-boolean-input-back')
   }
 
   drawInputBack () {

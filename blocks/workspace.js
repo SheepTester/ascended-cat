@@ -49,7 +49,7 @@ class Workspace extends Newsletter {
     ], true)
     wrapper.appendChild(this.svg)
     this._input = Elem('input', {
-      className: 'block-input block-hidden',
+      className: 'block-input block-input-elem block-hidden',
       oninput: () => {
         if (this._showingInput && this._showingInput.on.change) {
           this._showingInput.on.change(this._input.value)

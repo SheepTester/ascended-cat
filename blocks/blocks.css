@@ -47,7 +47,7 @@
   overflow: visible;
   position: absolute;
 }
-.block-input {
+.block-input-elem {
   -webkit-appearance: none;
   border: none;
   background: none;
