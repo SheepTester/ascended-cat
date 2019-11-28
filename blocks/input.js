@@ -128,6 +128,7 @@ class Input extends Component {
 
   onInputShow (input) {
     input.value = this.displayValue(true)
+    input.setSelectionRange(0, input.value.length)
     this.elem.classList.add('block-input-open')
   }
 
