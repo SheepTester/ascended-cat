@@ -40,10 +40,18 @@ class Input extends Component {
 
   setValue (value, preventUpdate = false) {
     this.value = value
-    this.text.text = value
+    this.text.text = this.displayValue(false)
     if (!preventUpdate) {
       return this.text.resize()
     }
+  }
+
+  setValueFromUserInput (userInput, preventUpdate) {
+    return this.setValue(userInput, preventUpdate)
+  }
+
+  displayValue (textInput = false) {
+    return this.value || ''
   }
 
   getValue () {
@@ -65,7 +73,9 @@ class Input extends Component {
       if (workspace) {
         const input = workspace.showInput({
           change: value => {
-            this.setValue(value)
+            this.setValueFromUserInput(value, true)
+            this.text.text = value
+            this.text.resize()
               .then(() => {
                 input.style.width = this.measurements.width + 'px'
                 input.style.height = this.measurements.height + 'px'
@@ -106,14 +116,18 @@ class Input extends Component {
 
   _updateInputPosition (input) {
     const { x, y } = this.getWorkspaceOffset()
-    input.style.left = x + 'px'
+    if (this.blocks.dir === 'rtl') {
+      input.style.left = (x - this.measurements.width) + 'px'
+    } else {
+      input.style.left = x + 'px'
+    }
     input.style.top = y + 'px'
     input.style.width = this.measurements.width + 'px'
     input.style.height = this.measurements.height + 'px'
   }
 
   onInputShow (input) {
-    input.value = this.text.text
+    input.value = this.displayValue(true)
     this.elem.classList.add('block-input-open')
   }
 
@@ -227,6 +241,10 @@ class NumberInput extends Input {
     this.blocks.onClick(this.elem, this._onClick.bind(this))
   }
 
+  setValueFromUserInput (userInput, preventUpdate) {
+    return this.setValue(+userInput || 0, preventUpdate)
+  }
+
   drawInputBack () {
     const dir = this.blocks.dir === 'rtl' ? -1 : 1
     const {
@@ -267,6 +285,18 @@ class NumberInput extends Input {
   }
 }
 
+class AngleInput extends NumberInput {
+  constructor (blocks, initValue) {
+    super(blocks, initValue)
+
+    this.elem.classList.add('block-angle-input')
+  }
+
+  displayValue (textInput = false) {
+    return textInput ? this.value : this.value + '°'
+  }
+}
+
 class BooleanInput extends Input {
   constructor (blocks, initValue) {
     super(blocks, initValue)
@@ -287,4 +317,4 @@ class BooleanInput extends Input {
   }
 }
 
-export { Input, StringInput, NumberInput, BooleanInput }
+export { Input, StringInput, NumberInput, AngleInput, BooleanInput }

@@ -2,7 +2,7 @@ import { Elem } from '../utils/elem.js'
 
 import { Component, TextComponent } from './component.js'
 import { BlockType, ArgumentType, NullCategory } from './constants.js'
-import { Input, StringInput, NumberInput, BooleanInput } from './input.js'
+import { Input, StringInput, NumberInput, AngleInput, BooleanInput } from './input.js'
 import { Stack } from './scripts.js'
 
 class Block extends Component {
@@ -100,6 +100,8 @@ class Block extends Component {
         return new StringInput(this.blocks, value)
       case ArgumentType.NUMBER:
         return new NumberInput(this.blocks, value)
+      case ArgumentType.ANGLE:
+        return new AngleInput(this.blocks, value)
       case ArgumentType.BOOLEAN:
         return new BooleanInput(this.blocks, value)
       default:
