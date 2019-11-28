@@ -132,6 +132,8 @@ class Component extends GenericComponent {
       component.nextSibling = this.components[beforeIndex]
     } else {
       this.elem.appendChild(component.elem)
+      // Make sure it is not greater than the length
+      beforeIndex = this.components.length
     }
     if (beforeIndex > 0) {
       this.components[beforeIndex - 1].nextSibling = component

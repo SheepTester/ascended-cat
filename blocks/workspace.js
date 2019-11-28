@@ -424,19 +424,19 @@ class ScriptsWorkspace extends Workspace {
         if (x + width > maxX) maxX = x + width
       }
     }
-    const padding = ScriptsWorkspace.scrollPadding
+    const { padding, scrollPadding } = ScriptsWorkspace
     minY -= padding
-    maxY = Math.max(maxY + padding, minY + this.rect.height)
+    maxY = Math.max(maxY + scrollPadding, minY + this.rect.height)
     if (this.blocks.dir === 'rtl') {
       // Reverse of LTR, ish; only doing X in the if/else because RTL
       // flips horizontally.
-      maxX += padding
+      maxX += scrollPadding
       minX = Math.min(minX - padding, maxX - this.rect.width)
     } else {
       minX -= padding
       // If the maxX + padding will make the scroll width shorter than the
       // viewable width, then use the viewable width instead as the scroll width.
-      maxX = Math.max(maxX + padding, minX + this.rect.width)
+      maxX = Math.max(maxX + scrollPadding, minX + this.rect.width)
     }
     this._scrollBounds = { minX, minY, maxX, maxY }
     this.trigger('scroll-bounds', this._scrollBounds)
@@ -504,6 +504,7 @@ class ScriptsWorkspace extends Workspace {
   }
 }
 
-ScriptsWorkspace.scrollPadding = 10
+ScriptsWorkspace.padding = 10
+ScriptsWorkspace.scrollPadding = 25
 
 export { Workspace, ScriptsWorkspace }
