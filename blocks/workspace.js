@@ -120,8 +120,14 @@ class Workspace extends Newsletter {
       } else if (snapTo.insertBefore) {
         const index = snapTo.in.components.indexOf(snapTo.insertBefore)
         if (wrappingC) {
-          const firstLoop = script.components[0].components
+          const firstBranch = script.components[0].components
             .find(component => component instanceof Stack)
+          return {
+            indices: snapTo.insertBefore.getIndices(),
+            dx: snapTo.beforeScript ? -firstBranch.position.x : 0,
+            dy: snapTo.beforeScript ? -firstBranch.position.y : 0,
+            branchAround: script.components[0].getParamID(firstBranch)
+          }
           const blocksInserted = script.components.length
           while (script.components.length) {
             const component = script.components[script.components.length - 1]

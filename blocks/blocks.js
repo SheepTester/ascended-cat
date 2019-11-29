@@ -426,12 +426,22 @@ class Blocks extends Newsletter {
         // it and its younger siblings will be deported. Not all though if this
         // is a reverse of block stack insertion.
         const parent = component.parent
-        const {dx = 0, dy = 0} = data
-        const {x, y} = component.parent.position
+        const { dx = 0, dy = 0 } = data
+        const { x, y } = parent.position
         // Subtraction because this is actually the inverse of the normal operation
         // which is done in the shove step.
-        component.parent.setPosition(x - dx, y - dy)
-        const index = indices[indices.length - 1]
+        parent.setPosition(x - dx, y - dy)
+        let index = indices[indices.length - 1]
+        if (data.branchAround) {
+          const branch = component.getParamComponent(data.branchAround)
+          while (branch.components[0]) {
+            const component = branch.components[0]
+            branch.remove(component)
+            parent.add(component, index)
+            index++
+          }
+          branch.resize()
+        }
         let blocks = 0
         while (blocks < blockCount) {
           const component = parent.components[index]
@@ -505,15 +515,23 @@ class Blocks extends Newsletter {
         }
       } else {
         // Shift target script
-        const {dx = 0, dy = 0} = data
-        const {x, y} = parent.position
+        const { dx = 0, dy = 0 } = data
+        const { x, y } = parent.position
         parent.setPosition(x + dx, y + dy)
+        const firstBlock = script.components[0]
         let index = indices[indices.length - 1]
         while (script.components.length) {
           const block = script.components[0]
           script.remove(block)
           parent.add(block, index)
           index++
+        }
+        if (data.branchAround) {
+          const branch = firstBlock.getParamComponent(data.branchAround)
+          while (parent.components[index]) {
+            branch.add(parent.components[index])
+          }
+          branch.resize()
         }
         parent.resize()
       }
