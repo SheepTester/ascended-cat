@@ -176,19 +176,36 @@ class Component extends GenericComponent {
    * saving its new size.
    */
   async resize (force = false, repositionParents = true) {
+    if (this._resizing) {
+      // Abort an ongoing resizing attempt.
+      this._resizing()
+    }
+    let aborted = false
+    const abort = new Promise(resolve => {
+      // Allow later resize calls to abort earlier ones in progress.
+      this._resizing = resolve
+    }).then(() => (aborted = true))
     await Promise.all(this.components.map(component => {
       if (!component.measurements || force) {
         return component.resize(force, false)
       }
     }))
-    this.reposition()
-    if (repositionParents) {
-      let parent = this.parent
-      while (parent) {
-        parent.reposition()
-        parent = parent.parent
+    if (!aborted) {
+      for (const component of this.components) {
+        if (!component.measurements) {
+          throw new Error('wucky: A component did not do its job of measuring itself!')
+        }
+      }
+      this.reposition()
+      if (repositionParents) {
+        let parent = this.parent
+        while (parent) {
+          parent.reposition()
+          parent = parent.parent
+        }
       }
     }
+    this._resizing = false
   }
 
   storeAllInputsIn (arr) {

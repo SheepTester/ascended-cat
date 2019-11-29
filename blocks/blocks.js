@@ -166,7 +166,8 @@ class Blocks extends Newsletter {
       document.body.classList.add('block-dragging-blocks')
     }
     this._dragging++
-    const script = this.grabTarget(target, Infinity)
+    // If the first block is a reporter, then only pull out one block.
+    const script = this.grabTarget(target, type === BlockType.COMMAND ? Infinity : 1)
     script.setPosition(scriptX, scriptY)
     this._dragSvg.appendChild(script.elem)
     const dx = initMouseX - scriptX
@@ -379,8 +380,8 @@ class Blocks extends Newsletter {
         if (!undoEntry.b) {
           undoEntry.b = script.toJSON().blocks
         }
-        this.shoveTarget(undoEntry.b, script)
-        this.addUndoEntry(undoEntry)
+        const extraSteps = this.shoveTarget(undoEntry.b, script)
+        this.addUndoEntry(extraSteps ? [...extraSteps, undoEntry] : undoEntry)
       }
     }
   }
@@ -496,6 +497,7 @@ class Blocks extends Newsletter {
         }
       }
       if (component instanceof Input) {
+        let undoEntry
         const oldValue = component.getValue()
         if (oldValue instanceof Block) {
           // TODO: another undo entry for popping out a block??
@@ -503,21 +505,30 @@ class Blocks extends Newsletter {
           // in the middle. (That is not done here)
           const offset = Input.renderOptions.popOutOffset
           const { x, y } = oldValue.getWorkspaceOffset()
-          component.insertBlock(null)
-          const script = this.createScript()
-          script.setPosition(x + offset, y + offset)
-          script.add(oldValue)
-          workspace.add(script)
-          script.resize()
+          undoEntry = {
+            type: 'transfer',
+            a: {
+              indices: oldValue.getIndices()
+            },
+            b: {
+              workspace,
+              index: workspace.scripts.length,
+              x: x + offset,
+              y: y + offset
+            }
+          }
+          // This is a separate step, but it shall be grouped with this step.
+          this._executeEntry(undoEntry)
         }
         component.insertBlock(script.components[0])
         component.resize()
         // Destroy the rest of the blocks in case the reporter
-        // had blocks connected to it.
-        // TODO: another undo entry for this as well? and how?
+        // had blocks connected to it. This is not undoable because this
+        // is not intended to happen.
         if (script.components.length) {
           script.destroy()
         }
+        return [undoEntry]
       } else {
         // Shift target script
         const { dx = 0, dy = 0 } = data
@@ -555,15 +566,28 @@ class Blocks extends Newsletter {
     this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
   }
 
-  undo () {
-    const entry = this.undoHistory.pop()
+  _executeEntry (entry, flip = false) {
+    const a = flip ? entry.b : entry.a
+    const b = flip ? entry.a : entry.b
     switch (entry.type) {
       case 'transfer': {
-        this.shoveTarget(entry.a, this.grabTarget(entry.b, entry.blocks))
+        this.shoveTarget(b, this.grabTarget(a, entry.blocks))
         break
       }
       default:
         throw new Error(`hwat is this ${entry.type} undo entry??`)
+    }
+  }
+
+  undo () {
+    const entry = this.undoHistory.pop()
+    if (Array.isArray(entry)) {
+      // Loop backwards in a group of steps for undo
+      for (let i = entry.length; i--;) {
+        this._executeEntry(entry[i], true)
+      }
+    } else {
+      this._executeEntry(entry, true)
     }
     this.redoHistory.push(entry)
     this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
@@ -571,13 +595,12 @@ class Blocks extends Newsletter {
 
   redo () {
     const entry = this.redoHistory.pop()
-    switch (entry.type) {
-      case 'transfer': {
-        this.shoveTarget(entry.b, this.grabTarget(entry.a, entry.blocks))
-        break
+    if (Array.isArray(entry)) {
+      for (const step of entry) {
+        this._executeEntry(step, false)
       }
-      default:
-        throw new Error(`hwat is this ${entry.type} redo entry??`)
+    } else {
+      this._executeEntry(entry, false)
     }
     this.undoHistory.push(entry)
     this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
