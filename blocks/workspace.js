@@ -118,7 +118,6 @@ class Workspace extends Newsletter {
       if (snapTo instanceof Input) {
         return { indices: Block.getIndices(snapTo) }
       } else if (snapTo.insertBefore) {
-        const index = snapTo.in.components.indexOf(snapTo.insertBefore)
         if (wrappingC) {
           const firstBranch = script.components[0].components
             .find(component => component instanceof Stack)
@@ -129,24 +128,6 @@ class Workspace extends Newsletter {
             // Referencing by param ID in case the language changes
             branchAround: script.components[0].getParamID(firstBranch)
           }
-          const blocksInserted = script.components.length
-          while (script.components.length) {
-            const component = script.components[script.components.length - 1]
-            script.remove(component)
-            snapTo.in.add(component, index)
-          }
-          while (snapTo.in.components[blocksInserted + index]) {
-            const component = snapTo.in.components[blocksInserted + index]
-            snapTo.in.remove(component)
-            firstLoop.add(component)
-          }
-          if (snapTo.beforeScript) {
-            snapTo.in.setPosition(
-              snapTo.in.position.x - firstLoop.position.x,
-              snapTo.in.position.y - firstLoop.position.y
-            )
-          }
-          return firstLoop.resize()
         } else {
           return {
             indices: snapTo.insertBefore.getIndices(),
@@ -154,10 +135,12 @@ class Workspace extends Newsletter {
           }
         }
       } else if (snapTo.after) {
-        return { indices: [
-          ...Block.getIndices(snapTo.in),
-          snapTo.in.components.length
-        ] }
+        return {
+          indices: [
+            ...Block.getIndices(snapTo.in),
+            snapTo.in.components.length
+          ]
+        }
       }
     } else {
       return {

@@ -180,11 +180,9 @@ class Component extends GenericComponent {
       // Abort an ongoing resizing attempt.
       this._resizing()
     }
+    // Allow later resize calls to abort earlier ones in progress.
     let aborted = false
-    const abort = new Promise(resolve => {
-      // Allow later resize calls to abort earlier ones in progress.
-      this._resizing = resolve
-    }).then(() => (aborted = true))
+    this._resizing = () => (aborted = true)
     await Promise.all(this.components.map(component => {
       if (!component.measurements || force) {
         return component.resize(force, false)
