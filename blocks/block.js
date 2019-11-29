@@ -126,6 +126,10 @@ class Block extends Component {
     return params
   }
 
+  getParamComponent (paramID) {
+    return this._params[paramID]
+  }
+
   getParamID (component) {
     for (const [paramID, input] of Object.entries(this._params)) {
       if (input === component) {
@@ -323,13 +327,13 @@ class Block extends Component {
         }
       }
     }
-    // script.setPosition(workspaceX + x - left, workspaceY + y - top)
     return this.blocks.dragBlocks({
       target,
-      dx: initMouseX - script.position.x,
-      dy: initMouseY - script.position.y,
-      type: this.blockData.blockType,
-      onReady: script.resize()
+      initMouseX,
+      initMouseY,
+      scriptX: workspaceX + x - left,
+      scriptY: workspaceY + y - top,
+      type: this.blockData.blockType
     })
   }
 

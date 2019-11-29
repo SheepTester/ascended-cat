@@ -158,12 +158,17 @@ class Blocks extends Newsletter {
     return 'Have a nice day!'
   }
 
-  dragBlocks ({ script, dx, dy, type, onReady, undoEntry }) {
+  dragBlocks ({ target, initMouseX, initMouseY, scriptX, scriptY, type }) {
     if (!this._dragging) {
       document.body.classList.add('block-dragging-blocks')
     }
     this._dragging++
+    const script = this.grabTarget(target, Infinity)
+    script.setPosition(scriptX, scriptY)
     this._dragSvg.appendChild(script.elem)
+    const dx = initMouseX - scriptX
+    const dy = initMouseY - scriptY
+    const undoEntry = { type: 'transfer', a: target, blocks: script.components.length }
     let possibleDropTarget
     let connections = []
     let snapPoints
@@ -173,7 +178,7 @@ class Blocks extends Newsletter {
     const snapMarker = Elem('path', { class: 'block-snap-marker' }, [], true)
     const { notchLeft, notchTotalWidth, notchToLeft, notchToRight } = Block.renderOptions
     let normalInsertPath
-    onReady.then(() => {
+    script.resize().then(() => {
       const dir = this._dir === 'rtl' ? -1 : 1
       const { notchX, branchWidth } = Block.renderOptions
       if (type === BlockType.COMMAND) {
@@ -386,14 +391,24 @@ class Blocks extends Newsletter {
   grabTarget (data, blockCount = 0) {
     if (Array.isArray(data)) {
       // Is an array of block JSONs (implying it is a concept to be realized)
-      return this.createScript(data)
+      return this.scriptFromJSON({ x: 0, y: 0, blocks: data })
     } else if (data.indices) {
       // Probably means the block was dragged out from a script such that the
       // old script still remains.
-      const [workspace, script, ...indices] = data.indices
-      let component = workspace.scripts[script]
+      const [workspace, scriptIndex, ...indices] = data.indices
+      let component = workspace.scripts[scriptIndex]
       for (const index of indices) {
-        component = component[index]
+        if (component instanceof Input) {
+          component = component.getValue()
+          if (!(component instanceof Block)) {
+            throw new Error('hwat. The indices point to an input that does not hold a block.')
+          }
+        }
+        if (typeof index === 'number') {
+          component = component.components[index]
+        } else {
+          component = component.getParamComponent(index)
+        }
       }
       const script = this.createScript()
       if (component instanceof Input) {
@@ -414,6 +429,7 @@ class Blocks extends Newsletter {
         let blocks = 0
         while (blocks < blockCount) {
           const component = parent.components[index]
+          if (!component) break
           parent.remove(component)
           script.add(component)
           blocks++
@@ -442,7 +458,17 @@ class Blocks extends Newsletter {
       const [workspace, script, ...indices] = data.indices
       let component = workspace.scripts[script]
       for (const index of indices) {
-        component = component[index]
+        if (component instanceof Input) {
+          component = component.getValue()
+          if (!(component instanceof Block)) {
+            throw new Error('hwat. The indices point to an input that does not hold a block.')
+          }
+        }
+        if (typeof index === 'number') {
+          component = component.components[index]
+        } else {
+          component = component.getParamComponent(index)
+        }
       }
       if (component instanceof Input) {
         const oldValue = component.getValue()
@@ -510,11 +536,7 @@ class Blocks extends Newsletter {
   }
 
   createScript (initBlocks) {
-    const script = new Script(this, initBlocks.blocks || initBlocks)
-    if (initBlocks.blocks) {
-      script.setPosition(initBlocks.x, initBlocks.y)
-    }
-    return script
+    return new Script(this, initBlocks)
   }
 
   createBlock (initBlock, initParams) {
