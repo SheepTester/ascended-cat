@@ -22,6 +22,9 @@ class Blocks extends Newsletter {
       this.addCategory(category)
     }
 
+    this.undoHistory = []
+    this.redoHistory = []
+
     this.clickListeners = {}
     this.dragListeners = {}
     this.dropListeners = {}
@@ -377,7 +380,7 @@ class Blocks extends Newsletter {
           undoEntry.b = script.toJSON().blocks
         }
         this.shoveTarget(undoEntry.b, script)
-        console.log(undoEntry)
+        this.addUndoEntry(undoEntry)
       }
     }
   }
@@ -392,7 +395,9 @@ class Blocks extends Newsletter {
   grabTarget (data, blockCount = 0) {
     if (Array.isArray(data)) {
       // Is an array of block JSONs (implying it is a concept to be realized)
-      return this.scriptFromJSON({ x: 0, y: 0, blocks: data })
+      const script = this.scriptFromJSON({ x: 0, y: 0, blocks: data })
+      script.resize()
+      return script
     } else if (data.indices) {
       // Probably means the block was dragged out from a script such that the
       // old script still remains.
@@ -526,14 +531,15 @@ class Blocks extends Newsletter {
           parent.add(block, index)
           index++
         }
+        const prom = Promise.resolve().then(() => parent.resize())
         if (data.branchAround) {
           const branch = firstBlock.getParamComponent(data.branchAround)
           while (parent.components[index]) {
             branch.add(parent.components[index])
           }
-          branch.resize()
+          // Ensure that the parent's other children are measured first
+          prom.then(() => branch.resize())
         }
-        parent.resize()
       }
     } else if (data.workspace) {
       script.setPosition(data.x, data.y)
@@ -541,6 +547,40 @@ class Blocks extends Newsletter {
     } else {
       throw new Error('wucky: Given `data` no make sense!')
     }
+  }
+
+  addUndoEntry (entry) {
+    this.redoHistory = []
+    this.undoHistory.push(entry)
+    this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
+  }
+
+  undo () {
+    const entry = this.undoHistory.pop()
+    switch (entry.type) {
+      case 'transfer': {
+        this.shoveTarget(entry.a, this.grabTarget(entry.b, entry.blocks))
+        break
+      }
+      default:
+        throw new Error(`hwat is this ${entry.type} undo entry??`)
+    }
+    this.redoHistory.push(entry)
+    this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
+  }
+
+  redo () {
+    const entry = this.redoHistory.pop()
+    switch (entry.type) {
+      case 'transfer': {
+        this.shoveTarget(entry.b, this.grabTarget(entry.a, entry.blocks))
+        break
+      }
+      default:
+        throw new Error(`hwat is this ${entry.type} redo entry??`)
+    }
+    this.undoHistory.push(entry)
+    this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
   }
 
   updateRects () {

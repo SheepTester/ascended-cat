@@ -126,6 +126,7 @@ class Workspace extends Newsletter {
             indices: snapTo.insertBefore.getIndices(),
             dx: snapTo.beforeScript ? -firstBranch.position.x : 0,
             dy: snapTo.beforeScript ? -firstBranch.position.y : 0,
+            // Referencing by param ID in case the language changes
             branchAround: script.components[0].getParamID(firstBranch)
           }
           const blocksInserted = script.components.length

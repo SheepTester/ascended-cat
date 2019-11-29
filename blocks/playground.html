@@ -150,7 +150,8 @@
       <button id="toggle-dir">Toggle dir</button><br>
       <button id="toggle-fat">Toggle fatness</button><br>
       <button id="sprinkles">Sprinkles!</button><br>
-      <button id="spaghetti">Spaghetti!</button>
+      <button id="spaghetti">Spaghetti!</button><br>
+      <button id="undo" disabled>Undo</button><button id="redo" disabled>Redo</button>
     </div>
     <div class="palette-wrapper">
       <div id="categories"></div>
@@ -545,6 +546,19 @@ document.getElementById('toggle-fat').addEventListener('click', e => {
     }
   }
   blocks.resizeAll()
+})
+
+const undoBtn = document.getElementById('undo')
+const redoBtn = document.getElementById('redo')
+undoBtn.addEventListener('click', e => {
+  blocks.undo()
+})
+redoBtn.addEventListener('click', e => {
+  blocks.redo()
+})
+blocks.on('undo-redo-available', (undo, redo) => {
+  undoBtn.disabled = !undo
+  redoBtn.disabled = !redo
 })
 
 // Based on scratch-blocks:
