@@ -528,7 +528,7 @@ class Blocks extends Newsletter {
         if (script.components.length) {
           script.destroy()
         }
-        return [undoEntry]
+        return undoEntry && [undoEntry]
       } else {
         // Shift target script
         const { dx = 0, dy = 0 } = data
