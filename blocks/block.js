@@ -288,21 +288,7 @@ class Block extends Component {
   }
 
   getIndices () {
-    const indices = []
-    let component = this
-    while (component.parent) {
-      if (component.parent instanceof Block) {
-        indices.unshift(component.parent.getParamID(component))
-      } else if (!(component.parent instanceof Input)) {
-        indices.unshift(component.parent.components.indexOf(component))
-      }
-      component = component.parent
-    }
-    if (component.workspace) {
-      indices.unshift(component.workspace.scripts.indexOf(component))
-      indices.unshift(component.workspace)
-    }
-    return indices
+    return Block.getIndices(this)
   }
 
   _onDrag (initMouseX, initMouseY) {
@@ -316,10 +302,11 @@ class Block extends Component {
     } else {
       if (this.parent instanceof Script && this.parent.components[0] === this) {
         // Dragging the entire script, effectively
+        const script = this.parent
         target = {
-          workspace: this.parent,
-          index: this.parent.components.indexOf(this),
-          ...this.parent.position
+          workspace,
+          index: workspace.scripts.indexOf(script),
+          ...script.position
         }
       } else {
         target = {
@@ -385,6 +372,23 @@ class Block extends Component {
       opcode: this.blockOpcode,
       params
     }
+  }
+
+  static getIndices (component) {
+    const indices = []
+    while (component.parent) {
+      if (component.parent instanceof Block) {
+        indices.unshift(component.parent.getParamID(component))
+      } else if (!(component.parent instanceof Input)) {
+        indices.unshift(component.parent.components.indexOf(component))
+      }
+      component = component.parent
+    }
+    if (component.workspace) {
+      indices.unshift(component.workspace.scripts.indexOf(component))
+      indices.unshift(component.workspace)
+    }
+    return indices
   }
 }
 

@@ -364,7 +364,7 @@ class Blocks extends Newsletter {
         this._dragSvg.removeChild(script.elem)
         if (possibleDropTarget && possibleDropTarget.acceptDrop) {
           const { x, y } = script.position
-          possibleDropTarget.acceptDrop(
+          undoEntry.b = possibleDropTarget.acceptDrop(
             script,
             x,
             y,
@@ -372,10 +372,11 @@ class Blocks extends Newsletter {
             wrappingC,
             undoEntry
           )
-        } else {
-          undoEntry.b = script.toJSON().blocks
-          script.destroy()
         }
+        if (!undoEntry.b) {
+          undoEntry.b = script.toJSON().blocks
+        }
+        this.shoveTarget(undoEntry.b, script)
         console.log(undoEntry)
       }
     }
@@ -425,6 +426,11 @@ class Blocks extends Newsletter {
         // it and its younger siblings will be deported. Not all though if this
         // is a reverse of block stack insertion.
         const parent = component.parent
+        const {dx = 0, dy = 0} = data
+        const {x, y} = component.parent.position
+        // Subtraction because this is actually the inverse of the normal operation
+        // which is done in the shove step.
+        component.parent.setPosition(x - dx, y - dy)
         const index = indices[indices.length - 1]
         let blocks = 0
         while (blocks < blockCount) {
@@ -453,11 +459,15 @@ class Blocks extends Newsletter {
    */
   shoveTarget (data, script) {
     if (Array.isArray(data)) {
-      script.destroy()
+      if (script.elem) {
+        script.destroy()
+      }
     } else if (data.indices) {
-      const [workspace, script, ...indices] = data.indices
-      let component = workspace.scripts[script]
+      const [workspace, scriptIndex, ...indices] = data.indices
+      let parent = workspace
+      let component = workspace.scripts[scriptIndex]
       for (const index of indices) {
+        parent = component
         if (component instanceof Input) {
           component = component.getValue()
           if (!(component instanceof Block)) {
@@ -485,7 +495,6 @@ class Blocks extends Newsletter {
           workspace.add(script)
           script.resize()
         }
-        script.remove(script.components[0])
         component.insertBlock(script.components[0])
         component.resize()
         // Destroy the rest of the blocks in case the reporter
@@ -495,7 +504,10 @@ class Blocks extends Newsletter {
           script.destroy()
         }
       } else {
-        const parent = component.parent
+        // Shift target script
+        const {dx = 0, dy = 0} = data
+        const {x, y} = parent.position
+        parent.setPosition(x + dx, y + dy)
         let index = indices[indices.length - 1]
         while (script.components.length) {
           const block = script.components[0]

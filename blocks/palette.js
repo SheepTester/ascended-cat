@@ -221,7 +221,7 @@ class PaletteWorkspace extends ScriptsWorkspace {
   }
 
   acceptDrop (script, x, y) {
-    script.destroy()
+    return script.toJSON().blocks
   }
 
   getStackBlockConnections () {

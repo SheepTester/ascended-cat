@@ -64,6 +64,16 @@ class GenericComponent extends Newsletter {
     }
     return parent.workspace
   }
+
+  destroy () {
+    if (this.parent) {
+      throw new Error('Component cannot be destroyed in plain sight.')
+    }
+    this.elem = null
+    this.destroy = () => {
+      console.warn('I am being destroyed TWICE!')
+    }
+  }
 }
 
 class TextComponent extends GenericComponent {
@@ -106,13 +116,6 @@ class TextComponent extends GenericComponent {
         resolve(this.measurements)
       })
     })
-  }
-
-  destroy () {
-    if (this.parent) {
-      throw new Error('Component cannot be destroyed in plain sight.')
-    }
-    this.elem = null
   }
 }
 
@@ -198,15 +201,12 @@ class Component extends GenericComponent {
    * This is not suicide; this is the obliteration of the SELF.
    */
   destroy () {
-    if (this.parent) {
-      throw new Error('Component cannot be destroyed in plain sight.')
-    }
     while (this.components[0]) {
       const component = this.components[0]
       this.remove(component)
       component.destroy()
     }
-    this.elem = null
+    super.destroy()
   }
 }
 
