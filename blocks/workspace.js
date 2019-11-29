@@ -113,7 +113,7 @@ class Workspace extends Newsletter {
     })
   }
 
-  acceptDrop (script, x, y, snapTo, wrappingC) {
+  acceptDrop (script, x, y, snapTo, wrappingC, undoEntry) {
     if (snapTo) {
       if (snapTo instanceof Input) {
         const oldValue = snapTo.getValue()
@@ -129,9 +129,13 @@ class Workspace extends Newsletter {
           this.add(script)
         }
         snapTo.insertBlock(script.components[0])
+        undoEntry.b = { indices: snapTo.getValue().getIndices() }
         // Destroy the rest of the blocks in case the reporter
-        // had blocks connected to it.
-        script.destroy()
+        // had blocks connected to it. (It otherwise autodestroys itself
+        // when all its children are taken away.)
+        if (script.components.length) {
+          script.destroy()
+        }
         return snapTo.resize()
       } else if (snapTo.insertBefore) {
         const index = snapTo.in.components.indexOf(snapTo.insertBefore)
@@ -189,6 +193,11 @@ class Workspace extends Newsletter {
         x - this.rect.x + this._transform.left,
         y - this.rect.y + this._transform.top
       )
+      undoEntry.b = {
+        workspace: this,
+        index: this.scripts.indexOf(script),
+        ...scripts.position
+      }
       return Promise.resolve()
     }
   }
@@ -214,13 +223,20 @@ class Workspace extends Newsletter {
     return this._input
   }
 
-  add (script) {
+  add (script, beforeIndex = this.scripts.length) {
     if (!(script instanceof Stack)) {
       throw new Error('wucky: Workspaces are picky and only want Stacks.')
     }
+    if (script.workspace) {
+      script.removeFromWorkspace()
+    }
+    if (beforeIndex < this.scripts.length) {
+      this.scriptsElem.insertBefore(script.elem, this.scripts[beforeIndex].elem)
+    } else {
+      this.scriptsElem.appendChild(script.elem)
+    }
+    this.scripts.splice(beforeIndex, 0, script)
     script.workspace = this
-    this.scripts.push(script)
-    this.scriptsElem.appendChild(script.elem)
     return script
   }
 
@@ -442,8 +458,8 @@ class ScriptsWorkspace extends Workspace {
     this.trigger('scroll-bounds', this._scrollBounds)
   }
 
-  add (script) {
-    super.add(script)
+  add (script, beforeIndex) {
+    super.add(script, beforeIndex)
     this._scrollBounds = null
     this.updateScroll()
     const onWorkspaceRemove = () => {

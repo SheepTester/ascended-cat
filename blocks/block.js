@@ -3,7 +3,7 @@ import { Elem } from '../utils/elem.js'
 import { Component, TextComponent } from './component.js'
 import { BlockType, ArgumentType, NullCategory } from './constants.js'
 import { Input, StringInput, NumberInput, AngleInput, BooleanInput } from './input.js'
-import { Stack } from './scripts.js'
+import { Stack, Script } from './scripts.js'
 
 class Block extends Component {
   constructor (blocks, initBlock, initParams = {}) {
@@ -124,6 +124,15 @@ class Block extends Component {
       }
     }
     return params
+  }
+
+  getParamID (component) {
+    for (const [paramID, input] of Object.entries(this._params)) {
+      if (input === component) {
+        return paramID
+      }
+    }
+    return null
   }
 
   reposition () {
@@ -274,36 +283,49 @@ class Block extends Component {
     this.trigger('reposition', this.measurements)
   }
 
+  getIndices () {
+    const indices = []
+    let component = this
+    while (component.parent) {
+      if (component.parent instanceof Block) {
+        indices.unshift(component.parent.getParamID(component))
+      } else if (!(component.parent instanceof Input)) {
+        indices.unshift(component.parent.components.indexOf(component))
+      }
+      component = component.parent
+    }
+    if (component.workspace) {
+      indices.unshift(component.workspace.scripts.indexOf(component))
+      indices.unshift(component.workspace)
+    }
+    return indices
+  }
+
   _onDrag (initMouseX, initMouseY) {
     const workspace = this.getWorkspace()
     const { x, y } = this.getWorkspaceOffset()
     const { x: workspaceX, y: workspaceY } = workspace.rect
     const { left, top } = workspace.transform
-    const script = this.blocks.createScript()
+    let target
     if (this.cloneOnDrag) {
-      script.add(this.clone())
+      target = [this.toJSON()]
     } else {
-      const oldParent = this.parent
-      if (oldParent instanceof Input) {
-        oldParent.insertBlock(null)
-        script.add(this)
+      if (this.parent instanceof Script && this.parent.components[0] === this) {
+        // Dragging the entire script, effectively
+        target = {
+          workspace: this.parent,
+          index: this.parent.components.indexOf(this),
+          ...this.parent.position
+        }
       } else {
-        const index = oldParent.components.indexOf(this)
-        if (~index) {
-          let component
-          while ((component = oldParent.components[index])) {
-            oldParent.remove(component)
-            script.add(component)
-          }
-        } else {
-          return
+        target = {
+          indices: this.getIndices()
         }
       }
-      oldParent.resize()
     }
-    script.setPosition(workspaceX + x - left, workspaceY + y - top)
+    // script.setPosition(workspaceX + x - left, workspaceY + y - top)
     return this.blocks.dragBlocks({
-      script,
+      target,
       dx: initMouseX - script.position.x,
       dy: initMouseY - script.position.y,
       type: this.blockData.blockType,

@@ -158,7 +158,7 @@ class Blocks extends Newsletter {
     return 'Have a nice day!'
   }
 
-  dragBlocks ({ script, dx, dy, type, onReady }) {
+  dragBlocks ({ script, dx, dy, type, onReady, undoEntry }) {
     if (!this._dragging) {
       document.body.classList.add('block-dragging-blocks')
     }
@@ -364,12 +364,126 @@ class Blocks extends Newsletter {
             x,
             y,
             snapTo,
-            wrappingC
+            wrappingC,
+            undoEntry
           )
         } else {
+          undoEntry.b = script.toJSON().blocks
           script.destroy()
         }
+        console.log(undoEntry)
       }
+    }
+  }
+
+  /**
+   * This gets the target from the given data, displacing it from its original
+   * home if necessary.
+   * @param {number} blockCount - Maximum number of blocks to take (for
+   *   taking from within a stack - required)
+   * @returns {Script}
+   */
+  grabTarget (data, blockCount = 0) {
+    if (Array.isArray(data)) {
+      // Is an array of block JSONs (implying it is a concept to be realized)
+      return this.createScript(data)
+    } else if (data.indices) {
+      // Probably means the block was dragged out from a script such that the
+      // old script still remains.
+      const [workspace, script, ...indices] = data.indices
+      let component = workspace.scripts[script]
+      for (const index of indices) {
+        component = component[index]
+      }
+      const script = this.createScript()
+      if (component instanceof Input) {
+        const block = component.getValue()
+        if (!(block instanceof Block)) {
+          throw new Error('hwat. Indices point to an input that does not hold a block.')
+        }
+        component.insertBlock(null)
+        component.resize()
+        script.add(block)
+        return script
+      } else {
+        // `component` now is the block that is clicked on to drag out, so
+        // it and its younger siblings will be deported. Not all though if this
+        // is a reverse of block stack insertion.
+        const parent = component.parent
+        const index = indices[indices.length - 1]
+        let blocks = 0
+        while (blocks < blockCount) {
+          const component = parent.components[index]
+          parent.remove(component)
+          script.add(component)
+          blocks++
+        }
+        parent.resize()
+        return script
+      }
+    } else if (data.workspace) {
+      // An entire script in a workspace
+      const script = data.workspace.scripts[data.index]
+      script.removeFromWorkspace()
+      // Should we store x/y position here? Nah
+      return script
+    } else {
+      throw new Error('wucky: Given `data` no make sense!')
+    }
+  }
+
+  /**
+   * Intended to be the reverse of whatever is done in `grabTarget`
+   */
+  shoveTarget (data, script) {
+    if (Array.isArray(data)) {
+      script.destroy()
+    } else if (data.indices) {
+      const [workspace, script, ...indices] = data.indices
+      let component = workspace.scripts[script]
+      for (const index of indices) {
+        component = component[index]
+      }
+      if (component instanceof Input) {
+        const oldValue = component.getValue()
+        if (oldValue instanceof Block) {
+          // TODO: another undo entry for popping out a block??
+          // NOTE: Scratch puts it on the right of the script, vertically
+          // in the middle. (That is not done here)
+          const offset = Input.renderOptions.popOutOffset
+          const { x, y } = oldValue.getWorkspaceOffset()
+          component.insertBlock(null)
+          const script = this.createScript()
+          script.setPosition(x + offset, y + offset)
+          script.add(oldValue)
+          workspace.add(script)
+          script.resize()
+        }
+        script.remove(script.components[0])
+        component.insertBlock(script.components[0])
+        component.resize()
+        // Destroy the rest of the blocks in case the reporter
+        // had blocks connected to it.
+        // TODO: another undo entry for this as well? and how?
+        if (script.components.length) {
+          script.destroy()
+        }
+      } else {
+        const parent = component.parent
+        let index = indices[indices.length - 1]
+        while (script.components.length) {
+          const block = script.components[0]
+          script.remove(block)
+          parent.add(block, index)
+          index++
+        }
+        parent.resize()
+      }
+    } else if (data.workspace) {
+      script.setPosition(data.x, data.y)
+      data.workspace.add(script, data.index)
+    } else {
+      throw new Error('wucky: Given `data` no make sense!')
     }
   }
 
@@ -396,7 +510,11 @@ class Blocks extends Newsletter {
   }
 
   createScript (initBlocks) {
-    return new Script(this, initBlocks)
+    const script = new Script(this, initBlocks.blocks || initBlocks)
+    if (initBlocks.blocks) {
+      script.setPosition(initBlocks.x, initBlocks.y)
+    }
+    return script
   }
 
   createBlock (initBlock, initParams) {
