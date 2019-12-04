@@ -10,6 +10,27 @@ import { Block } from './block.js'
 import { Space, getIndicesOf } from './component.js'
 import { Input } from './input.js'
 
+function getComponentFromIndices (indicesArray) {
+  const [workspace, scriptIndex, ...indices] = indicesArray
+  let parent = workspace
+  let component = workspace.scripts[scriptIndex]
+  for (const index of indices) {
+    parent = component
+    if (component instanceof Input) {
+      component = component.getValue()
+      if (!(component instanceof Block)) {
+        throw new Error('hwat. The indices point to an input that does not hold a block.')
+      }
+    }
+    if (typeof index === 'number') {
+      component = component.components[index]
+    } else {
+      component = component.getParamComponent(index)
+    }
+  }
+  return { parent, component }
+}
+
 class Blocks extends Newsletter {
   constructor (initCategories) {
     super()
@@ -403,21 +424,7 @@ class Blocks extends Newsletter {
     } else if (data.indices) {
       // Probably means the block was dragged out from a script such that the
       // old script still remains.
-      const [workspace, scriptIndex, ...indices] = data.indices
-      let component = workspace.scripts[scriptIndex]
-      for (const index of indices) {
-        if (component instanceof Input) {
-          component = component.getValue()
-          if (!(component instanceof Block)) {
-            throw new Error('hwat. The indices point to an input that does not hold a block.')
-          }
-        }
-        if (typeof index === 'number') {
-          component = component.components[index]
-        } else {
-          component = component.getParamComponent(index)
-        }
-      }
+      const { component } = getComponentFromIndices(data.indices)
       const script = this.createScript()
       if (component instanceof Input) {
         const block = component.getValue()
@@ -482,23 +489,7 @@ class Blocks extends Newsletter {
     if (Array.isArray(data)) {
       script.destroy()
     } else if (data.indices) {
-      const [workspace, scriptIndex, ...indices] = data.indices
-      let parent = workspace
-      let component = workspace.scripts[scriptIndex]
-      for (const index of indices) {
-        parent = component
-        if (component instanceof Input) {
-          component = component.getValue()
-          if (!(component instanceof Block)) {
-            throw new Error('hwat. The indices point to an input that does not hold a block.')
-          }
-        }
-        if (typeof index === 'number') {
-          component = component.components[index]
-        } else {
-          component = component.getParamComponent(index)
-        }
-      }
+      const { parent, component } = getComponentFromIndices(data.indices)
       if (component instanceof Input) {
         let undoEntry
         const oldValue = component.getValue()
