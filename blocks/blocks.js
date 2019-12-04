@@ -28,7 +28,11 @@ function getComponentFromIndices (indicesArray) {
       component = component.getParamComponent(index)
     }
   }
-  return { parent, component }
+  return {
+    parent,
+    component,
+    index: indices[indices.length - 1]
+  }
 }
 
 class Blocks extends Newsletter {
@@ -424,7 +428,7 @@ class Blocks extends Newsletter {
     } else if (data.indices) {
       // Probably means the block was dragged out from a script such that the
       // old script still remains.
-      const { component } = getComponentFromIndices(data.indices)
+      const { component, index } = getComponentFromIndices(data.indices)
       const script = this.createScript()
       if (component instanceof Input) {
         const block = component.getValue()
@@ -445,7 +449,7 @@ class Blocks extends Newsletter {
         // Subtraction because this is actually the inverse of the normal operation
         // which is done in the shove step.
         parent.setPosition(x - dx, y - dy)
-        let index = indices[indices.length - 1]
+        let i = 0
         if (data.branchAround) {
           const branch = component.getParamComponent(data.branchAround)
           // Move branch contents outside right above the branch
@@ -453,8 +457,8 @@ class Blocks extends Newsletter {
           while (branch.components[0]) {
             const component = branch.components[0]
             branch.remove(component)
-            parent.add(component, index)
-            index++
+            parent.add(component, index + i)
+            i++
           }
           branch.resize()
         }
@@ -463,7 +467,7 @@ class Blocks extends Newsletter {
         // Takes all the blocks after that point or only the given number
         // of blocks (`blockCount`).
         while (blocks < blockCount) {
-          const component = parent.components[index]
+          const component = parent.components[index + i]
           if (!component) break
           parent.remove(component)
           script.add(component)
@@ -489,7 +493,7 @@ class Blocks extends Newsletter {
     if (Array.isArray(data)) {
       script.destroy()
     } else if (data.indices) {
-      const { parent, component } = getComponentFromIndices(data.indices)
+      const { parent, component, index} = getComponentFromIndices(data.indices)
       if (component instanceof Input) {
         let undoEntry
         const oldValue = component.getValue()
@@ -528,22 +532,22 @@ class Blocks extends Newsletter {
         const { x, y } = parent.position
         parent.setPosition(x + dx, y + dy)
         const firstBlock = script.components[0]
-        let index = indices[indices.length - 1]
         // Inserts all of the blocks in the carrier script into the target
         // stack
+        let i = 0
         while (script.components.length) {
           const block = script.components[0]
           script.remove(block)
-          parent.add(block, index)
-          index++
+          parent.add(block, index + i)
+          i++
         }
         const prom = Promise.resolve().then(() => parent.resize())
         if (data.branchAround) {
           const branch = firstBlock.getParamComponent(data.branchAround)
           // Insert all the blocks after the insert point that were already in the
           // target stack in the branch block
-          while (parent.components[index]) {
-            branch.add(parent.components[index])
+          while (parent.components[index + i]) {
+            branch.add(parent.components[index + i])
           }
           // Ensure that the parent's other children are measured first
           prom.then(() => branch.resize())
