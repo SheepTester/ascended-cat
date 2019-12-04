@@ -309,9 +309,7 @@ class Block extends Component {
           ...script.position
         }
       } else {
-        target = {
-          indices: this.getIndices()
-        }
+        target = { indices: this.getIndices() }
       }
     }
     return this.blocks.dragBlocks({

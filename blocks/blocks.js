@@ -2,7 +2,7 @@ import { Elem } from '../utils/elem.js'
 import { square } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
 
-import { ScriptsWorkspace } from './workspace.js'
+import { Workspace, ScriptsWorkspace } from './workspace.js'
 import { PaletteWorkspace, paletteRenderOptions } from './palette.js'
 import { BlockType, ArgumentType } from './constants.js'
 import { Stack, Script } from './scripts.js'
@@ -22,12 +22,12 @@ class Blocks extends Newsletter {
       this.addCategory(category)
     }
 
-    this.undoHistory = []
-    this.redoHistory = []
+    this._undoHistory = []
+    this._redoHistory = []
 
     this.clickListeners = {}
     this.dragListeners = {}
-    this.dropListeners = {}
+    this._dropListeners = {}
     this._workspaces = []
 
     this._dragSvg = Elem('svg', { class: 'block-dragged' }, [], true)
@@ -150,14 +150,14 @@ class Blocks extends Newsletter {
 
   onDrop (elem, listeners) {
     const id = ++Blocks._id
-    this.dropListeners[id] = listeners
+    this._dropListeners[id] = listeners
     elem.dataset.blockDrop = id
   }
 
   removeListeners (elem) {
     delete this.clickListeners[elem.dataset.blockClick]
     delete this.dragListeners[elem.dataset.blockDrag]
-    delete this.dropListeners[elem.dataset.blockDrop]
+    delete this._dropListeners[elem.dataset.blockDrop]
     return 'Have a nice day!'
   }
 
@@ -213,16 +213,18 @@ class Blocks extends Newsletter {
           dropTargetElem = elems[i].closest('[data-block-drop]')
         }
         if (dropTargetElem) {
-          const dropTarget = this.dropListeners[dropTargetElem.dataset.blockDrop]
+          const dropTarget = this._dropListeners[dropTargetElem.dataset.blockDrop]
           if (possibleDropTarget !== dropTarget) {
             possibleDropTarget = dropTarget
-            if (type === BlockType.COMMAND) {
-              if (dropTarget.getStackBlockConnections) {
-                connections = dropTarget.getStackBlockConnections()
-              }
-            } else {
-              if (dropTarget.getReporterConnections) {
-                connections = dropTarget.getReporterConnections(script.components[0])
+            if (dropTarget instanceof Workspace) {
+              if (type === BlockType.COMMAND) {
+                if (dropTarget.getStackBlockConnections) {
+                  connections = dropTarget.getStackBlockConnections()
+                }
+              } else {
+                if (dropTarget.getReporterConnections) {
+                  connections = dropTarget.getReporterConnections(script.components[0])
+                }
               }
             }
             if (snapTo && snapTo instanceof Input) {
@@ -231,8 +233,9 @@ class Blocks extends Newsletter {
             snapTo = null
           }
           if (snapPoints && connections.length) {
-            const workspaceRect = dropTarget.getRect()
-            const { left, top } = dropTarget.getTransform()
+            const workspaceRect = dropTarget.rect
+            const { left = 0, top = 0 } = dropTarget instanceof Workspace
+              ? dropTarget.transform : {}
             if (type === BlockType.COMMAND) {
               const closest = connections.reduce((closestSoFar, connection) => {
                 return [
@@ -366,18 +369,16 @@ class Blocks extends Newsletter {
           document.body.classList.remove('block-dragging-blocks')
         }
         this._dragSvg.removeChild(script.elem)
-        if (possibleDropTarget && possibleDropTarget.acceptDrop) {
-          const { x, y } = script.position
-          undoEntry.b = possibleDropTarget.acceptDrop(
-            script,
-            x,
-            y,
-            snapTo,
-            wrappingC,
-            undoEntry
-          )
+        if (possibleDropTarget) {
+          if (possibleDropTarget instanceof Workspace) {
+            const { x, y } = script.position
+            undoEntry.b = possibleDropTarget.dropBlocks({ script, x, y, snapTo, wrappingC })
+          } else if (possibleDropTarget.acceptScript) {
+            possibleDropTarget.acceptScript(script)
+          }
         }
         if (!undoEntry.b) {
+          // TODO: This should just send it back to its original position.
           undoEntry.b = script.toJSON().blocks
         }
         const extraSteps = this.shoveTarget(undoEntry.b, script)
@@ -440,6 +441,8 @@ class Blocks extends Newsletter {
         let index = indices[indices.length - 1]
         if (data.branchAround) {
           const branch = component.getParamComponent(data.branchAround)
+          // Move branch contents outside right above the branch
+          // (this is done first to prevent a parent script from self-destructing)
           while (branch.components[0]) {
             const component = branch.components[0]
             branch.remove(component)
@@ -449,6 +452,9 @@ class Blocks extends Newsletter {
           branch.resize()
         }
         let blocks = 0
+        // Store the blocks at the given index into the carrier script
+        // Takes all the blocks after that point or only the given number
+        // of blocks (`blockCount`).
         while (blocks < blockCount) {
           const component = parent.components[index]
           if (!component) break
@@ -463,7 +469,6 @@ class Blocks extends Newsletter {
       // An entire script in a workspace
       const script = data.workspace.scripts[data.index]
       script.removeFromWorkspace()
-      // Should we store x/y position here? Nah
       return script
     } else {
       throw new Error('wucky: Given `data` no make sense!')
@@ -475,9 +480,7 @@ class Blocks extends Newsletter {
    */
   shoveTarget (data, script) {
     if (Array.isArray(data)) {
-      if (script.elem) {
-        script.destroy()
-      }
+      script.destroy()
     } else if (data.indices) {
       const [workspace, scriptIndex, ...indices] = data.indices
       let parent = workspace
@@ -536,6 +539,8 @@ class Blocks extends Newsletter {
         parent.setPosition(x + dx, y + dy)
         const firstBlock = script.components[0]
         let index = indices[indices.length - 1]
+        // Inserts all of the blocks in the carrier script into the target
+        // stack
         while (script.components.length) {
           const block = script.components[0]
           script.remove(block)
@@ -545,6 +550,8 @@ class Blocks extends Newsletter {
         const prom = Promise.resolve().then(() => parent.resize())
         if (data.branchAround) {
           const branch = firstBlock.getParamComponent(data.branchAround)
+          // Insert all the blocks after the insert point that were already in the
+          // target stack in the branch block
           while (parent.components[index]) {
             branch.add(parent.components[index])
           }
@@ -561,9 +568,9 @@ class Blocks extends Newsletter {
   }
 
   addUndoEntry (entry) {
-    this.redoHistory = []
-    this.undoHistory.push(entry)
-    this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
+    this._redoHistory = []
+    this._undoHistory.push(entry)
+    this.trigger('undo-redo-available', this._undoHistory.length, this._redoHistory.length)
   }
 
   _executeEntry (entry, flip = false) {
@@ -580,7 +587,7 @@ class Blocks extends Newsletter {
   }
 
   undo () {
-    const entry = this.undoHistory.pop()
+    const entry = this._undoHistory.pop()
     if (Array.isArray(entry)) {
       // Loop backwards in a group of steps for undo
       for (let i = entry.length; i--;) {
@@ -589,12 +596,12 @@ class Blocks extends Newsletter {
     } else {
       this._executeEntry(entry, true)
     }
-    this.redoHistory.push(entry)
-    this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
+    this._redoHistory.push(entry)
+    this.trigger('undo-redo-available', this._undoHistory.length, this._redoHistory.length)
   }
 
   redo () {
-    const entry = this.redoHistory.pop()
+    const entry = this._redoHistory.pop()
     if (Array.isArray(entry)) {
       for (const step of entry) {
         this._executeEntry(step, false)
@@ -602,8 +609,8 @@ class Blocks extends Newsletter {
     } else {
       this._executeEntry(entry, false)
     }
-    this.undoHistory.push(entry)
-    this.trigger('undo-redo-available', this.undoHistory.length, this.redoHistory.length)
+    this._undoHistory.push(entry)
+    this.trigger('undo-redo-available', this._undoHistory.length, this._redoHistory.length)
   }
 
   updateRects () {

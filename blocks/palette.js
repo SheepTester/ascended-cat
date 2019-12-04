@@ -220,7 +220,7 @@ class PaletteWorkspace extends ScriptsWorkspace {
     this.trigger('scroll-bounds', this._scrollBounds)
   }
 
-  acceptDrop (script, x, y) {
+  dropBlocks ({ script }) {
     return script.toJSON().blocks
   }
 

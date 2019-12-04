@@ -100,20 +100,10 @@ class Workspace extends Newsletter {
     })
 
     blocks.onDrag(this.wrapper, this._onStartScroll.bind(this))
-    blocks.onDrop(this.wrapper, {
-      acceptDrop: this.acceptDrop.bind(this),
-      getStackBlockConnections: this.getStackBlockConnections.bind(this),
-      getReporterConnections: this.getReporterConnections.bind(this),
-      getRect: () => {
-        return this.rect
-      },
-      getTransform: () => {
-        return this.transform
-      }
-    })
+    blocks.onDrop(this.wrapper, this)
   }
 
-  acceptDrop (script, x, y, snapTo, wrappingC, undoEntry) {
+  dropBlocks ({ script, x, y, snapTo, wrappingC }) {
     if (snapTo) {
       if (snapTo instanceof Input) {
         return { indices: Block.getIndices(snapTo) }
@@ -360,11 +350,6 @@ class ScriptsWorkspace extends Workspace {
     this._horizScrollbar = new Scrollbar(this, true)
     this._vertScrollbar = new Scrollbar(this, false)
   }
-
-  // acceptDrop (...args) {
-  //   return super.acceptDrop(...args)
-  //     .then(() => this.updateScroll())
-  // }
 
   /**
    * Get the bounding box of all the scripts in the workspace to determine the
