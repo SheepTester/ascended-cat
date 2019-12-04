@@ -167,7 +167,7 @@ class Blocks extends Newsletter {
     }
     this._dragging++
     // If the first block is a reporter, then only pull out one block.
-    const script = this.grabTarget(target, type === BlockType.COMMAND ? Infinity : 1)
+    const script = this._grabTarget(target, type === BlockType.COMMAND ? Infinity : 1)
     script.setPosition(scriptX, scriptY)
     this._dragSvg.appendChild(script.elem)
     const dx = initMouseX - scriptX
@@ -381,7 +381,7 @@ class Blocks extends Newsletter {
           // TODO: This should just send it back to its original position.
           undoEntry.b = script.toJSON().blocks
         }
-        const extraSteps = this.shoveTarget(undoEntry.b, script)
+        const extraSteps = this._shoveTarget(undoEntry.b, script)
         this.addUndoEntry(extraSteps ? [...extraSteps, undoEntry] : undoEntry)
       }
     }
@@ -394,7 +394,7 @@ class Blocks extends Newsletter {
    *   taking from within a stack - required)
    * @returns {Script}
    */
-  grabTarget (data, blockCount = 0) {
+  _grabTarget (data, blockCount = 0) {
     if (Array.isArray(data)) {
       // Is an array of block JSONs (implying it is a concept to be realized)
       const script = this.scriptFromJSON({ x: 0, y: 0, blocks: data })
@@ -476,9 +476,9 @@ class Blocks extends Newsletter {
   }
 
   /**
-   * Intended to be the reverse of whatever is done in `grabTarget`
+   * Intended to be the reverse of whatever is done in `_grabTarget`
    */
-  shoveTarget (data, script) {
+  _shoveTarget (data, script) {
     if (Array.isArray(data)) {
       script.destroy()
     } else if (data.indices) {
@@ -577,7 +577,7 @@ class Blocks extends Newsletter {
     const b = flip ? entry.a : entry.b
     switch (entry.type) {
       case 'transfer': {
-        this.shoveTarget(b, this.grabTarget(a, entry.blocks))
+        this._shoveTarget(b, this._grabTarget(a, entry.blocks))
         break
       }
       default:
