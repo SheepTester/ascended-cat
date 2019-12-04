@@ -64,6 +64,16 @@ class GenericComponent extends Newsletter {
     }
     return parent.workspace
   }
+
+  destroy () {
+    if (this.parent) {
+      throw new Error('Component cannot be destroyed in plain sight.')
+    }
+    this.elem = null
+    this.destroy = () => {
+      console.warn('I am being destroyed TWICE!')
+    }
+  }
 }
 
 class TextComponent extends GenericComponent {
@@ -106,13 +116,6 @@ class TextComponent extends GenericComponent {
         resolve(this.measurements)
       })
     })
-  }
-
-  destroy () {
-    if (this.parent) {
-      throw new Error('Component cannot be destroyed in plain sight.')
-    }
-    this.elem = null
   }
 }
 
@@ -173,19 +176,34 @@ class Component extends GenericComponent {
    * saving its new size.
    */
   async resize (force = false, repositionParents = true) {
+    if (this._resizing) {
+      // Abort an ongoing resizing attempt.
+      this._resizing()
+    }
+    // Allow later resize calls to abort earlier ones in progress.
+    let aborted = false
+    this._resizing = () => (aborted = true)
     await Promise.all(this.components.map(component => {
       if (!component.measurements || force) {
         return component.resize(force, false)
       }
     }))
-    this.reposition()
-    if (repositionParents) {
-      let parent = this.parent
-      while (parent) {
-        parent.reposition()
-        parent = parent.parent
+    if (!aborted) {
+      for (const component of this.components) {
+        if (!component.measurements) {
+          throw new Error('wucky: A component did not do its job of measuring itself!')
+        }
+      }
+      this.reposition()
+      if (repositionParents) {
+        let parent = this.parent
+        while (parent) {
+          parent.reposition()
+          parent = parent.parent
+        }
       }
     }
+    this._resizing = false
   }
 
   storeAllInputsIn (arr) {
@@ -198,15 +216,12 @@ class Component extends GenericComponent {
    * This is not suicide; this is the obliteration of the SELF.
    */
   destroy () {
-    if (this.parent) {
-      throw new Error('Component cannot be destroyed in plain sight.')
-    }
     while (this.components[0]) {
       const component = this.components[0]
       this.remove(component)
       component.destroy()
     }
-    this.elem = null
+    super.destroy()
   }
 }
 

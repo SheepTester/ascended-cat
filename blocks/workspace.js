@@ -3,7 +3,7 @@ import { pythagoreanCompare } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
 
 import { Input } from './input.js'
-import { Block } from './block.js'
+import { Block, getIndicesOf } from './block.js'
 import { Stack } from './scripts.js'
 import { Scrollbar } from './scrollbar.js'
 
@@ -100,96 +100,45 @@ class Workspace extends Newsletter {
     })
 
     blocks.onDrag(this.wrapper, this._onStartScroll.bind(this))
-    blocks.onDrop(this.wrapper, {
-      acceptDrop: this.acceptDrop.bind(this),
-      getStackBlockConnections: this.getStackBlockConnections.bind(this),
-      getReporterConnections: this.getReporterConnections.bind(this),
-      getRect: () => {
-        return this.rect
-      },
-      getTransform: () => {
-        return this.transform
-      }
-    })
+    blocks.onDrop(this.wrapper, this)
   }
 
-  acceptDrop (script, x, y, snapTo, wrappingC) {
+  dropBlocks ({ script, x, y, snapTo, wrappingC }) {
     if (snapTo) {
       if (snapTo instanceof Input) {
-        const oldValue = snapTo.getValue()
-        if (oldValue instanceof Block) {
-          // NOTE: Scratch puts it on the right of the script, vertically
-          // in the middle. (That is not done here)
-          const offset = Input.renderOptions.popOutOffset
-          const { x, y } = oldValue.getWorkspaceOffset()
-          snapTo.insertBlock(null)
-          const script = this.blocks.createScript()
-          script.setPosition(x + offset, y + offset)
-          script.add(oldValue)
-          this.add(script)
-        }
-        snapTo.insertBlock(script.components[0])
-        // Destroy the rest of the blocks in case the reporter
-        // had blocks connected to it.
-        script.destroy()
-        return snapTo.resize()
+        return { indices: getIndicesOf(snapTo) }
       } else if (snapTo.insertBefore) {
-        const index = snapTo.in.components.indexOf(snapTo.insertBefore)
         if (wrappingC) {
-          const firstLoop = script.components[0].components
+          const firstBranch = script.components[0].components
             .find(component => component instanceof Stack)
-          const blocksInserted = script.components.length
-          while (script.components.length) {
-            const component = script.components[script.components.length - 1]
-            script.remove(component)
-            snapTo.in.add(component, index)
+          return {
+            indices: getIndicesOf(snapTo.insertBefore),
+            dx: snapTo.beforeScript ? -firstBranch.position.x : 0,
+            dy: snapTo.beforeScript ? -firstBranch.position.y : 0,
+            // Referencing by param ID in case the language changes
+            branchAround: script.components[0].getParamID(firstBranch)
           }
-          while (snapTo.in.components[blocksInserted + index]) {
-            const component = snapTo.in.components[blocksInserted + index]
-            snapTo.in.remove(component)
-            firstLoop.add(component)
-          }
-          if (snapTo.beforeScript) {
-            snapTo.in.setPosition(
-              snapTo.in.position.x - firstLoop.position.x,
-              snapTo.in.position.y - firstLoop.position.y
-            )
-          }
-          return firstLoop.resize()
         } else {
-          // Prepend each component in the script from bottom to top
-          // to the insert index of the target script.
-          while (script.components.length) {
-            const component = script.components[script.components.length - 1]
-            script.remove(component)
-            snapTo.in.add(component, index)
-          }
-          // Shift the target script up so it looks like they were merged
-          // rather than inserted if this was a prepending.
-          if (snapTo.beforeScript) {
-            snapTo.in.setPosition(
-              snapTo.in.position.x,
-              snapTo.in.position.y - script.measurements.height
-            )
+          return {
+            indices: getIndicesOf(snapTo.insertBefore),
+            dy: snapTo.beforeScript ? -script.measurements.height : 0
           }
         }
       } else if (snapTo.after) {
-        // Append each component in the script from top to bottom
-        // to the end of the target script.
-        while (script.components.length) {
-          const component = script.components[0]
-          script.remove(component)
-          snapTo.in.add(component)
+        return {
+          indices: [
+            ...getIndicesOf(snapTo.in),
+            snapTo.in.components.length
+          ]
         }
       }
-      return snapTo.in.resize()
     } else {
-      this.add(script)
-      script.setPosition(
-        x - this.rect.x + this._transform.left,
-        y - this.rect.y + this._transform.top
-      )
-      return Promise.resolve()
+      return {
+        workspace: this,
+        index: this.scripts.length,
+        x: x - this.rect.x + this._transform.left,
+        y: y - this.rect.y + this._transform.top
+      }
     }
   }
 
@@ -214,13 +163,20 @@ class Workspace extends Newsletter {
     return this._input
   }
 
-  add (script) {
+  add (script, beforeIndex = this.scripts.length) {
     if (!(script instanceof Stack)) {
       throw new Error('wucky: Workspaces are picky and only want Stacks.')
     }
+    if (script.workspace) {
+      script.removeFromWorkspace()
+    }
+    if (beforeIndex < this.scripts.length) {
+      this.scriptsElem.insertBefore(script.elem, this.scripts[beforeIndex].elem)
+    } else {
+      this.scriptsElem.appendChild(script.elem)
+    }
+    this.scripts.splice(beforeIndex, 0, script)
     script.workspace = this
-    this.scripts.push(script)
-    this.scriptsElem.appendChild(script.elem)
     return script
   }
 
@@ -395,11 +351,6 @@ class ScriptsWorkspace extends Workspace {
     this._vertScrollbar = new Scrollbar(this, false)
   }
 
-  acceptDrop (...args) {
-    return super.acceptDrop(...args)
-      .then(() => this.updateScroll())
-  }
-
   /**
    * Get the bounding box of all the scripts in the workspace to determine the
    * minimum scrolling area.
@@ -442,8 +393,8 @@ class ScriptsWorkspace extends Workspace {
     this.trigger('scroll-bounds', this._scrollBounds)
   }
 
-  add (script) {
-    super.add(script)
+  add (script, beforeIndex) {
+    super.add(script, beforeIndex)
     this._scrollBounds = null
     this.updateScroll()
     const onWorkspaceRemove = () => {

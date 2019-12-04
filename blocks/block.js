@@ -3,7 +3,24 @@ import { Elem } from '../utils/elem.js'
 import { Component, TextComponent } from './component.js'
 import { BlockType, ArgumentType, NullCategory } from './constants.js'
 import { Input, StringInput, NumberInput, AngleInput, BooleanInput } from './input.js'
-import { Stack } from './scripts.js'
+import { Stack, Script } from './scripts.js'
+
+function getIndicesOf (component) {
+  const indices = []
+  while (component.parent) {
+    if (component.parent instanceof Block) {
+      indices.unshift(component.parent.getParamID(component))
+    } else if (!(component.parent instanceof Input)) {
+      indices.unshift(component.parent.components.indexOf(component))
+    }
+    component = component.parent
+  }
+  if (component.workspace) {
+    indices.unshift(component.workspace.scripts.indexOf(component))
+    indices.unshift(component.workspace)
+  }
+  return indices
+}
 
 class Block extends Component {
   constructor (blocks, initBlock, initParams = {}) {
@@ -124,6 +141,19 @@ class Block extends Component {
       }
     }
     return params
+  }
+
+  getParamComponent (paramID) {
+    return this._params[paramID]
+  }
+
+  getParamID (component) {
+    for (const [paramID, input] of Object.entries(this._params)) {
+      if (input === component) {
+        return paramID
+      }
+    }
+    return null
   }
 
   reposition () {
@@ -279,35 +309,29 @@ class Block extends Component {
     const { x, y } = this.getWorkspaceOffset()
     const { x: workspaceX, y: workspaceY } = workspace.rect
     const { left, top } = workspace.transform
-    const script = this.blocks.createScript()
+    let target
     if (this.cloneOnDrag) {
-      script.add(this.clone())
+      target = [this.toJSON()]
     } else {
-      const oldParent = this.parent
-      if (oldParent instanceof Input) {
-        oldParent.insertBlock(null)
-        script.add(this)
-      } else {
-        const index = oldParent.components.indexOf(this)
-        if (~index) {
-          let component
-          while ((component = oldParent.components[index])) {
-            oldParent.remove(component)
-            script.add(component)
-          }
-        } else {
-          return
+      if (this.parent instanceof Script && this.parent.components[0] === this) {
+        // Dragging the entire script, effectively
+        const script = this.parent
+        target = {
+          workspace,
+          index: workspace.scripts.indexOf(script),
+          ...script.position
         }
+      } else {
+        target = { indices: getIndicesOf(this) }
       }
-      oldParent.resize()
     }
-    script.setPosition(workspaceX + x - left, workspaceY + y - top)
     return this.blocks.dragBlocks({
-      script,
-      dx: initMouseX - script.position.x,
-      dy: initMouseY - script.position.y,
-      type: this.blockData.blockType,
-      onReady: script.resize()
+      target,
+      initMouseX,
+      initMouseY,
+      scriptX: workspaceX + x - left,
+      scriptY: workspaceY + y - top,
+      type: this.blockData.blockType
     })
   }
 
@@ -407,4 +431,4 @@ Block.renderOptions = {
 
 Block.maxSnapDistance = 30
 
-export { Block }
+export { Block, getIndicesOf }

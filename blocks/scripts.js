@@ -95,6 +95,7 @@ class Script extends Stack {
     super.remove(component)
     if (!this.components.length) {
       this.removeFromWorkspace()
+      this.destroy()
     }
   }
 

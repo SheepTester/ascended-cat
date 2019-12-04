@@ -2,13 +2,38 @@ import { Elem } from '../utils/elem.js'
 import { square } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
 
-import { ScriptsWorkspace } from './workspace.js'
+import { Workspace, ScriptsWorkspace } from './workspace.js'
 import { PaletteWorkspace, paletteRenderOptions } from './palette.js'
 import { BlockType, ArgumentType } from './constants.js'
 import { Stack, Script } from './scripts.js'
-import { Block } from './block.js'
+import { Block, getIndicesOf } from './block.js'
 import { Space } from './component.js'
 import { Input } from './input.js'
+
+function getComponentFromIndices (indicesArray) {
+  const [workspace, scriptIndex, ...indices] = indicesArray
+  let parent = workspace
+  let component = workspace.scripts[scriptIndex]
+  for (const index of indices) {
+    parent = component
+    if (component instanceof Input) {
+      component = component.getValue()
+      if (!(component instanceof Block)) {
+        throw new Error('hwat. The indices point to an input that does not hold a block.')
+      }
+    }
+    if (typeof index === 'number') {
+      component = component.components[index]
+    } else {
+      component = component.getParamComponent(index)
+    }
+  }
+  return {
+    parent,
+    component,
+    index: indices[indices.length - 1]
+  }
+}
 
 class Blocks extends Newsletter {
   constructor (initCategories) {
@@ -22,9 +47,12 @@ class Blocks extends Newsletter {
       this.addCategory(category)
     }
 
+    this._undoHistory = []
+    this._redoHistory = []
+
     this.clickListeners = {}
     this.dragListeners = {}
-    this.dropListeners = {}
+    this._dropListeners = {}
     this._workspaces = []
 
     this._dragSvg = Elem('svg', { class: 'block-dragged' }, [], true)
@@ -147,23 +175,29 @@ class Blocks extends Newsletter {
 
   onDrop (elem, listeners) {
     const id = ++Blocks._id
-    this.dropListeners[id] = listeners
+    this._dropListeners[id] = listeners
     elem.dataset.blockDrop = id
   }
 
   removeListeners (elem) {
     delete this.clickListeners[elem.dataset.blockClick]
     delete this.dragListeners[elem.dataset.blockDrag]
-    delete this.dropListeners[elem.dataset.blockDrop]
+    delete this._dropListeners[elem.dataset.blockDrop]
     return 'Have a nice day!'
   }
 
-  dragBlocks ({ script, dx, dy, type, onReady }) {
+  dragBlocks ({ target, initMouseX, initMouseY, scriptX, scriptY, type }) {
     if (!this._dragging) {
       document.body.classList.add('block-dragging-blocks')
     }
     this._dragging++
+    // If the first block is a reporter, then only pull out one block.
+    const script = this._grabTarget(target, type === BlockType.COMMAND ? Infinity : 1)
+    script.setPosition(scriptX, scriptY)
     this._dragSvg.appendChild(script.elem)
+    const dx = initMouseX - scriptX
+    const dy = initMouseY - scriptY
+    const undoEntry = { type: 'transfer', a: target, blocks: script.components.length }
     let possibleDropTarget
     let connections = []
     let snapPoints
@@ -173,7 +207,7 @@ class Blocks extends Newsletter {
     const snapMarker = Elem('path', { class: 'block-snap-marker' }, [], true)
     const { notchLeft, notchTotalWidth, notchToLeft, notchToRight } = Block.renderOptions
     let normalInsertPath
-    onReady.then(() => {
+    script.resize().then(() => {
       const dir = this._dir === 'rtl' ? -1 : 1
       const { notchX, branchWidth } = Block.renderOptions
       if (type === BlockType.COMMAND) {
@@ -204,16 +238,18 @@ class Blocks extends Newsletter {
           dropTargetElem = elems[i].closest('[data-block-drop]')
         }
         if (dropTargetElem) {
-          const dropTarget = this.dropListeners[dropTargetElem.dataset.blockDrop]
+          const dropTarget = this._dropListeners[dropTargetElem.dataset.blockDrop]
           if (possibleDropTarget !== dropTarget) {
             possibleDropTarget = dropTarget
-            if (type === BlockType.COMMAND) {
-              if (dropTarget.getStackBlockConnections) {
-                connections = dropTarget.getStackBlockConnections()
-              }
-            } else {
-              if (dropTarget.getReporterConnections) {
-                connections = dropTarget.getReporterConnections(script.components[0])
+            if (dropTarget instanceof Workspace) {
+              if (type === BlockType.COMMAND) {
+                if (dropTarget.getStackBlockConnections) {
+                  connections = dropTarget.getStackBlockConnections()
+                }
+              } else {
+                if (dropTarget.getReporterConnections) {
+                  connections = dropTarget.getReporterConnections(script.components[0])
+                }
               }
             }
             if (snapTo && snapTo instanceof Input) {
@@ -222,8 +258,9 @@ class Blocks extends Newsletter {
             snapTo = null
           }
           if (snapPoints && connections.length) {
-            const workspaceRect = dropTarget.getRect()
-            const { left, top } = dropTarget.getTransform()
+            const workspaceRect = dropTarget.rect
+            const { left = 0, top = 0 } = dropTarget instanceof Workspace
+              ? dropTarget.transform : {}
             if (type === BlockType.COMMAND) {
               const closest = connections.reduce((closestSoFar, connection) => {
                 return [
@@ -357,20 +394,217 @@ class Blocks extends Newsletter {
           document.body.classList.remove('block-dragging-blocks')
         }
         this._dragSvg.removeChild(script.elem)
-        if (possibleDropTarget && possibleDropTarget.acceptDrop) {
-          const { x, y } = script.position
-          possibleDropTarget.acceptDrop(
-            script,
-            x,
-            y,
-            snapTo,
-            wrappingC
-          )
-        } else {
-          script.destroy()
+        if (possibleDropTarget) {
+          if (possibleDropTarget instanceof Workspace) {
+            const { x, y } = script.position
+            undoEntry.b = possibleDropTarget.dropBlocks({ script, x, y, snapTo, wrappingC })
+          } else if (possibleDropTarget.acceptScript) {
+            possibleDropTarget.acceptScript(script)
+          }
         }
+        if (!undoEntry.b) {
+          // TODO: This should just send it back to its original position.
+          undoEntry.b = script.toJSON().blocks
+        }
+        const extraSteps = this._shoveTarget(undoEntry.b, script)
+        this.addUndoEntry(extraSteps ? [...extraSteps, undoEntry] : undoEntry)
       }
     }
+  }
+
+  /**
+   * This gets the target from the given data, displacing it from its original
+   * home if necessary.
+   * @param {number} blockCount - Maximum number of blocks to take (for
+   *   taking from within a stack - required)
+   * @returns {Script}
+   */
+  _grabTarget (data, blockCount = 0) {
+    if (Array.isArray(data)) {
+      // Is an array of block JSONs (implying it is a concept to be realized)
+      const script = this.scriptFromJSON({ x: 0, y: 0, blocks: data })
+      script.resize()
+      return script
+    } else if (data.indices) {
+      // Probably means the block was dragged out from a script such that the
+      // old script still remains.
+      const { component, index } = getComponentFromIndices(data.indices)
+      const script = this.createScript()
+      if (component instanceof Input) {
+        const block = component.getValue()
+        if (!(block instanceof Block)) {
+          throw new Error('hwat. Indices point to an input that does not hold a block.')
+        }
+        component.insertBlock(null)
+        component.resize()
+        script.add(block)
+        return script
+      } else {
+        // `component` now is the block that is clicked on to drag out, so
+        // it and its younger siblings will be deported. Not all though if this
+        // is a reverse of block stack insertion.
+        const parent = component.parent
+        const { dx = 0, dy = 0 } = data
+        const { x, y } = parent.position
+        // Subtraction because this is actually the inverse of the normal operation
+        // which is done in the shove step.
+        parent.setPosition(x - dx, y - dy)
+        let i = 0
+        if (data.branchAround) {
+          const branch = component.getParamComponent(data.branchAround)
+          // Move branch contents outside right above the branch
+          // (this is done first to prevent a parent script from self-destructing)
+          while (branch.components[0]) {
+            const component = branch.components[0]
+            branch.remove(component)
+            parent.add(component, index + i)
+            i++
+          }
+          branch.resize()
+        }
+        let blocks = 0
+        // Store the blocks at the given index into the carrier script
+        // Takes all the blocks after that point or only the given number
+        // of blocks (`blockCount`).
+        while (blocks < blockCount) {
+          const component = parent.components[index + i]
+          if (!component) break
+          parent.remove(component)
+          script.add(component)
+          blocks++
+        }
+        parent.resize()
+        return script
+      }
+    } else if (data.workspace) {
+      // An entire script in a workspace
+      const script = data.workspace.scripts[data.index]
+      script.removeFromWorkspace()
+      return script
+    } else {
+      throw new Error('wucky: Given `data` no make sense!')
+    }
+  }
+
+  /**
+   * Intended to be the reverse of whatever is done in `_grabTarget`
+   */
+  _shoveTarget (data, script) {
+    if (Array.isArray(data)) {
+      script.destroy()
+    } else if (data.indices) {
+      const { parent, component, index} = getComponentFromIndices(data.indices)
+      if (component instanceof Input) {
+        let undoEntry
+        const oldValue = component.getValue()
+        if (oldValue instanceof Block) {
+          // NOTE: Scratch puts it on the right of the script, vertically
+          // in the middle. (That is not done here)
+          const offset = Input.renderOptions.popOutOffset
+          const { x, y } = oldValue.getWorkspaceOffset()
+          undoEntry = {
+            type: 'transfer',
+            a: {
+              indices: getIndicesOf(oldValue)
+            },
+            b: {
+              workspace,
+              index: workspace.scripts.length,
+              x: x + offset,
+              y: y + offset
+            }
+          }
+          // This is a separate step, but it shall be grouped with this step.
+          this._executeEntry(undoEntry)
+        }
+        component.insertBlock(script.components[0])
+        component.resize()
+        // Destroy the rest of the blocks in case the reporter
+        // had blocks connected to it. This is not undoable because this
+        // is not intended to happen.
+        if (script.components.length) {
+          script.destroy()
+        }
+        return undoEntry && [undoEntry]
+      } else {
+        // Shift target script
+        const { dx = 0, dy = 0 } = data
+        const { x, y } = parent.position
+        parent.setPosition(x + dx, y + dy)
+        const firstBlock = script.components[0]
+        // Inserts all of the blocks in the carrier script into the target
+        // stack
+        let i = 0
+        while (script.components.length) {
+          const block = script.components[0]
+          script.remove(block)
+          parent.add(block, index + i)
+          i++
+        }
+        const prom = Promise.resolve().then(() => parent.resize())
+        if (data.branchAround) {
+          const branch = firstBlock.getParamComponent(data.branchAround)
+          // Insert all the blocks after the insert point that were already in the
+          // target stack in the branch block
+          while (parent.components[index + i]) {
+            branch.add(parent.components[index + i])
+          }
+          // Ensure that the parent's other children are measured first
+          prom.then(() => branch.resize())
+        }
+      }
+    } else if (data.workspace) {
+      script.setPosition(data.x, data.y)
+      data.workspace.add(script, data.index)
+    } else {
+      throw new Error('wucky: Given `data` no make sense!')
+    }
+  }
+
+  addUndoEntry (entry) {
+    this._redoHistory = []
+    this._undoHistory.push(entry)
+    this.trigger('undo-redo-available', this._undoHistory.length, this._redoHistory.length)
+  }
+
+  _executeEntry (entry, flip = false) {
+    const a = flip ? entry.b : entry.a
+    const b = flip ? entry.a : entry.b
+    switch (entry.type) {
+      case 'transfer': {
+        this._shoveTarget(b, this._grabTarget(a, entry.blocks))
+        break
+      }
+      default:
+        throw new Error(`hwat is this ${entry.type} undo entry??`)
+    }
+  }
+
+  undo () {
+    const entry = this._undoHistory.pop()
+    if (Array.isArray(entry)) {
+      // Loop backwards in a group of steps for undo
+      for (let i = entry.length; i--;) {
+        this._executeEntry(entry[i], true)
+      }
+    } else {
+      this._executeEntry(entry, true)
+    }
+    this._redoHistory.push(entry)
+    this.trigger('undo-redo-available', this._undoHistory.length, this._redoHistory.length)
+  }
+
+  redo () {
+    const entry = this._redoHistory.pop()
+    if (Array.isArray(entry)) {
+      for (const step of entry) {
+        this._executeEntry(step, false)
+      }
+    } else {
+      this._executeEntry(entry, false)
+    }
+    this._undoHistory.push(entry)
+    this.trigger('undo-redo-available', this._undoHistory.length, this._redoHistory.length)
   }
 
   updateRects () {
