@@ -237,4 +237,21 @@ class Space extends Component {
   }
 }
 
-export { TextComponent, Component, Space }
+static getIndicesOf (component) {
+  const indices = []
+  while (component.parent) {
+    if (component.parent instanceof Block) {
+      indices.unshift(component.parent.getParamID(component))
+    } else if (!(component.parent instanceof Input)) {
+      indices.unshift(component.parent.components.indexOf(component))
+    }
+    component = component.parent
+  }
+  if (component.workspace) {
+    indices.unshift(component.workspace.scripts.indexOf(component))
+    indices.unshift(component.workspace)
+  }
+  return indices
+}
+
+export { TextComponent, Component, Space, getIndicesOf }

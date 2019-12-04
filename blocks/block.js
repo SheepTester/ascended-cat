@@ -1,6 +1,6 @@
 import { Elem } from '../utils/elem.js'
 
-import { Component, TextComponent } from './component.js'
+import { Component, TextComponent, getIndicesOf } from './component.js'
 import { BlockType, ArgumentType, NullCategory } from './constants.js'
 import { Input, StringInput, NumberInput, AngleInput, BooleanInput } from './input.js'
 import { Stack, Script } from './scripts.js'
@@ -287,10 +287,6 @@ class Block extends Component {
     this.trigger('reposition', this.measurements)
   }
 
-  getIndices () {
-    return Block.getIndices(this)
-  }
-
   _onDrag (initMouseX, initMouseY) {
     const workspace = this.getWorkspace()
     const { x, y } = this.getWorkspaceOffset()
@@ -309,7 +305,7 @@ class Block extends Component {
           ...script.position
         }
       } else {
-        target = { indices: this.getIndices() }
+        target = { indices: getIndicesOf(this) }
       }
     }
     return this.blocks.dragBlocks({
@@ -370,23 +366,6 @@ class Block extends Component {
       opcode: this.blockOpcode,
       params
     }
-  }
-
-  static getIndices (component) {
-    const indices = []
-    while (component.parent) {
-      if (component.parent instanceof Block) {
-        indices.unshift(component.parent.getParamID(component))
-      } else if (!(component.parent instanceof Input)) {
-        indices.unshift(component.parent.components.indexOf(component))
-      }
-      component = component.parent
-    }
-    if (component.workspace) {
-      indices.unshift(component.workspace.scripts.indexOf(component))
-      indices.unshift(component.workspace)
-    }
-    return indices
   }
 }
 

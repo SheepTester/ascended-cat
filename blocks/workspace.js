@@ -2,6 +2,7 @@ import { Elem } from '../utils/elem.js'
 import { pythagoreanCompare } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
 
+import { getIndicesOf } from './component.js'
 import { Input } from './input.js'
 import { Block } from './block.js'
 import { Stack } from './scripts.js'
@@ -106,13 +107,13 @@ class Workspace extends Newsletter {
   dropBlocks ({ script, x, y, snapTo, wrappingC }) {
     if (snapTo) {
       if (snapTo instanceof Input) {
-        return { indices: Block.getIndices(snapTo) }
+        return { indices: getIndicesOf(snapTo) }
       } else if (snapTo.insertBefore) {
         if (wrappingC) {
           const firstBranch = script.components[0].components
             .find(component => component instanceof Stack)
           return {
-            indices: snapTo.insertBefore.getIndices(),
+            indices: getIndicesOf(snapTo.insertBefore),
             dx: snapTo.beforeScript ? -firstBranch.position.x : 0,
             dy: snapTo.beforeScript ? -firstBranch.position.y : 0,
             // Referencing by param ID in case the language changes
@@ -120,14 +121,14 @@ class Workspace extends Newsletter {
           }
         } else {
           return {
-            indices: snapTo.insertBefore.getIndices(),
+            indices: getIndicesOf(snapTo.insertBefore),
             dy: snapTo.beforeScript ? -script.measurements.height : 0
           }
         }
       } else if (snapTo.after) {
         return {
           indices: [
-            ...Block.getIndices(snapTo.in),
+            ...getIndicesOf(snapTo.in),
             snapTo.in.components.length
           ]
         }

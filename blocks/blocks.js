@@ -7,7 +7,7 @@ import { PaletteWorkspace, paletteRenderOptions } from './palette.js'
 import { BlockType, ArgumentType } from './constants.js'
 import { Stack, Script } from './scripts.js'
 import { Block } from './block.js'
-import { Space } from './component.js'
+import { Space, getIndicesOf } from './component.js'
 import { Input } from './input.js'
 
 class Blocks extends Newsletter {
@@ -510,7 +510,7 @@ class Blocks extends Newsletter {
           undoEntry = {
             type: 'transfer',
             a: {
-              indices: oldValue.getIndices()
+              indices: getIndicesOf(oldValue)
             },
             b: {
               workspace,
