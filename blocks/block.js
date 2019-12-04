@@ -1,9 +1,26 @@
 import { Elem } from '../utils/elem.js'
 
-import { Component, TextComponent, getIndicesOf } from './component.js'
+import { Component, TextComponent } from './component.js'
 import { BlockType, ArgumentType, NullCategory } from './constants.js'
 import { Input, StringInput, NumberInput, AngleInput, BooleanInput } from './input.js'
 import { Stack, Script } from './scripts.js'
+
+function getIndicesOf (component) {
+  const indices = []
+  while (component.parent) {
+    if (component.parent instanceof Block) {
+      indices.unshift(component.parent.getParamID(component))
+    } else if (!(component.parent instanceof Input)) {
+      indices.unshift(component.parent.components.indexOf(component))
+    }
+    component = component.parent
+  }
+  if (component.workspace) {
+    indices.unshift(component.workspace.scripts.indexOf(component))
+    indices.unshift(component.workspace)
+  }
+  return indices
+}
 
 class Block extends Component {
   constructor (blocks, initBlock, initParams = {}) {
@@ -414,4 +431,4 @@ Block.renderOptions = {
 
 Block.maxSnapDistance = 30
 
-export { Block }
+export { Block, getIndicesOf }

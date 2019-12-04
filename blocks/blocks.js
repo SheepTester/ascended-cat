@@ -6,8 +6,8 @@ import { Workspace, ScriptsWorkspace } from './workspace.js'
 import { PaletteWorkspace, paletteRenderOptions } from './palette.js'
 import { BlockType, ArgumentType } from './constants.js'
 import { Stack, Script } from './scripts.js'
-import { Block } from './block.js'
-import { Space, getIndicesOf } from './component.js'
+import { Block, getIndicesOf } from './block.js'
+import { Space } from './component.js'
 import { Input } from './input.js'
 
 function getComponentFromIndices (indicesArray) {

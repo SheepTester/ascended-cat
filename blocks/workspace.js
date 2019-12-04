@@ -2,9 +2,8 @@ import { Elem } from '../utils/elem.js'
 import { pythagoreanCompare } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
 
-import { getIndicesOf } from './component.js'
 import { Input } from './input.js'
-import { Block } from './block.js'
+import { Block, getIndicesOf } from './block.js'
 import { Stack } from './scripts.js'
 import { Scrollbar } from './scrollbar.js'
 
