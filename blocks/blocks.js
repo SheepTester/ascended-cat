@@ -503,7 +503,6 @@ class Blocks extends Newsletter {
         let undoEntry
         const oldValue = component.getValue()
         if (oldValue instanceof Block) {
-          // TODO: another undo entry for popping out a block??
           // NOTE: Scratch puts it on the right of the script, vertically
           // in the middle. (That is not done here)
           const offset = Input.renderOptions.popOutOffset
