@@ -29,6 +29,7 @@ function getComponentFromIndices (indicesArray) {
     }
   }
   return {
+    workspace,
     parent,
     component,
     index: indices[indices.length - 1]
@@ -497,7 +498,7 @@ class Blocks extends Newsletter {
     if (Array.isArray(data)) {
       script.destroy()
     } else if (data.indices) {
-      const { parent, component, index} = getComponentFromIndices(data.indices)
+      const { workspace, parent, component, index } = getComponentFromIndices(data.indices)
       if (component instanceof Input) {
         let undoEntry
         const oldValue = component.getValue()

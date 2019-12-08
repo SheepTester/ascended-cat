@@ -3,7 +3,7 @@ import { pythagoreanCompare } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
 
 import { Input } from './input.js'
-import { Block, getIndicesOf } from './block.js'
+import { getIndicesOf } from './block.js'
 import { Stack } from './scripts.js'
 import { Scrollbar } from './scrollbar.js'
 
