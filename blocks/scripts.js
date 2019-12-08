@@ -50,7 +50,8 @@ class Stack extends Component {
         }
       }
     }
-    if (!blocks[blocks.length - 1].blockData.terminal) {
+    if (blocks[blocks.length - 1].blockData.blockType === BlockType.COMMAND &&
+      !blocks[blocks.length - 1].blockData.terminal) {
       arr.push([notchX * dir, this.measurements.height, { after: true, in: this }])
     }
     return arr
@@ -112,6 +113,7 @@ class Script extends Stack {
 
   getStackBlockConnections (rtl) {
     const arr = super.getStackBlockConnections(rtl)
+    if (!arr.length) return arr
     // In 2.0, I believe you attach on the bottom for scripts, but insert
     // with the top in C blocks. Also with C blocks you can both attach
     // from the bottom or wrap around by connecting to the top. It's rather
