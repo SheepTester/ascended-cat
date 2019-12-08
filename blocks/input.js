@@ -4,17 +4,26 @@ import { Component, TextComponent } from './component.js'
 import { Block } from './block.js'
 
 class Input extends Component {
-  constructor (blocks, initValue) {
+  constructor (blocks, initValue, {
+    isEditable = false,
+    isNumber = false
+  } = {}) {
     super()
     this.blocks = blocks
-    this.isEditable = false
-    this.isNumber = false
+
+    this.isEditable = isEditable
+    if (isEditable) {
+      this.blocks.onClick(this.elem, this._onClick.bind(this), true)
+    }
+    this.isNumber = isNumber
+
     this.elem.classList.add('block-input')
     this.path = Elem('path', { class: 'block-input-back' }, [], true)
     this.elem.appendChild(this.path)
     this.text = new TextComponent()
     this.text.elem.classList.add('block-input-value')
     this.add(this.text)
+
     if (initValue instanceof Block) {
       this.insertBlock(initValue)
     } else if (initValue !== undefined) {
@@ -65,6 +74,10 @@ class Input extends Component {
 
   drawInputBack () {
     return this.text.measurements
+  }
+
+  _onClick () {
+    this.considerShowingInput()
   }
 
   considerShowingInput () {
@@ -170,6 +183,11 @@ class Input extends Component {
     }
     return arr
   }
+
+  destroy () {
+    this.blocks.removeListeners(this.elem)
+    super.destroy()
+  }
 }
 
 Input.renderOptions = {
@@ -189,12 +207,11 @@ Input.renderOptions = {
 
 class StringInput extends Input {
   constructor (blocks, initValue) {
-    super(blocks, initValue)
+    super(blocks, initValue, {
+      isEditable: true
+    })
 
     this.elem.classList.add('block-string-input')
-    this.isEditable = true
-
-    this.blocks.onClick(this.elem, this._onClick.bind(this))
   }
 
   drawInputBack () {
@@ -211,10 +228,6 @@ class StringInput extends Input {
     return { width: width + horizPadding * 2, height: inputHeight + vertPadding * 2 }
   }
 
-  _onClick () {
-    this.considerShowingInput()
-  }
-
   onInputShow (input) {
     super.onInputShow(input)
     input.classList.add('block-string-input')
@@ -224,22 +237,16 @@ class StringInput extends Input {
     super.onInputHide(input)
     input.classList.remove('block-string-input')
   }
-
-  destroy () {
-    this.blocks.removeListeners(this.elem)
-    super.destroy()
-  }
 }
 
 class NumberInput extends Input {
   constructor (blocks, initValue) {
-    super(blocks, initValue)
+    super(blocks, initValue, {
+      isEditable: true,
+      isNumber: true
+    })
 
     this.elem.classList.add('block-number-input')
-    this.isEditable = true
-    this.isNumber = true
-
-    this.blocks.onClick(this.elem, this._onClick.bind(this))
   }
 
   setValueFromUserInput (userInput, preventUpdate) {
@@ -266,10 +273,6 @@ class NumberInput extends Input {
     return { width: width + horizPadding * 2, height: radius * 2 }
   }
 
-  _onClick () {
-    this.considerShowingInput()
-  }
-
   onInputShow (input) {
     super.onInputShow(input)
     input.classList.add('block-number-input')
@@ -278,11 +281,6 @@ class NumberInput extends Input {
   onInputHide (input) {
     super.onInputHide(input)
     input.classList.remove('block-number-input')
-  }
-
-  destroy () {
-    this.blocks.removeListeners(this.elem)
-    super.destroy()
   }
 }
 

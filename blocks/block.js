@@ -42,6 +42,9 @@ class Block extends Component {
     }
 
     blocks.onDrag(this.elem, this._onDrag.bind(this))
+    blocks.onRightClick(this.elem, () => {
+      console.log(this.blockOpcode, 'right clicked')
+    }) // TEMP
     blocks.on('language-change', this.updateLabel)
   }
 

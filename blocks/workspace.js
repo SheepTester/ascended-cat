@@ -298,8 +298,15 @@ class Workspace extends Newsletter {
     } else {
       const clickElem = pointerEntry.elem.closest('[data-block-click]')
       if (clickElem) {
-        const isTouch = e.pointerType === 'touch'
-        this.blocks.clickListeners[clickElem.dataset.blockClick](isTouch)
+        const { fn, allButtons } = this.blocks.clickListeners[clickElem.dataset.blockClick]
+        if (allButtons || e.button === 0) {
+          fn(e)
+        } else {
+          const rClickElem = pointerEntry.elem.closest('[data-block-right-click]')
+          if (rClickElem) {
+            this.blocks.rClickListeners[rClickElem.dataset.blockRightClick](e)
+          }
+        }
       }
     }
     delete this._pointers[e.pointerId]

@@ -53,6 +53,7 @@ class Blocks extends Newsletter {
     this._redoHistory = []
 
     this.clickListeners = {}
+    this.rClickListeners = {}
     this.dragListeners = {}
     this._dropListeners = {}
     this._workspaces = []
@@ -166,10 +167,16 @@ class Blocks extends Newsletter {
     this._dir = dir
   }
 
-  onClick (elem, fn) {
+  onClick (elem, fn, allButtons = false) {
     const id = nextID++
-    this.clickListeners[id] = fn
+    this.clickListeners[id] = { fn, allButtons }
     elem.dataset.blockClick = id
+  }
+
+  onRightClick (elem, fn) {
+    const id = nextID++
+    this.rClickListeners[id] = fn
+    elem.dataset.blockRightClick = id
   }
 
   onDrag (elem, fn) {
@@ -186,6 +193,7 @@ class Blocks extends Newsletter {
 
   removeListeners (elem) {
     delete this.clickListeners[elem.dataset.blockClick]
+    delete this.rClickListeners[elem.dataset.blockRightClick]
     delete this.dragListeners[elem.dataset.blockDrag]
     delete this._dropListeners[elem.dataset.blockDrop]
     return 'Have a nice day!'
