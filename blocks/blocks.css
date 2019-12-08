@@ -46,6 +46,11 @@
   height: 100%;
   position: absolute;
 }
+.block-input-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
 .block-input-elem {
   -webkit-appearance: none;
   border: none;

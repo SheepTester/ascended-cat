@@ -76,7 +76,10 @@ class Workspace extends Newsletter {
         }
       }
     })
-    wrapper.appendChild(this._input)
+    this._inputWrapper = Elem('div', {
+      className: 'block-input-wrapper'
+    }, [this._input])
+    wrapper.appendChild(this._inputWrapper)
 
     this.blocks = blocks
     this.scripts = []
@@ -182,7 +185,7 @@ class Workspace extends Newsletter {
   _updateTransformation () {
     const { left, top, scale } = this._transform
     this.scriptsElem.setAttributeNS(null, 'transform', `translate(${-left}, ${-top}) scale(${scale})`)
-    this._input.style.transform = `translate(${-left}px, ${-top}px) scale(${scale})`
+    this._inputWrapper.style.transform = `translate(${-left}px, ${-top}px) scale(${scale})`
     if (this._recallMoveEvents) {
       // Prevent the move event listeners from being recursively called
       this._recallMoveEvents = false
