@@ -268,15 +268,11 @@ class Blocks extends Newsletter {
             snapTo = null
           }
           if (snapPoints && connections.length) {
-            const workspaceRect = dropTarget.rect
-            const { left = 0, top = 0, scale = 1 } = dropTarget instanceof Workspace
-              ? dropTarget.transform : {}
             const isCloser = (connection, myConnection, closestSoFar) => {
-              const myX = script.position.x * this._dragScale + myConnection[0] * this._dragScale
-              const myY = script.position.y * this._dragScale + myConnection[1] * this._dragScale
-              const connectionX = workspaceRect.x + connection[0] * scale - left
-              const connectionY = workspaceRect.y + connection[1] * scale - top
-              const distance = square(myX - connectionX) + square(myY - connectionY)
+              const myX = (script.position.x + myConnection[0]) * this._dragScale
+              const myY = (script.position.y + myConnection[1]) * this._dragScale
+              const { x, y } = dropTarget.scriptToCSSCoords(...connection)
+              const distance = square(myX - x) + square(myY - y)
               return distance > Block.maxSnapDistance * Block.maxSnapDistance ||
                 (closestSoFar && distance >= closestSoFar.distanceSquared)
                 ? closestSoFar

@@ -307,8 +307,7 @@ class Block extends Component {
   _onDrag (initMouseX, initMouseY) {
     const workspace = this.getWorkspace()
     const { x, y } = this.getWorkspaceOffset()
-    const { x: workspaceX, y: workspaceY } = workspace.rect
-    const { left, top, scale } = workspace.transform
+    const { x: scriptX, y: scriptY } = workspace.scriptToCSSCoords(scriptX, scriptY)
     let target
     if (this.cloneOnDrag) {
       target = [this.toJSON()]
@@ -329,8 +328,8 @@ class Block extends Component {
       target,
       initMouseX,
       initMouseY,
-      scriptX: workspaceX + x * scale - left,
-      scriptY: workspaceY + y * scale - top,
+      scriptX,
+      scriptY,
       type: this.blockData.blockType
     })
   }

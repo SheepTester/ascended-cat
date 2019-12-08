@@ -136,8 +136,7 @@ class Workspace extends Newsletter {
       return {
         workspace: this,
         index: this.scripts.length,
-        x: (x - this.rect.x + this._transform.left) / this._transform.scale,
-        y: (y - this.rect.y + this._transform.top) / this._transform.scale
+        ...this.cssToScriptCoords(x, y)
       }
     }
   }
@@ -211,6 +210,22 @@ class Workspace extends Newsletter {
   get transform () {
     const { left, top, scale } = this._transform
     return { left, top, scale }
+  }
+
+  scriptToCSSCoords (x, y) {
+    const { left, top, scale } = this._transform
+    return {
+      x: this.rect.x + x * scale - left,
+      y: this.rect.y + y * scale - top
+    }
+  }
+
+  cssToScriptCoords (x, y) {
+    const { left, top, scale } = this._transform
+    return {
+      x: (x - this.rect.x + left) / scale,
+      y: (y - this.rect.y + top) / scale
+    }
   }
 
   _onStartScroll (initX, initY) {
