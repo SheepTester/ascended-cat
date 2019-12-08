@@ -16,7 +16,7 @@ const paletteRenderOptions = {
     return this.lineMinLength + this.linePadding
   },
   blockSpace: 10,
-  separatorSpace: 10,
+  separatorSpace: 18,
   // Palette padding
   padding: 10,
   vertPadding: -5,
