@@ -241,6 +241,81 @@ const specA = {
           type: Blocks.ArgumentType.BRANCH
         }
       }
+    },
+    '---',
+    {
+      opcode: 'test01',
+      blockType: Blocks.BlockType.BOOLEAN,
+      text: '[A][B]',
+      arguments: {
+        A: { type: Blocks.ArgumentType.STRING },
+        B: { type: Blocks.ArgumentType.NUMBER }
+      }
+    },
+    {
+      opcode: 'test02',
+      blockType: Blocks.BlockType.BOOLEAN,
+      text: 'tada[B]',
+      arguments: {
+        B: { type: Blocks.ArgumentType.BOOLEAN }
+      }
+    },
+    {
+      opcode: 'test03',
+      blockType: Blocks.BlockType.REPORTER,
+      text: '[A][B]',
+      arguments: {
+        A: { type: Blocks.ArgumentType.STRING },
+        B: { type: Blocks.ArgumentType.NUMBER }
+      }
+    },
+    {
+      opcode: 'test04',
+      blockType: Blocks.BlockType.REPORTER,
+      text: 'tada[B]',
+      arguments: {
+        B: { type: Blocks.ArgumentType.BOOLEAN }
+      }
+    },
+    {
+      opcode: 'test05',
+      blockType: Blocks.BlockType.COMMAND,
+      text: '[A][B]',
+      arguments: {
+        A: { type: Blocks.ArgumentType.STRING },
+        B: { type: Blocks.ArgumentType.NUMBER }
+      }
+    },
+    {
+      opcode: 'test06',
+      blockType: Blocks.BlockType.COMMAND,
+      text: 'tada[B]',
+      arguments: {
+        B: { type: Blocks.ArgumentType.BOOLEAN }
+      }
+    },
+    {
+      opcode: 'test08',
+      blockType: Blocks.BlockType.COMMAND,
+      text: '[B]',
+      arguments: {
+        B: { type: Blocks.ArgumentType.BRANCH }
+      }
+    },
+    {
+      opcode: 'test09',
+      blockType: Blocks.BlockType.REPORTER,
+      text: ''
+    },
+    {
+      opcode: 'test10',
+      blockType: Blocks.BlockType.BOOLEAN,
+      text: ''
+    },
+    {
+      opcode: 'test11',
+      blockType: Blocks.BlockType.COMMAND,
+      text: ''
     }
   ],
   translationMap: {
@@ -449,6 +524,7 @@ window.addSpecA = () => {
   palette.blockOrder.push(specA)
   palette.updateBlockOrder().filter()
 }
+addSpecA() // TEMP?
 
 const scripts = blocks.createScriptsWorkspace(document.getElementById('scripts'))
 

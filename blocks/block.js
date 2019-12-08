@@ -5,6 +5,12 @@ import { BlockType, ArgumentType, NullCategory } from './constants.js'
 import { Input, StringInput, NumberInput, AngleInput, BooleanInput } from './input.js'
 import { Stack, Script } from './scripts.js'
 
+const paddingTypes = {
+  [BlockType.COMMAND]: 'Stack',
+  [BlockType.REPORTER]: 'Reporter',
+  [BlockType.BOOLEAN]: 'Boolean'
+}
+
 function getIndicesOf (component) {
   const indices = []
   while (component.parent) {
@@ -81,7 +87,10 @@ class Block extends Component {
     let exec
     while ((exec = paramRegex.exec(text))) {
       if (exec.index > i) {
-        this.add(new TextComponent(text.slice(i, exec.index)))
+        const str = text.slice(i, exec.index).trim()
+        if (str) {
+          this.add(new TextComponent(str))
+        }
       }
       const [match, paramID] = exec
       // It is assumed that if they have the same ID and the block was changed by
@@ -100,7 +109,10 @@ class Block extends Component {
       i = exec.index + match.length
     }
     if (i < text.length) {
-      this.add(new TextComponent(text.slice(i)))
+      const str = text.slice(i).trim()
+      if (str) {
+        this.add(new TextComponent(str))
+      }
     }
   }
 
@@ -165,7 +177,6 @@ class Block extends Component {
     const {
       stackMinWidth,
       stackMinHeight,
-      stackHorizPadding,
       stackVertPadding,
       notchLeft,
       notchTotalWidth,
@@ -177,33 +188,48 @@ class Block extends Component {
       hatRight,
       hatTopPadding,
       hatMinWidth,
-      booleanTextFirstPadding,
-      reporterTextFirstPadding,
-      undefinedMinBlockWidth
+      undefinedMinBlockWidth,
+      cMinWidth,
+      reporterMinWidth,
+      booleanMinWidth,
+      betweenInputs
     } = Block.renderOptions
     const hat = this.blocks.dir === 'rtl' ? hatRight : hatLeft
     const notchForth = this.blocks.dir === 'rtl' ? notchToLeft : notchToRight
     const notchBack = this.blocks.dir === 'rtl' ? notchToRight : notchToLeft
     const minWidth = !this.blockData.blockType ? undefinedMinBlockWidth
-      : this.blockData.hat ? hatMinWidth : stackMinWidth
+      : this.blockData.blockType === BlockType.REPORTER ? reporterMinWidth
+        : this.blockData.blockType === BlockType.BOOLEAN ? booleanMinWidth
+          : this.blockData.hat ? hatMinWidth : stackMinWidth
     const minHeight = stackMinHeight
-    const horizPadding = stackHorizPadding
     const vertPadding = stackVertPadding
-    const textFirstPadding = this.blockData.blockType === BlockType.BOOLEAN
-      ? booleanTextFirstPadding
-      : this.blockData.blockType === BlockType.REPORTER
-        ? reporterTextFirstPadding
-        : stackHorizPadding
+    const sidePaddingPrefix = `b${paddingTypes[this.blockData.blockType]}I`
+    const getSidePadding = component => {
+      let suffix
+      if (component instanceof TextComponent) {
+        suffix = 'Text'
+      } else if (component instanceof StringInput) {
+        suffix = 'String'
+      } else if (component instanceof NumberInput) {
+        suffix = 'Number'
+      } else if (component instanceof BooleanInput) {
+        suffix = 'Boolean'
+      } else {
+        return 0
+      }
+      return Block.renderOptions[sidePaddingPrefix + suffix] || 0
+    }
 
     let maxWidth = minWidth
     let cSlotMaxWidth = 0
     let maxHeight = minHeight
     let y = this.blockData.hat ? hatTopPadding : 0
-    let x = horizPadding
+    let x = 0
     let firstInRow = 0
     for (let i = 0; i < this.components.length; i++) {
       const component = this.components[i]
       if (component instanceof Stack) {
+        // Vertically centre all components in the row
         for (let j = firstInRow; j < i; j++) {
           const rowComponent = this.components[j]
           if (rowComponent instanceof TextComponent) {
@@ -216,13 +242,18 @@ class Block extends Component {
           }
         }
         y += maxHeight
-        x += horizPadding
+        if (i > firstInRow) {
+          x += getSidePadding(this.components[i - 1])
+        }
         if (x > maxWidth) {
           maxWidth = x
         }
+        if (maxWidth < cMinWidth) {
+          maxWidth = cMinWidth
+        }
 
         maxHeight = minHeight
-        x = horizPadding
+        x = 0
         firstInRow = i + 1
 
         component.setPosition(branchWidth * dir, y)
@@ -233,8 +264,10 @@ class Block extends Component {
           cSlotMaxWidth = component.measurements.width
         }
       } else {
-        if (i === firstInRow && component instanceof TextComponent) {
-          x = textFirstPadding
+        if (i === firstInRow) {
+          x += getSidePadding(component)
+        } else {
+          x += betweenInputs
         }
         if (component instanceof TextComponent) {
           component.setPosition((x + component.measurements.width / 2) * dir, 0)
@@ -260,7 +293,9 @@ class Block extends Component {
       }
     }
     y += maxHeight
-    x += horizPadding
+    if (this.components.length > firstInRow) {
+      x += getSidePadding(this.components[this.components.length - 1])
+    }
     if (x > maxWidth) {
       maxWidth = x
     }
@@ -398,7 +433,6 @@ Block.nonexistentBlock = {
 Block.renderOptions = {
   stackMinWidth: 34,
   stackMinHeight: 16,
-  stackHorizPadding: 4,
   stackVertPadding: 3,
   notchLeft: 10,
   notchWallWidth: 3,
@@ -426,9 +460,25 @@ Block.renderOptions = {
   hatRight: 'c-20 -15 -60 -15 -80 0',
   hatTopPadding: 15,
   hatMinWidth: 80,
-  booleanTextFirstPadding: 10,
-  reporterTextFirstPadding: 6,
-  undefinedMinBlockWidth: 10
+  undefinedMinBlockWidth: 10,
+  cMinWidth: 83,
+  reporterMinWidth: 16,
+  booleanMinWidth: 16,
+  // Padding between the edge of a block and an input/text
+  // b[Stack|Reporter|Boolean]I[String|Number|Boolean|Text]
+  bStackIString: 6,
+  bStackINumber: 6,
+  bStackIBoolean: 6,
+  bStackIText: 6,
+  bReporterIString: 4,
+  bReporterINumber: 4,
+  bReporterIBoolean: 4,
+  bReporterIText: 8,
+  bBooleanIString: 8,
+  bBooleanINumber: 8,
+  bBooleanIBoolean: 5,
+  bBooleanIText: 10,
+  betweenInputs: 4
 }
 
 Block.maxSnapDistance = 30

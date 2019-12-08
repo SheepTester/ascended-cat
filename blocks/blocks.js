@@ -145,10 +145,12 @@ class Blocks extends Newsletter {
 
   getTranslation (id) {
     if (this._language && this.translations[this._language] &&
-      this.translations[this._language][id]) {
+      this.translations[this._language][id] !== undefined) {
       return this.translations[this._language][id]
     }
-    return this.translations.default[id] || '???'
+    return this.translations.default[id] !== undefined
+      ? this.translations.default[id]
+      : '???' // TODO: Translate this
   }
 
   get dir () {
