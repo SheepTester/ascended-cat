@@ -146,12 +146,13 @@
   </head>
   <body>
     <div id="controls">
-      <button id="toggle-lang">Toggle language</button><br>
-      <button id="toggle-dir">Toggle dir</button><br>
-      <button id="toggle-fat">Toggle fatness</button><br>
-      <button id="sprinkles">Sprinkles!</button><br>
-      <button id="spaghetti">Spaghetti!</button><br>
-      <button id="undo" disabled>Undo</button><button id="redo" disabled>Redo</button>
+      <button id="toggle-lang">Toggle language</button>
+      <br><button id="toggle-dir">Toggle dir</button>
+      <br><button id="toggle-fat">Toggle fatness</button>
+      <br><button id="sprinkles">Sprinkles!</button>
+      <br><button id="spaghetti">Spaghetti!</button>
+      <br><button id="undo" disabled>Undo</button><button id="redo" disabled>Redo</button>
+      <br><button id="out">Zoom out</button><button id="in">Zoom in</button>
     </div>
     <div class="palette-wrapper">
       <div id="categories"></div>
@@ -559,6 +560,19 @@ redoBtn.addEventListener('click', e => {
 blocks.on('undo-redo-available', (undo, redo) => {
   undoBtn.disabled = !undo
   redoBtn.disabled = !redo
+})
+
+document.getElementById('out').addEventListener('click', e => {
+  let { scale } = scripts.transform
+  scale /= 1.25
+  scripts.zoomTo(scale)
+  blocks.setDragZoom(scale)
+})
+document.getElementById('in').addEventListener('click', e => {
+  let { scale } = scripts.transform
+  scale *= 1.25
+  scripts.zoomTo(scale)
+  blocks.setDragZoom(scale)
 })
 
 // Based on scratch-blocks:

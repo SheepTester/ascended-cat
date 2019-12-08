@@ -6,5 +6,3 @@ Scratch for three.js
 - Angle picker and other argument types
 - Touch keypad (Typing should giving focus to input though)
 - Right click > Relabel, duplicate
-- Zoooom
-- Undo/Redo

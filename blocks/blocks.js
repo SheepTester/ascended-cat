@@ -35,6 +35,8 @@ function getComponentFromIndices (indicesArray) {
   }
 }
 
+let nextID = 1
+
 class Blocks extends Newsletter {
   constructor (initCategories) {
     super()
@@ -55,8 +57,11 @@ class Blocks extends Newsletter {
     this._dropListeners = {}
     this._workspaces = []
 
-    this._dragSvg = Elem('svg', { class: 'block-dragged' }, [], true)
-    document.body.appendChild(this._dragSvg)
+    this._dragScale = 1
+    this._dragWrapper = Elem('g', {}, [], true)
+    document.body.appendChild(Elem('svg', { class: 'block-dragged' }, [
+      this._dragWrapper
+    ], true))
     this._dragging = 0
   }
 
@@ -162,19 +167,19 @@ class Blocks extends Newsletter {
   }
 
   onClick (elem, fn) {
-    const id = ++Blocks._id
+    const id = nextID++
     this.clickListeners[id] = fn
     elem.dataset.blockClick = id
   }
 
   onDrag (elem, fn) {
-    const id = ++Blocks._id
+    const id = nextID++
     this.dragListeners[id] = fn
     elem.dataset.blockDrag = id
   }
 
   onDrop (elem, listeners) {
-    const id = ++Blocks._id
+    const id = nextID++
     this._dropListeners[id] = listeners
     elem.dataset.blockDrop = id
   }
@@ -186,6 +191,11 @@ class Blocks extends Newsletter {
     return 'Have a nice day!'
   }
 
+  setDragZoom (scale) {
+    this._dragScale = scale
+    this._dragWrapper.setAttributeNS(null, 'transform', `scale(${scale})`)
+  }
+
   dragBlocks ({ target, initMouseX, initMouseY, scriptX, scriptY, type }) {
     if (!this._dragging) {
       document.body.classList.add('block-dragging-blocks')
@@ -193,8 +203,8 @@ class Blocks extends Newsletter {
     this._dragging++
     // If the first block is a reporter, then only pull out one block.
     const script = this._grabTarget(target, type === BlockType.COMMAND ? Infinity : 1)
-    script.setPosition(scriptX, scriptY)
-    this._dragSvg.appendChild(script.elem)
+    script.setPosition(scriptX / this._dragScale, scriptY / this._dragScale)
+    this._dragWrapper.appendChild(script.elem)
     const dx = initMouseX - scriptX
     const dy = initMouseY - scriptY
     const undoEntry = { type: 'transfer', a: target, blocks: script.components.length }
@@ -231,7 +241,7 @@ class Blocks extends Newsletter {
     })
     return {
       move: (x, y) => {
-        script.setPosition(x - dx, y - dy)
+        script.setPosition((x - dx) / this._dragScale, (y - dy) / this._dragScale)
         const elems = document.elementsFromPoint(x, y)
         let dropTargetElem
         for (let i = 0; !dropTargetElem && i < elems.length; i++) {
@@ -259,8 +269,23 @@ class Blocks extends Newsletter {
           }
           if (snapPoints && connections.length) {
             const workspaceRect = dropTarget.rect
-            const { left = 0, top = 0 } = dropTarget instanceof Workspace
+            const { left = 0, top = 0, scale = 1 } = dropTarget instanceof Workspace
               ? dropTarget.transform : {}
+            const isCloser = (connection, myConnection, closestSoFar) => {
+              const myX = script.position.x * this._dragScale + myConnection[0] * this._dragScale
+              const myY = script.position.y * this._dragScale + myConnection[1] * this._dragScale
+              const connectionX = workspaceRect.x + connection[0] * scale - left
+              const connectionY = workspaceRect.y + connection[1] * scale - top
+              const distance = square(myX - connectionX) + square(myY - connectionY)
+              return distance > Block.maxSnapDistance * Block.maxSnapDistance ||
+                (closestSoFar && distance >= closestSoFar.distanceSquared)
+                ? closestSoFar
+                : {
+                  distanceSquared: distance,
+                  connection,
+                  myConnection
+                }
+            }
             if (type === BlockType.COMMAND) {
               const closest = connections.reduce((closestSoFar, connection) => {
                 return [
@@ -270,25 +295,9 @@ class Blocks extends Newsletter {
                   // isn't terminal, then use the top notch to insert before
                   (connection[2].insertBefore && !snapPoints.inner && snapPoints.bottom) ||
                     connection[2].after ? snapPoints.top : null
-                ].reduce((closestSoFar, myConnection) => {
-                  if (!myConnection) return closestSoFar
-                  const myX = script.position.x + myConnection[0]
-                  const myY = script.position.y + myConnection[1]
-                  const connectionX = workspaceRect.x + connection[0] - left
-                  const connectionY = workspaceRect.y + connection[1] - top
-                  const distance = square(myX - connectionX) +
-                    square(myY - connectionY)
-                  if (distance > Block.maxSnapDistance * Block.maxSnapDistance ||
-                    (closestSoFar && distance >= closestSoFar.distanceSquared)) {
-                    return closestSoFar
-                  } else {
-                    return {
-                      distanceSquared: distance,
-                      connection,
-                      myConnection
-                    }
-                  }
-                }, closestSoFar)
+                ].reduce((closestSoFar, myConnection) => myConnection
+                  ? isCloser(connection, myConnection, closestSoFar)
+                  : closestSoFar, closestSoFar)
               }, null)
               if (closest) {
                 if (snapTo !== closest.connection[2]) {
@@ -330,23 +339,8 @@ class Blocks extends Newsletter {
                 }
               }
             } else {
-              const closest = connections.reduce((closestSoFar, connection) => {
-                const myX = script.position.x + snapPoints[0]
-                const myY = script.position.y + snapPoints[1]
-                const connectionX = workspaceRect.x + connection[0] - left
-                const connectionY = workspaceRect.y + connection[1] - top
-                const distance = square(myX - connectionX) +
-                  square(myY - connectionY)
-                if (distance > Block.maxSnapDistance * Block.maxSnapDistance ||
-                  (closestSoFar && distance >= closestSoFar.distanceSquared)) {
-                  return closestSoFar
-                } else {
-                  return {
-                    distanceSquared: distance,
-                    connection
-                  }
-                }
-              }, null)
+              const closest = connections.reduce((closestSoFar, connection) =>
+                isCloser(connection, snapPoints, closestSoFar), null)
               if (closest) {
                 if (snapTo !== closest.connection[2]) {
                   if (snapTo) {
@@ -393,11 +387,17 @@ class Blocks extends Newsletter {
         if (!this._dragging) {
           document.body.classList.remove('block-dragging-blocks')
         }
-        this._dragSvg.removeChild(script.elem)
+        this._dragWrapper.removeChild(script.elem)
         if (possibleDropTarget) {
           if (possibleDropTarget instanceof Workspace) {
             const { x, y } = script.position
-            undoEntry.b = possibleDropTarget.dropBlocks({ script, x, y, snapTo, wrappingC })
+            undoEntry.b = possibleDropTarget.dropBlocks({
+              script,
+              x: x * this._dragScale,
+              y: y * this._dragScale,
+              snapTo,
+              wrappingC
+            })
           } else if (possibleDropTarget.acceptScript) {
             possibleDropTarget.acceptScript(script)
           }
@@ -647,8 +647,6 @@ class Blocks extends Newsletter {
     return this.createBlock(opcode, params)
   }
 }
-
-Blocks._id = 0
 
 Blocks.BlockType = BlockType
 Blocks.ArgumentType = ArgumentType

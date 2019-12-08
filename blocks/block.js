@@ -308,7 +308,7 @@ class Block extends Component {
     const workspace = this.getWorkspace()
     const { x, y } = this.getWorkspaceOffset()
     const { x: workspaceX, y: workspaceY } = workspace.rect
-    const { left, top } = workspace.transform
+    const { left, top, scale } = workspace.transform
     let target
     if (this.cloneOnDrag) {
       target = [this.toJSON()]
@@ -329,8 +329,8 @@ class Block extends Component {
       target,
       initMouseX,
       initMouseY,
-      scriptX: workspaceX + x - left,
-      scriptY: workspaceY + y - top,
+      scriptX: workspaceX + x * scale - left,
+      scriptY: workspaceY + y * scale - top,
       type: this.blockData.blockType
     })
   }

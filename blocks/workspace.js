@@ -136,8 +136,8 @@ class Workspace extends Newsletter {
       return {
         workspace: this,
         index: this.scripts.length,
-        x: x - this.rect.x + this._transform.left,
-        y: y - this.rect.y + this._transform.top
+        x: (x - this.rect.x + this._transform.left) / this._transform.scale,
+        y: (y - this.rect.y + this._transform.top) / this._transform.scale
       }
     }
   }
@@ -182,8 +182,8 @@ class Workspace extends Newsletter {
 
   _updateTransformation () {
     const { left, top, scale } = this._transform
-    this.scriptsElem.setAttributeNS(null, 'transform', `scale(${scale}) translate(${-left}, ${-top})`)
-    this._input.style.transform = `scale(${scale}) translate(${-left}px, ${-top}px)`
+    this.scriptsElem.setAttributeNS(null, 'transform', `translate(${-left}, ${-top}) scale(${scale})`)
+    this._input.style.transform = `translate(${-left}px, ${-top}px) scale(${scale})`
     if (this._recallMoveEvents) {
       // Prevent the move event listeners from being recursively called
       this._recallMoveEvents = false
@@ -215,14 +215,11 @@ class Workspace extends Newsletter {
 
   _onStartScroll (initX, initY) {
     if (this._scrolling) return
-    const { left: initLeft, top: initTop, scale: initScale } = this._transform
+    const { left: initLeft, top: initTop } = this._transform
     this._scrolling = true
     return {
       move: (x, y) => {
-        this.scrollTo(
-          initLeft + initX / initScale - x / this._transform.scale,
-          initTop + initY / initScale - y / this._transform.scale
-        )
+        this.scrollTo(initLeft + initX - x, initTop + initY - y)
       },
       end: () => {
         this._scrolling = false
@@ -357,6 +354,8 @@ class ScriptsWorkspace extends Workspace {
    */
   recalculateScrollBounds () {
     if (!this.rect) return
+    const scale = this.transform.scale
+    const { width, height } = this.rect
     let minX = 0
     let minY = 0
     let maxX = 0
@@ -375,19 +374,24 @@ class ScriptsWorkspace extends Workspace {
         if (x + width > maxX) maxX = x + width
       }
     }
-    const { padding, scrollPadding } = ScriptsWorkspace
+    minX *= scale
+    maxX *= scale
+    minY *= scale
+    maxY *= scale
+    const padding = ScriptsWorkspace.padding
+    const scrollPadding = ScriptsWorkspace.scrollPadding
     minY -= padding
-    maxY = Math.max(maxY + scrollPadding, minY + this.rect.height)
+    maxY = Math.max(maxY + scrollPadding, minY + height)
     if (this.blocks.dir === 'rtl') {
       // Reverse of LTR, ish; only doing X in the if/else because RTL
       // flips horizontally.
       maxX += scrollPadding
-      minX = Math.min(minX - padding, maxX - this.rect.width)
+      minX = Math.min(minX - padding, maxX - width)
     } else {
       minX -= padding
       // If the maxX + padding will make the scroll width shorter than the
       // viewable width, then use the viewable width instead as the scroll width.
-      maxX = Math.max(maxX + scrollPadding, minX + this.rect.width)
+      maxX = Math.max(maxX + scrollPadding, minX + width)
     }
     this._scrollBounds = { minX, minY, maxX, maxY }
     this.trigger('scroll-bounds', this._scrollBounds)
@@ -413,18 +417,27 @@ class ScriptsWorkspace extends Workspace {
     if (!this._scrollBounds) {
       return
     }
+    const { width, height } = this.rect
     const { minX, minY, maxX, maxY } = this._scrollBounds
     if (left < minX) {
       left = minX
-    } else if (left > maxX - this.rect.width) {
-      left = maxX - this.rect.width
+    } else if (left > maxX - width) {
+      left = maxX - width
     }
     if (top < minY) {
       top = minY
-    } else if (top > maxY - this.rect.height) {
-      top = maxY - this.rect.height
+    } else if (top > maxY - height) {
+      top = maxY - height
     }
     super.scrollTo(left, top)
+  }
+
+  zoomTo (scale) {
+    super.zoomTo(scale)
+    Promise.resolve()
+      .then(() => {
+        this.updateScroll()
+      })
   }
 
   updateScroll () {
