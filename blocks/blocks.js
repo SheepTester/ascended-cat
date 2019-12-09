@@ -216,17 +216,15 @@ class Blocks extends Newsletter {
     this._dragWrapper.setAttributeNS(null, 'transform', `scale(${scale})`)
   }
 
-  dragBlocks ({ target, initMouseX, initMouseY, scriptX, scriptY, type }) {
+  dragBlocks ({ target, initMouseX, initMouseY, dx, dy, type }) {
     if (!this._dragging) {
       document.body.classList.add('block-dragging-blocks')
     }
     this._dragging++
     // If the first block is a reporter, then only pull out one block.
     const script = this._grabTarget(target, type === BlockType.COMMAND ? Infinity : 1)
-    script.setPosition(scriptX / this._dragScale, scriptY / this._dragScale)
+    script.setPosition((initMouseX - dx) / this._dragScale, (initMouseY - dy) / this._dragScale)
     this._dragWrapper.appendChild(script.elem)
-    const dx = initMouseX - scriptX
-    const dy = initMouseY - scriptY
     const undoEntry = { type: 'transfer', a: target, blocks: script.components.length }
     let possibleDropTarget
     let connections = []
@@ -261,7 +259,7 @@ class Blocks extends Newsletter {
     })
     return {
       move: (x, y) => {
-        script.setPosition((x - dx) / this._dragScale, (y - dy) / this._dragScale)
+        script.setPosition((x + dx) / this._dragScale, (y + dy) / this._dragScale)
         const elems = document.elementsFromPoint(x, y)
         let dropTargetElem
         for (let i = 0; !dropTargetElem && i < elems.length; i++) {

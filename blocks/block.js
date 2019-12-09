@@ -374,8 +374,8 @@ class Block extends Component {
       target,
       initMouseX,
       initMouseY,
-      scriptX,
-      scriptY,
+      dx: scriptX - initMouseX,
+      dy: scriptY - initMouseY,
       type: this.blockData.blockType
     })
   }
