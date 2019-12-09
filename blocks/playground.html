@@ -192,8 +192,22 @@ const specA = {
     {
       opcode: 'test',
       blockType: Blocks.BlockType.COMMAND,
-      text: 'wow wow long long hat hat',
-      hat: true
+      text: 'when the hat does [ESTOS][ESOS][AQUELLOS]',
+      hat: true,
+      arguments: {
+        ESTOS: {
+          type: Blocks.ArgumentType.STRING,
+          menu: ['apples', 'bananas', 'chocolates']
+        },
+        ESOS: {
+          type: Blocks.ArgumentType.NUMBER,
+          menu: '#numbers'
+        },
+        AQUELLOS: {
+          type: Blocks.ArgumentType.STRING,
+          menu: 'test'
+        }
+      }
     },
     {
       opcode: 'branch',
@@ -340,6 +354,15 @@ const specA = {
       text: ''
     }
   ],
+  menus: {
+    numbers: () => {
+      const arr = []
+      for (let i = 0; i < 10; i++) {
+        arr.push(i)
+      }
+      return arr
+    }
+  },
   translationMap: {
     ar: {
       '__name__': '!sgo8iu Ñsdf e è dsfg u ondu   .',
@@ -535,6 +558,7 @@ const blocks = new Blocks([specA])
 blocks.addCategory(specB)
 blocks.addCategory(specC)
 blocks.addCategory(specD)
+blocks.menus.test = ['happy', 'wow', 'clunk']
 blocks.addTranslations('ar', [
   ['_.undefinedBlock', '؟؟؟']
 ])

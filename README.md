@@ -6,5 +6,5 @@ Scratch for three.js
 - Angle picker and other argument types
 - Touch keypad (Typing should giving focus to input though)
 - Relabel, duplicate
-- Translate undefined blocks and right-click menu options
 - Support preference for , or . decimals
+- Should store numbers as strings so that long numbers will be left the way they are!
