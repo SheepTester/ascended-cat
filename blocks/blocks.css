@@ -12,6 +12,7 @@
   height: 100%;
   pointer-events: none;
   z-index: 1000;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
 }
 .block-dragging-blocks {
   cursor: grabbing;

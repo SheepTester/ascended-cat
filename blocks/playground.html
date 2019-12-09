@@ -518,13 +518,8 @@ blocks.on('script-click', console.log)
 
 const palette = blocks.createPaletteWorkspace(document.getElementById('palette'), [specB])
 const paletteCategories = new PaletteCategories(palette, document.getElementById('categories'))
-palette.blockOrder.push(specC, specD)
+palette.blockOrder.push(specC, specD, specA)
 palette.updateBlockOrder().filter()
-window.addSpecA = () => {
-  palette.blockOrder.push(specA)
-  palette.updateBlockOrder().filter()
-}
-addSpecA() // TEMP?
 
 const scripts = blocks.createScriptsWorkspace(document.getElementById('scripts'))
 
