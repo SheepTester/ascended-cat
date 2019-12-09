@@ -1,7 +1,3 @@
-.block-hidden {
-  display: none;
-}
-
 /* blocks */
 .block-dragged {
   display: none;
@@ -53,11 +49,6 @@
   left: 0;
 }
 .block-input-elem {
-  -webkit-appearance: none;
-  border: none;
-  background: none;
-  font: inherit;
-  color: inherit;
   box-sizing: border-box;
   position: absolute;
 }

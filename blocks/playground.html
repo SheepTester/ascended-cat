@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
     <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../utils/common.css">
     <link rel="stylesheet" href="./blocks.css">
 
     <style>
@@ -19,10 +20,12 @@
         display: flex;
         background-color: black;
         color: white;
+        font-family: 'Lato', sans-serif;
       }
 
       #controls button {
-        cursor: pointer;
+        font-size: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
       }
       .palette-wrapper {
         display: flex;
@@ -45,6 +48,29 @@
         background-color: #222;
       }
 
+      .context-menu {
+        position: fixed;
+        padding: 5px 0;
+        background-color: rgba(30, 30, 30, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .context-menu-option {
+        display: block;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        padding: 0 15px;
+      }
+      .context-menu-option:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+      .context-menu-separator {
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        margin: 5px 0;
+      }
+
       .block-back {
         stroke: rgba(0, 0, 0, 0.2);
       }
@@ -64,10 +90,6 @@
         --colour: #6ABC88;
       }
 
-      .block-text-component,
-      .block-input {
-        font-family: 'Lato', sans-serif;
-      }
       .block-block {
         cursor: grab;
       }
@@ -112,7 +134,6 @@
       }
 
       .block-category {
-        font-family: 'Lato', sans-serif;
         border-left: 2px solid var(--colour);
         font-size: 14px;
         cursor: pointer;

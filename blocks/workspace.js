@@ -1,6 +1,7 @@
 import { Elem } from '../utils/elem.js'
 import { pythagoreanCompare } from '../utils/math.js'
 import { Newsletter } from '../utils/newsletter.js'
+import { contextMenu } from '../utils/context-menu.js'
 
 import { Input } from './input.js'
 import { getIndicesOf } from './block.js'
@@ -51,7 +52,7 @@ class Workspace extends Newsletter {
     ], true)
     wrapper.appendChild(this.svg)
     this._input = Elem('input', {
-      className: 'block-input block-input-elem block-hidden',
+      className: 'block-input block-input-elem hidden',
       oninput: () => {
         if (this._showingInput && this._showingInput.on.change) {
           this._showingInput.on.change(this._input.value)
@@ -91,6 +92,7 @@ class Workspace extends Newsletter {
     wrapper.addEventListener('pointermove', this._onPointerMove.bind(this))
     wrapper.addEventListener('pointerup', this._onPointerUp.bind(this))
     wrapper.addEventListener('pointercancel', this._onPointerUp.bind(this))
+    wrapper.addEventListener('contextmenu', this._onContextMenu.bind(this))
     wrapper.addEventListener('wheel', e => {
       if (!e.altKey && !e.ctrlKey && !e.metaKey) {
         if (e.shiftKey) {
@@ -104,6 +106,11 @@ class Workspace extends Newsletter {
 
     blocks.onDrag(this.wrapper, this._onStartScroll.bind(this))
     blocks.onDrop(this.wrapper, this)
+    blocks.onRightClick(this.wrapper, e => {
+      contextMenu([
+        { label: 'add comment', fn: () => { console.log('add comment') } }
+      ], e.clientX + 1, e.clientY)
+    })
   }
 
   dropBlocks ({ script, x, y, snapTo, wrappingC }) {
@@ -149,7 +156,7 @@ class Workspace extends Newsletter {
       this._showingInput.on.hide(this._input)
     }
     this._showingInput = null
-    this._input.classList.add('block-hidden')
+    this._input.classList.add('hidden')
   }
 
   showInput (listeners, isNumber) {
@@ -160,7 +167,7 @@ class Workspace extends Newsletter {
       on: listeners,
       number: isNumber
     }
-    this._input.classList.remove('block-hidden')
+    this._input.classList.remove('hidden')
     this._input.focus()
     return this._input
   }
@@ -253,7 +260,8 @@ class Workspace extends Newsletter {
       startX: e.clientX,
       startY: e.clientY,
       dragging: false,
-      lastMoveEvent: e
+      lastMoveEvent: e,
+      mouseLeft: e.button === 0
     }
   }
 
@@ -267,7 +275,7 @@ class Workspace extends Newsletter {
       if (pointerEntry.dragMove) {
         pointerEntry.dragMove(e.clientX, e.clientY)
       }
-    } else if (pythagoreanCompare(
+    } else if (pointerEntry.mouseLeft && pythagoreanCompare(
       e.clientX - pointerEntry.startX,
       e.clientY - pointerEntry.startY,
       Workspace.minDragDistance
@@ -299,17 +307,20 @@ class Workspace extends Newsletter {
       const clickElem = pointerEntry.elem.closest('[data-block-click]')
       if (clickElem) {
         const { fn, allButtons } = this.blocks.clickListeners[clickElem.dataset.blockClick]
-        if (allButtons || e.button === 0) {
+        if (allButtons || pointerEntry.mouseLeft) {
           fn(e)
-        } else {
-          const rClickElem = pointerEntry.elem.closest('[data-block-right-click]')
-          if (rClickElem) {
-            this.blocks.rClickListeners[rClickElem.dataset.blockRightClick](e)
-          }
         }
       }
     }
     delete this._pointers[e.pointerId]
+  }
+
+  _onContextMenu (e) {
+    const rClickElem = e.target.closest('[data-block-right-click]')
+    if (rClickElem) {
+      this.blocks.rClickListeners[rClickElem.dataset.blockRightClick](e)
+      e.preventDefault()
+    }
   }
 
   getAllInputs () {

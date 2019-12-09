@@ -1,0 +1,16 @@
+.hidden {
+  display: none;
+}
+
+button,
+input,
+select {
+  -webkit-appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}

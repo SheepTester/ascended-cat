@@ -1,4 +1,5 @@
 import { Elem } from '../utils/elem.js'
+import { contextMenu } from '../utils/context-menu.js'
 
 import { Component, TextComponent } from './component.js'
 import { BlockType, ArgumentType, NullCategory } from './constants.js'
@@ -48,9 +49,15 @@ class Block extends Component {
     }
 
     blocks.onDrag(this.elem, this._onDrag.bind(this))
-    blocks.onRightClick(this.elem, () => {
-      console.log(this.blockOpcode, 'right clicked')
-    }) // TEMP
+    blocks.onRightClick(this.elem, e => {
+      contextMenu([
+        { label: 'duplicate', fn: () => { console.log('duplicate') } },
+        { label: 'delete', fn: () => { console.log('delete') } },
+        '---',
+        { label: 'add comment', fn: () => { console.log('add comment') } },
+        { label: 'help', fn: () => { console.log('help') } }
+      ], e.clientX + 1, e.clientY)
+    })
     blocks.on('language-change', this.updateLabel)
   }
 

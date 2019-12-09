@@ -15,9 +15,9 @@ class GenericComponent extends Newsletter {
 
   set visible (visible) {
     if (visible) {
-      this.elem.classList.remove('block-hidden')
+      this.elem.classList.remove('hidden')
     } else {
-      this.elem.classList.add('block-hidden')
+      this.elem.classList.add('hidden')
     }
     this._visible = visible
   }
