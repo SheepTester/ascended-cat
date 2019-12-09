@@ -13,7 +13,8 @@ class Input extends Component {
 
     this.isEditable = isEditable
     if (isEditable) {
-      this.blocks.onClick(this.elem, this._onClick.bind(this), true)
+      blocks.onClick(this.elem, this._onClick.bind(this))
+      blocks.onRightClick(this.elem, this._onClick.bind(this))
     }
     this.isNumber = isNumber
 

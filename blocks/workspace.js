@@ -106,10 +106,14 @@ class Workspace extends Newsletter {
 
     blocks.onDrag(this.wrapper, this._onStartScroll.bind(this))
     blocks.onDrop(this.wrapper, this)
-    blocks.onRightClick(this.wrapper, e => {
+    // Right click on SVG to allow right click especially on the input
+    // (though there's also no reason to have the right click menu for the
+    // scrollbars either)
+    blocks.onRightClick(this.svg, e => {
       contextMenu([
         { label: 'add comment', fn: () => { console.log('add comment') } }
       ], e.clientX + 1, e.clientY)
+      e.preventDefault()
     })
   }
 
@@ -254,14 +258,13 @@ class Workspace extends Newsletter {
   }
 
   _onPointerDown (e) {
-    if (this._pointers[e.pointerId]) return
+    if (this._pointers[e.pointerId] || e.button !== 0) return
     this._pointers[e.pointerId] = {
       elem: e.target,
       startX: e.clientX,
       startY: e.clientY,
       dragging: false,
-      lastMoveEvent: e,
-      mouseLeft: e.button === 0
+      lastMoveEvent: e
     }
   }
 
@@ -275,7 +278,7 @@ class Workspace extends Newsletter {
       if (pointerEntry.dragMove) {
         pointerEntry.dragMove(e.clientX, e.clientY)
       }
-    } else if (pointerEntry.mouseLeft && pythagoreanCompare(
+    } else if (pythagoreanCompare(
       e.clientX - pointerEntry.startX,
       e.clientY - pointerEntry.startY,
       Workspace.minDragDistance
@@ -306,10 +309,7 @@ class Workspace extends Newsletter {
     } else {
       const clickElem = pointerEntry.elem.closest('[data-block-click]')
       if (clickElem) {
-        const { fn, allButtons } = this.blocks.clickListeners[clickElem.dataset.blockClick]
-        if (allButtons || pointerEntry.mouseLeft) {
-          fn(e)
-        }
+        this.blocks.clickListeners[clickElem.dataset.blockClick](e)
       }
     }
     delete this._pointers[e.pointerId]
@@ -319,7 +319,6 @@ class Workspace extends Newsletter {
     const rClickElem = e.target.closest('[data-block-right-click]')
     if (rClickElem) {
       this.blocks.rClickListeners[rClickElem.dataset.blockRightClick](e)
-      e.preventDefault()
     }
   }
 

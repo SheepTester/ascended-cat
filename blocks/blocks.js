@@ -170,9 +170,9 @@ class Blocks extends Newsletter {
     this._dir = dir
   }
 
-  onClick (elem, fn, allButtons = false) {
+  onClick (elem, fn) {
     const id = nextID++
-    this.clickListeners[id] = { fn, allButtons }
+    this.clickListeners[id] = fn
     elem.dataset.blockClick = id
   }
 

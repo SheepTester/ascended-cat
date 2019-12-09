@@ -57,6 +57,7 @@ class Block extends Component {
         { label: 'add comment', fn: () => { console.log('add comment') } },
         { label: 'help', fn: () => { console.log('help') } }
       ], e.clientX + 1, e.clientY)
+      e.preventDefault()
     })
     blocks.on('language-change', this.updateLabel)
   }
