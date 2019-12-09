@@ -51,11 +51,11 @@ class Block extends Component {
     blocks.onDrag(this.elem, this._onDrag.bind(this))
     blocks.onRightClick(this.elem, e => {
       contextMenu([
-        { label: 'duplicate', fn: () => { console.log('duplicate') } },
-        { label: 'delete', fn: () => { console.log('delete') } },
+        { label: blocks.getTranslation('_.duplicate'), fn: () => { console.log('duplicate') } },
+        { label: blocks.getTranslation('_.delete'), fn: () => { console.log('delete') } },
         '---',
-        { label: 'add comment', fn: () => { console.log('add comment') } },
-        { label: 'help', fn: () => { console.log('help') } }
+        { label: 'Add comment', fn: () => { console.log('add comment') } },
+        { label: blocks.getTranslation('_.help'), fn: () => { console.log('help') } }
       ], e.clientX + 1, e.clientY)
       e.preventDefault()
     })

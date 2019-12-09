@@ -111,7 +111,7 @@ class Workspace extends Newsletter {
     // scrollbars either)
     blocks.onRightClick(this.svg, e => {
       contextMenu([
-        { label: 'add comment', fn: () => { console.log('add comment') } }
+        { label: 'Add comment', fn: () => { console.log('add comment') } }
       ], e.clientX + 1, e.clientY)
       e.preventDefault()
     })

@@ -44,7 +44,12 @@ class Blocks extends Newsletter {
 
     this._language = null
     this._dir = 'ltr'
-    this.translations = { default: {} }
+    this.translations = { default: {
+      '_.undefinedBlock': '???',
+      '_.duplicate': 'Duplicate',
+      '_.delete': 'Delete',
+      '_.help': 'Help'
+    } }
     this.categories = {}
     for (const category of initCategories) {
       this.addCategory(category)
@@ -147,10 +152,14 @@ class Blocks extends Newsletter {
     if (this._language && this.translations[this._language] &&
       this.translations[this._language][id] !== undefined) {
       return this.translations[this._language][id]
+    } else if (this.translations.default[id] !== undefined) {
+      return this.translations.default[id]
+    } else if (id[0] === '_') {
+      console.warn('No translation for', id)
+      return id
+    } else {
+      return this.getTranslation('_.undefinedBlock')
     }
-    return this.translations.default[id] !== undefined
-      ? this.translations.default[id]
-      : '???' // TODO: Translate this
   }
 
   get dir () {

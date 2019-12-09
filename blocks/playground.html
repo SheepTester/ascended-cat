@@ -535,6 +535,9 @@ const blocks = new Blocks([specA])
 blocks.addCategory(specB)
 blocks.addCategory(specC)
 blocks.addCategory(specD)
+blocks.addTranslations('ar', [
+  ['_.undefinedBlock', '؟؟؟']
+])
 
 blocks.on('script-click', console.log)
 
