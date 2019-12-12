@@ -48,6 +48,7 @@ class Blocks extends Newsletter {
       '_.undefinedBlock': '???',
       '_.duplicate': 'Duplicate',
       '_.delete': 'Delete',
+      '_.addComment': 'Add comment',
       '_.help': 'Help'
     } }
     this.menus = {}

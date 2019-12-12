@@ -64,6 +64,9 @@
         color: rgba(255, 255, 255, 0.8);
         padding: 0 15px;
       }
+      [dir=rtl] .context-menu-option {
+        text-align: right;
+      }
       .context-menu-option:hover {
         background-color: rgba(255, 255, 255, 0.2);
       }
@@ -578,7 +581,10 @@ blocks.addCategory(specC)
 blocks.addCategory(specD)
 blocks.menus.test = ['happy', 'wow', 'clunk']
 blocks.addTranslations('ar', [
-  ['_.undefinedBlock', '؟؟؟']
+  ['_.undefinedBlock', '؟؟؟'],
+  ['_.duplicate', 'مضاعفة'],
+  ['_.delete', 'حذف اللبنة'],
+  ['_.addComment', 'إضافة تعليق']
 ])
 
 blocks.on('script-click', console.log)

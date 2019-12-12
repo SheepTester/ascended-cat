@@ -61,9 +61,9 @@ class Block extends Component {
         { label: blocks.getTranslation('_.duplicate'), fn: () => { console.log('duplicate') } },
         { label: blocks.getTranslation('_.delete'), fn: () => { console.log('delete') } },
         '---',
-        { label: 'Add comment', fn: () => { console.log('add comment') } },
+        { label: blocks.getTranslation('_.addComment'), fn: () => { console.log('add comment') } },
         { label: blocks.getTranslation('_.help'), fn: () => { console.log('help') } }
-      ], e.clientX + 1, e.clientY)
+      ], e.clientX + 1, e.clientY, this.blocks.dir === 'rtl')
       e.preventDefault()
     })
     blocks.on('language-change', this.updateLabel)

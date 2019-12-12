@@ -1,6 +1,6 @@
 import { Elem } from './elem.js'
 
-function contextMenu (options = [], x = 0, y = 0) {
+function contextMenu (options = [], x = 0, y = 0, rtl = false) {
   const menu = Elem('div', {
     className: 'context-menu',
     style: {
@@ -29,6 +29,13 @@ function contextMenu (options = [], x = 0, y = 0) {
     const rect = menu.getBoundingClientRect()
     const windowWidth = window.innerWidth
     const windowHeight = window.innerHeight
+    if (rtl) {
+      if (x - rect.width < 0) {
+        menu.style.left = '0'
+      } else {
+        menu.style.left = `${x - rect.width}px`
+      }
+    }
     if (rect.right > windowWidth) {
       menu.style.left = `${x - rect.width}px`
     }
