@@ -231,7 +231,7 @@ class Blocks extends Newsletter {
     this._dragging++
     // If the first block is a reporter, then only pull out one block.
     const script = this._grabTarget(target, type === BlockType.COMMAND ? Infinity : 1)
-    script.setPosition((initMouseX - dx) / this._dragScale, (initMouseY - dy) / this._dragScale)
+    script.setPosition((initMouseX + dx) / this._dragScale, (initMouseY + dy) / this._dragScale)
     this._dragWrapper.appendChild(script.elem)
     const undoEntry = { type: 'transfer', a: target, blocks: script.components.length }
     let possibleDropTarget
