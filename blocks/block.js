@@ -19,6 +19,8 @@ const paddingTypes = {
   [BlockType.BOOLEAN]: 'Boolean'
 }
 
+const paramRegex = /\[([A-Z0-9_]+)\]/g
+
 function getIndicesOf (component) {
   const indices = []
   while (component.parent) {
@@ -57,13 +59,40 @@ class Block extends Component {
 
     blocks.onDrag(this.elem, this._onDrag.bind(this))
     blocks.onRightClick(this.elem, e => {
-      contextMenu([
-        { label: blocks.getTranslation('_.duplicate'), fn: () => { console.log('duplicate') } },
-        { label: blocks.getTranslation('_.delete'), fn: () => { console.log('delete') } },
-        '---',
-        { label: blocks.getTranslation('_.addComment'), fn: () => { console.log('add comment') } },
-        { label: blocks.getTranslation('_.help'), fn: () => { console.log('help') } }
-      ], e.clientX + 1, e.clientY, this.blocks.dir === 'rtl')
+      let items
+      if (this.cloneOnDrag) {
+        items = [
+          { label: blocks.getTranslation('_.help'), fn: () => { console.log('help') } }
+        ]
+      } else {
+        items = [
+          { label: blocks.getTranslation('_.duplicate'), fn: () => { console.log('duplicate') } },
+          { label: blocks.getTranslation('_.delete'), fn: () => { console.log('delete') } },
+          '---',
+          { label: blocks.getTranslation('_.addComment'), fn: () => { console.log('add comment') } },
+          { label: blocks.getTranslation('_.help'), fn: () => { console.log('help') } }
+        ]
+        if (this.blockData.alternatives.length) {
+          items.push(
+            '---',
+            ...this.blockData.alternatives.map(alternative => {
+              if (alternative[0] === '#') {
+                alternative = `${this.category}.${alternative.slice(1)}`
+              }
+              return {
+                label: this.blocks.getTranslation(alternative)
+                  .replace(paramRegex, this.blocks.getTranslation('_.paramPlaceholder')),
+                fn: () => {
+                  this.setBlock(alternative)
+                  this.updateLabel()
+                  this.resize()
+                }
+              }
+            })
+          )
+        }
+      }
+      contextMenu(items, e.clientX + 1, e.clientY, this.blocks.dir === 'rtl')
       e.preventDefault()
     })
     blocks.on('language-change', this.updateLabel)
@@ -95,10 +124,10 @@ class Block extends Component {
   updateLabel () {
     this.clear()
     const text = this.blocks.getTranslation(this.blockOpcode)
-    const paramRegex = /\[([A-Z0-9_]+)\]/g
     // This allows unused parameters from previous block to be discarded
     const oldParams = this._params
     this._params = {}
+    paramRegex.lastIndex = 0
     let i = 0
     let exec
     while ((exec = paramRegex.exec(text))) {

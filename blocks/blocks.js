@@ -49,7 +49,8 @@ class Blocks extends Newsletter {
       '_.duplicate': 'Duplicate',
       '_.delete': 'Delete',
       '_.addComment': 'Add comment',
-      '_.help': 'Help'
+      '_.help': 'Help',
+      '_.paramPlaceholder': '_'
     } }
     this.menus = {}
     this.categories = {}
@@ -109,8 +110,8 @@ class Blocks extends Newsletter {
     text = `block ${opcode}`,
     hat = false,
     terminal = false,
-    arguments: args = {}
-    // func, filter, menus?
+    arguments: args = {},
+    alternatives = []
   }) {
     const blockOpcode = `${category}.${opcode}`
     this.translations.default[blockOpcode] = text
@@ -118,7 +119,8 @@ class Blocks extends Newsletter {
       blockType,
       hat,
       terminal,
-      args
+      args,
+      alternatives
     }
     this.trigger('block-added', blockOpcode)
   }

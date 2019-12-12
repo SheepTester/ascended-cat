@@ -180,6 +180,7 @@ class Workspace extends Newsletter {
     if (!(script instanceof Stack)) {
       throw new Error('wucky: Workspaces are picky and only want Stacks.')
     }
+    script.trigger('adding', this)
     if (script.workspace) {
       script.removeFromWorkspace()
     }

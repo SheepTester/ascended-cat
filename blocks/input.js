@@ -249,16 +249,17 @@ class Input extends Component {
       ? this.blocks.menus[this.menu]
       : this.menu
     const menu = Array.isArray(entry) ? entry : entry()
-    const { x, y } = this.getWorkspaceOffset()
-    const workspace = this.getWorkspace()
-    const { x: workspaceX, y: workspaceY } = workspace.rect
-    const { left, top } = workspace.transform
+    const { x: offsetX, y: offsetY } = this.getWorkspaceOffset()
+    const { x, y } = this.getWorkspace().scriptToCSSCoords(
+      offsetX,
+      offsetY + this.measurements.height
+    )
     contextMenu(
       menu.map(label => ({ label, fn: () => {
         this.setValueFromUserInput(label)
       } })),
-      workspaceX - left + x,
-      workspaceY - top + y + this.measurements.height,
+      x,
+      y,
       this.blocks.dir === 'rtl'
     )
   }

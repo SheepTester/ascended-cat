@@ -102,11 +102,14 @@ class Script extends Stack {
 
   removeFromWorkspace () {
     if (!this.workspace) return
+    this.trigger('removing', this.workspace)
     this.workspace.scriptsElem.removeChild(this.elem)
     const index = this.workspace.scripts.indexOf(this)
     if (~index) {
       this.workspace.scripts.splice(index, 1)
     }
+    // Specifically needed to be after the removal so that scroll bounds can be
+    // updated without taking into account the script
     this.trigger('workspace-remove', this.workspace)
     this.workspace = null
   }

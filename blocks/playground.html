@@ -275,19 +275,6 @@ const specA = {
       }
     },
     {
-      opcode: 'add',
-      blockType: Blocks.BlockType.REPORTER,
-      text: '[A] + [B]',
-      arguments: {
-        A: {
-          type: Blocks.ArgumentType.NUMBER
-        },
-        B: {
-          type: Blocks.ArgumentType.NUMBER
-        }
-      }
-    },
-    {
       opcode: 'not',
       blockType: Blocks.BlockType.BOOLEAN,
       text: 'not [TEST]',
@@ -547,6 +534,62 @@ const specD = {
   name: 'Operators',
   blocks: [
     {
+      opcode: 'add',
+      blockType: Blocks.BlockType.REPORTER,
+      text: '[A] + [B]',
+      arguments: {
+        A: {
+          type: Blocks.ArgumentType.NUMBER
+        },
+        B: {
+          type: Blocks.ArgumentType.NUMBER
+        }
+      },
+      alternatives: ['#subtract', '#multiply', '#divide']
+    },
+    {
+      opcode: 'subtract',
+      blockType: Blocks.BlockType.REPORTER,
+      text: '[A] - [B]',
+      arguments: {
+        A: {
+          type: Blocks.ArgumentType.NUMBER
+        },
+        B: {
+          type: Blocks.ArgumentType.NUMBER
+        }
+      },
+      alternatives: ['#add', '#multiply', '#divide']
+    },
+    {
+      opcode: 'multiply',
+      blockType: Blocks.BlockType.REPORTER,
+      text: '[A] * [B]',
+      arguments: {
+        A: {
+          type: Blocks.ArgumentType.NUMBER
+        },
+        B: {
+          type: Blocks.ArgumentType.NUMBER
+        }
+      },
+      alternatives: ['#add', '#subtract', '#divide']
+    },
+    {
+      opcode: 'divide',
+      blockType: Blocks.BlockType.REPORTER,
+      text: '[A] / [B]',
+      arguments: {
+        A: {
+          type: Blocks.ArgumentType.NUMBER
+        },
+        B: {
+          type: Blocks.ArgumentType.NUMBER
+        }
+      },
+      alternatives: ['#add', '#subtract', '#multiply']
+    },
+    {
       opcode: 'equals',
       blockType: Blocks.BlockType.BOOLEAN,
       text: '[A] = [B]',
@@ -559,7 +602,8 @@ const specD = {
           type: Blocks.ArgumentType.STRING,
           default: '50'
         }
-      }
+      },
+      alternatives: ['#strictlyEquals']
     },
     {
       opcode: 'strictlyEquals',
@@ -574,7 +618,8 @@ const specD = {
           type: Blocks.ArgumentType.STRING,
           default: 'APPLE'
         }
-      }
+      },
+      alternatives: ['#equals']
     }
   ],
   translationMap: {
@@ -611,7 +656,7 @@ const stack = blocks.createScript([
   blocks.createBlock('test.test'),
   blocks.createBlock('test.branch', {
     WOW: blocks.createBlock('test.join', {
-      A: blocks.createBlock('test.add'),
+      A: blocks.createBlock('operators.add'),
       B: blocks.createBlock('test.join')
     }),
     B1: [
