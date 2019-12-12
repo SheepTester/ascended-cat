@@ -3,7 +3,14 @@ import { contextMenu } from '../utils/context-menu.js'
 
 import { Component, TextComponent } from './component.js'
 import { BlockType, ArgumentType, NullCategory } from './constants.js'
-import { Input, StringInput, NumberInput, AngleInput, BooleanInput } from './input.js'
+import {
+  Input,
+  StringInput,
+  NumberInput,
+  AngleInput,
+  BooleanInput,
+  renderOptions as inputRenderOptions
+} from './input.js'
 import { Stack, Script } from './scripts.js'
 
 const paddingTypes = {
@@ -68,6 +75,7 @@ class Block extends Component {
       this._onBlockAdded = null
     }
     const { category, blockData, opcode } = this.blocks.getBlockData(blockOpcode)
+    this.category = category
     this.blockOpcode = blockOpcode
     this.blockData = blockData || Block.nonexistentBlock
     if (!blockData) {
@@ -125,7 +133,7 @@ class Block extends Component {
   }
 
   // TODO: Translate default strings
-  createParam (argumentData, value = argumentData.default) {
+  createParam ({ type, default: defaultVal, menu = null }, value = defaultVal) {
     if (value) {
       if (value.opcode) {
         value = this.blocks.blockFromJSON(value)
@@ -133,19 +141,24 @@ class Block extends Component {
         value = value.map(data => this.blocks.blockFromJSON(data))
       }
     }
-    switch (argumentData.type) {
+    if (menu && menu[0] === '#') {
+      menu = `${this.category}.${menu.slice(1)}`
+    }
+    switch (type) {
       case ArgumentType.BRANCH:
         return new Stack(value)
       case ArgumentType.STRING:
-        return new StringInput(this.blocks, value)
+        return new StringInput(this.blocks, menu, value)
       case ArgumentType.NUMBER:
-        return new NumberInput(this.blocks, value)
+        return new NumberInput(this.blocks, menu, value)
       case ArgumentType.ANGLE:
-        return new AngleInput(this.blocks, value)
+        return new AngleInput(this.blocks, menu, value)
       case ArgumentType.BOOLEAN:
-        return new BooleanInput(this.blocks, value)
+        return new BooleanInput(this.blocks, menu, value)
       default:
-        return null
+        return menu
+          ? new Input(this.blocks, menu)
+          : null
     }
   }
 
@@ -222,6 +235,8 @@ class Block extends Component {
         suffix = 'Number'
       } else if (component instanceof BooleanInput) {
         suffix = 'Boolean'
+      } else if (component.menu) {
+        suffix = 'String'
       } else {
         return 0
       }
@@ -389,7 +404,7 @@ class Block extends Component {
 
   getReporterAnchorPoint () {
     return [
-      Input.renderOptions.reporterConnectionLeft * (this.blocks.dir === 'rtl' ? -1 : 1),
+      inputRenderOptions.reporterConnectionLeft * (this.blocks.dir === 'rtl' ? -1 : 1),
       this.measurements.height / 2
     ]
   }

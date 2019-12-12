@@ -8,7 +8,7 @@ import { BlockType, ArgumentType } from './constants.js'
 import { Stack, Script } from './scripts.js'
 import { Block, getIndicesOf } from './block.js'
 import { Space } from './component.js'
-import { Input } from './input.js'
+import { Input, renderOptions as inputRenderOptions } from './input.js'
 
 function getComponentFromIndices (indicesArray) {
   const [workspace, scriptIndex, ...indices] = indicesArray
@@ -50,6 +50,7 @@ class Blocks extends Newsletter {
       '_.delete': 'Delete',
       '_.help': 'Help'
     } }
+    this.menus = {}
     this.categories = {}
     for (const category of initCategories) {
       this.addCategory(category)
@@ -76,6 +77,7 @@ class Blocks extends Newsletter {
     id,
     name = `Category ${id}`,
     blocks = [],
+    menus = {},
     translationMap = {}
   }) {
     this.categories[id] = {}
@@ -94,6 +96,9 @@ class Blocks extends Newsletter {
             translation
           ])
       )
+    }
+    for (const [menuID, list] of Object.entries(menus)) {
+      this.menus[`${id}.${menuID}`] = list
     }
   }
 
@@ -514,7 +519,7 @@ class Blocks extends Newsletter {
         if (oldValue instanceof Block) {
           // NOTE: Scratch puts it on the right of the script, vertically
           // in the middle. (That is not done here)
-          const offset = Input.renderOptions.popOutOffset
+          const offset = inputRenderOptions.popOutOffset
           const { x, y } = oldValue.getWorkspaceOffset()
           undoEntry = {
             type: 'transfer',
@@ -666,7 +671,7 @@ Blocks.BlockType = BlockType
 Blocks.ArgumentType = ArgumentType
 
 Blocks.blockRenderOptions = Block.renderOptions
-Blocks.inputRenderOptions = Input.renderOptions
+Blocks.inputRenderOptions = inputRenderOptions
 Blocks.paletteRenderOptions = paletteRenderOptions
 
 export { Blocks }

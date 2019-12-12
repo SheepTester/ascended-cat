@@ -3,8 +3,52 @@ import { Elem } from '../utils/elem.js'
 import { Component, TextComponent } from './component.js'
 import { Block } from './block.js'
 
+const renderOptions = {
+  stringHorizPadding: 4,
+  stringVertPadding: 2,
+  stringHeight: 12,
+  numberHorizPadding: 4,
+  numberVertPadding: 2,
+  numberHeight: 12,
+  numberMinWidth: 8,
+  booleanHeight: 14,
+  booleanWidth: 30,
+  booleanSide: 7,
+  reporterConnectionLeft: 8,
+  popOutOffset: 10,
+  menuArrowWidth: 12, // size of hit area, not icon itself
+  menuArrowHeight: 12,
+  menuArrow: 'M-4 -2 H4 L0 2 z',
+  menuArrowPadding: 0
+}
+
+class MenuArrow extends Component {
+  constructor () {
+    super()
+    this.elem.classList.add('block-menu-arrow')
+
+    this._arrow = Elem('path', { class: 'block-menu-arrow-path' }, [], true)
+    this._back = Elem('path', { class: 'block-menu-arrow-hit-area' }, [], true)
+    this.elem.appendChild(this._back)
+    this.elem.appendChild(this._arrow)
+  }
+
+  reposition () {
+    const {
+      menuArrowWidth: width,
+      menuArrowHeight: height,
+      menuArrow
+    } = renderOptions
+    this._back.setAttributeNS(null, 'd',
+      `M${-width / 2} ${-height / 2} h${width} v${height} h${-width} z`)
+    this._arrow.setAttributeNS(null, 'd', menuArrow)
+    this.measurements = { width, height }
+    this.trigger('reposition', this.measurements)
+  }
+}
+
 class Input extends Component {
-  constructor (blocks, initValue, {
+  constructor (blocks, menu, initValue, {
     isEditable = false,
     isNumber = false
   } = {}) {
@@ -24,6 +68,19 @@ class Input extends Component {
     this.text = new TextComponent()
     this.text.elem.classList.add('block-input-value')
     this.add(this.text)
+
+    if (menu) {
+      this.menu = menu
+      this.elem.classList.add('block-menu')
+      this.menuArrow = new MenuArrow()
+      if (isEditable) {
+        blocks.onClick(this.menuArrow.elem, this._openMenu.bind(this))
+      } else {
+        blocks.onClick(this.elem, this._openMenu.bind(this))
+        this.elem.classList.add('block-only-menu')
+      }
+      this.add(this.menuArrow)
+    }
 
     if (initValue instanceof Block) {
       this.insertBlock(initValue)
@@ -74,7 +131,24 @@ class Input extends Component {
   }
 
   drawInputBack () {
-    return this.text.measurements
+    const dir = this.blocks.dir === 'rtl' ? -1 : 1
+    const {
+      stringHorizPadding: horizPadding,
+      stringVertPadding: vertPadding,
+      stringHeight: inputHeight,
+      menuArrowPadding
+    } = renderOptions
+    const { width } = this.text.measurements
+    this.text.setPosition((horizPadding + width / 2) * dir, vertPadding + inputHeight / 2)
+    let totalWidth = width + horizPadding * 2
+    if (this.menu) {
+      const { width } = this.menuArrow.measurements
+      totalWidth += menuArrowPadding + width
+      this.menuArrow.setPosition((totalWidth - width / 2) * dir, vertPadding + inputHeight / 2)
+    }
+    const path = `M0 0 H${totalWidth * dir} V${inputHeight + vertPadding * 2} H0 z`
+    this.path.setAttributeNS(null, 'd', path)
+    return { width: totalWidth, height: inputHeight + vertPadding * 2 }
   }
 
   _onClick () {
@@ -144,6 +218,9 @@ class Input extends Component {
     input.value = this.displayValue(true)
     input.setSelectionRange(0, input.value.length)
     this.elem.classList.add('block-input-open')
+    if (this.menu) {
+      input.classList.add('block-menu')
+    }
   }
 
   onInputHide (input) {
@@ -166,6 +243,10 @@ class Input extends Component {
     }
   }
 
+  _openMenu () {
+    console.log('open menu');
+  }
+
   canAcceptBlock (block) {
     return true
   }
@@ -174,7 +255,7 @@ class Input extends Component {
     const arr = []
     if (this.canAcceptBlock(block)) {
       arr.push([
-        Input.renderOptions.reporterConnectionLeft,
+        renderOptions.reporterConnectionLeft,
         this.measurements.height / 2,
         this
       ])
@@ -187,46 +268,20 @@ class Input extends Component {
 
   destroy () {
     this.blocks.removeListeners(this.elem)
+    if (this.menuArrow) {
+      this.blocks.removeListeners(this.menuArrow.elem)
+    }
     super.destroy()
   }
 }
 
-Input.renderOptions = {
-  stringHorizPadding: 4,
-  stringVertPadding: 2,
-  stringHeight: 12,
-  numberHorizPadding: 4,
-  numberVertPadding: 2,
-  numberHeight: 12,
-  numberMinWidth: 8,
-  booleanHeight: 14,
-  booleanWidth: 30,
-  booleanSide: 7,
-  reporterConnectionLeft: 8,
-  popOutOffset: 10
-}
-
 class StringInput extends Input {
-  constructor (blocks, initValue) {
-    super(blocks, initValue, {
+  constructor (blocks, menu, initValue) {
+    super(blocks, menu, initValue, {
       isEditable: true
     })
 
     this.elem.classList.add('block-string-input')
-  }
-
-  drawInputBack () {
-    const dir = this.blocks.dir === 'rtl' ? -1 : 1
-    const {
-      stringHorizPadding: horizPadding,
-      stringVertPadding: vertPadding,
-      stringHeight: inputHeight
-    } = super.constructor.renderOptions
-    const { width } = this.text.measurements
-    this.text.setPosition((horizPadding + width / 2) * dir, vertPadding + inputHeight / 2)
-    const path = `M0 0 H${(width + horizPadding * 2) * dir} V${inputHeight + vertPadding * 2} H0 z`
-    this.path.setAttributeNS(null, 'd', path)
-    return { width: width + horizPadding * 2, height: inputHeight + vertPadding * 2 }
   }
 
   onInputShow (input) {
@@ -241,8 +296,8 @@ class StringInput extends Input {
 }
 
 class NumberInput extends Input {
-  constructor (blocks, initValue) {
-    super(blocks, initValue, {
+  constructor (blocks, menu, initValue) {
+    super(blocks, menu, initValue, {
       isEditable: true,
       isNumber: true
     })
@@ -260,18 +315,25 @@ class NumberInput extends Input {
       numberHorizPadding: horizPadding,
       numberVertPadding: vertPadding,
       numberHeight: inputHeight,
-      numberMinWidth: minWidth
-    } = super.constructor.renderOptions
+      numberMinWidth: minWidth,
+      menuArrowPadding
+    } = renderOptions
     const width = Math.max(this.text.measurements.width, minWidth)
     const radius = vertPadding + inputHeight / 2
     this.text.setPosition((horizPadding + width / 2) * dir, radius)
+    let totalWidth = width + horizPadding * 2
+    if (this.menu) {
+      const { width } = this.menuArrow.measurements
+      totalWidth += menuArrowPadding + width
+      this.menuArrow.setPosition((totalWidth - width / 2) * dir, radius)
+    }
     const curveHeader = this.blocks.dir === 'rtl'
       ? `a${radius} ${radius} 0 0 0`
       : `a${radius} ${radius} 0 0 1`
     const path = `M${radius * dir} ${radius * 2} ${curveHeader} 0 ${-radius * 2}` +
-      `H${(width + horizPadding * 2 - radius) * dir} ${curveHeader} 0 ${radius * 2} z`
+      `H${(totalWidth - radius) * dir} ${curveHeader} 0 ${radius * 2} z`
     this.path.setAttributeNS(null, 'd', path)
-    return { width: width + horizPadding * 2, height: radius * 2 }
+    return { width: totalWidth, height: radius * 2 }
   }
 
   onInputShow (input) {
@@ -286,8 +348,8 @@ class NumberInput extends Input {
 }
 
 class AngleInput extends NumberInput {
-  constructor (blocks, initValue) {
-    super(blocks, initValue)
+  constructor (blocks, menu, initValue) {
+    super(blocks, menu, initValue)
 
     this.elem.classList.add('block-angle-input')
   }
@@ -298,8 +360,8 @@ class AngleInput extends NumberInput {
 }
 
 class BooleanInput extends Input {
-  constructor (blocks, initValue) {
-    super(blocks, initValue)
+  constructor (blocks, menu, initValue) {
+    super(blocks, menu, initValue)
     this.elem.classList.add('block-boolean-input')
   }
 
@@ -309,7 +371,7 @@ class BooleanInput extends Input {
       booleanHeight: height,
       booleanWidth: width,
       booleanSide: side
-    } = super.constructor.renderOptions
+    } = renderOptions
     const path = `M0 ${height / 2} L${side * dir} 0 H${(width - side) * dir} L${width * dir} ${height / 2}` +
       `L${(width - side) * dir} ${height} H${side * dir} z`
     this.path.setAttributeNS(null, 'd', path)
@@ -317,4 +379,11 @@ class BooleanInput extends Input {
   }
 }
 
-export { Input, StringInput, NumberInput, AngleInput, BooleanInput }
+export {
+  Input,
+  StringInput,
+  NumberInput,
+  AngleInput,
+  BooleanInput,
+  renderOptions
+}

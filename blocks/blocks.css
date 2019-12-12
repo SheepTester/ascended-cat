@@ -93,6 +93,9 @@
 }
 
 /* input */
+.block-menu-arrow-hit-area {
+  fill: none;
+}
 .block-input-has-block > .block-input-back,
 .block-input-has-block > .block-input-value {
   visibility: hidden;

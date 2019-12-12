@@ -122,6 +122,11 @@
       .block-boolean-input > .block-input-value {
         visibility: hidden;
       }
+      .block-only-menu > .block-input-back {
+        fill: rgba(0, 0, 0, 0.1);
+        stroke: rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+      }
       .block-input:focus {
         outline: none;
         box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
@@ -132,6 +137,20 @@
       .block-number-input {
         padding: 2px 0;
         border-radius: 20px;
+      }
+      .block-menu-arrow {
+        cursor: pointer;
+      }
+      .block-menu-arrow-path {
+        fill: rgba(0, 0, 0, 0.7);
+      }
+      .block-menu {
+        padding-right: 12px;
+      }
+      /* Or :dir(rtl)? */
+      [dir=rtl] .block-menu {
+        padding-right: 0;
+        padding-left: 12px;
       }
 
       .block-category {
@@ -204,7 +223,6 @@ const specA = {
           menu: '#numbers'
         },
         AQUELLOS: {
-          type: Blocks.ArgumentType.STRING,
           menu: 'test'
         }
       }
