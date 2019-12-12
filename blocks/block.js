@@ -141,7 +141,7 @@ class Block extends Component {
         value = value.map(data => this.blocks.blockFromJSON(data))
       }
     }
-    if (menu && menu[0] === '#') {
+    if (typeof menu === 'string' && menu[0] === '#') {
       menu = `${this.category}.${menu.slice(1)}`
     }
     switch (type) {

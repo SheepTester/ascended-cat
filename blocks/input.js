@@ -1,4 +1,5 @@
 import { Elem } from '../utils/elem.js'
+import { contextMenu } from '../utils/context-menu.js'
 
 import { Component, TextComponent } from './component.js'
 import { Block } from './block.js'
@@ -244,7 +245,22 @@ class Input extends Component {
   }
 
   _openMenu () {
-    console.log('open menu');
+    const entry = typeof this.menu === 'string'
+      ? this.blocks.menus[this.menu]
+      : this.menu
+    const menu = Array.isArray(entry) ? entry : entry()
+    const { x, y } = this.getWorkspaceOffset()
+    const workspace = this.getWorkspace()
+    const { x: workspaceX, y: workspaceY } = workspace.rect
+    const { left, top } = workspace.transform
+    contextMenu(
+      menu.map(label => ({ label, fn: () => {
+        this.setValueFromUserInput(label)
+      } })),
+      workspaceX - left + x,
+      workspaceY - top + y + this.measurements.height,
+      this.blocks.dir === 'rtl'
+    )
   }
 
   canAcceptBlock (block) {
@@ -306,7 +322,10 @@ class NumberInput extends Input {
   }
 
   setValueFromUserInput (userInput, preventUpdate) {
-    return this.setValue(+userInput.replace(/,/g, '.') || 0, preventUpdate)
+    const num = typeof userInput === 'number'
+      ? userInput
+      : +userInput.replace(/,/g, '.')
+    return this.setValue(Number.isNaN(num) ? 0 : num, preventUpdate)
   }
 
   drawInputBack () {

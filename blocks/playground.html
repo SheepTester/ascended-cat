@@ -27,6 +27,10 @@
         font-size: 14px;
         border: 1px solid rgba(255, 255, 255, 0.3);
       }
+      #controls button:disabled {
+        border-color: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+      }
       .palette-wrapper {
         display: flex;
         flex-direction: column;
@@ -125,10 +129,16 @@
       .block-boolean-input > .block-input-value {
         visibility: hidden;
       }
+      .block-only-menu {
+        cursor: pointer;
+      }
+      .block-only-menu > .block-text-component {
+        text-shadow: 0 0 2px black;
+        fill: white;
+      }
       .block-only-menu > .block-input-back {
         fill: rgba(0, 0, 0, 0.1);
         stroke: rgba(0, 0, 0, 0.2);
-        cursor: pointer;
       }
       .block-input:focus {
         outline: none;
@@ -143,6 +153,7 @@
       }
       .block-menu-arrow {
         cursor: pointer;
+        pointer-events: visible;
       }
       .block-menu-arrow-path {
         fill: rgba(0, 0, 0, 0.7);
@@ -379,7 +390,7 @@ const specA = {
     numbers: () => {
       const arr = []
       for (let i = 0; i < 10; i++) {
-        arr.push(i)
+        arr.push(Math.random() * 100 | 0)
       }
       return arr
     }
