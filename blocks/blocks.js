@@ -44,14 +44,16 @@ class Blocks extends Newsletter {
 
     this._language = null
     this._dir = 'ltr'
-    this.translations = { default: {
-      '_.undefinedBlock': '???',
-      '_.duplicate': 'Duplicate',
-      '_.delete': 'Delete',
-      '_.addComment': 'Add comment',
-      '_.help': 'Help',
-      '_.paramPlaceholder': '_'
-    } }
+    this.translations = {
+      default: {
+        '_.undefinedBlock': '???',
+        '_.duplicate': 'Duplicate',
+        '_.delete': 'Delete',
+        '_.addComment': 'Add comment',
+        '_.help': 'Help',
+        '_.paramPlaceholder': '_'
+      }
+    }
     this.menus = {}
     this.categories = {}
     for (const category of initCategories) {

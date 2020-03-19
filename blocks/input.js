@@ -255,9 +255,12 @@ class Input extends Component {
       offsetY + this.measurements.height
     )
     contextMenu(
-      menu.map(label => ({ label, fn: () => {
-        this.setValueFromUserInput(label)
-      } })),
+      menu.map(label => ({
+        label,
+        fn: () => {
+          this.setValueFromUserInput(label)
+        }
+      })),
       x,
       y,
       this.blocks.dir === 'rtl'
